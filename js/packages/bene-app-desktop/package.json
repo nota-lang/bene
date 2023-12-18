@@ -1,0 +1,14 @@
+{
+  "name": "bene-app-desktop",
+  "version": "0.1.0",
+  "depot": {
+    "platform": "browser"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.5.8",
+    "jsdom": "^23.0.1",
+    "normalize.css": "^8.0.1",
+    "@tauri-apps/api": "^1.5.2",
+    "solid-js": "^1.8.7"
+  }
+}

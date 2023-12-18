@@ -1,0 +1,9 @@
+{
+  "name": "js",
+  "validation": {
+    "invalidLink": true,
+    "notExported": true
+  },
+  "entryPointStrategy": "packages",
+  "entryPoints": []
+}

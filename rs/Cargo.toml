@@ -1,0 +1,12 @@
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+ 
+[workspace.dependencies]
+anyhow = { version = "1.0.75", features = ["backtrace"] }
+tokio = { version = "1.35.0", default-features = false }
+serde = { version = "1.0.193", features = ["derive"] }
+log = "0.4.20"
+specta = "=2.0.0-rc.7"
+futures = "0.3.29"
+mediatype = "0.19.16"
