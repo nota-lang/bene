@@ -8,10 +8,11 @@ repository = ""
 edition = "2021"
 
 [build-dependencies]
-tauri-build = { version = "1.5", features = [] }
+tauri-build = { version = "2.0.0-alpha", features = [] }
 
 [dependencies]
-tauri = { version = "1.5", features = ["shell-open"] }
+tauri = { version = "=2.0.0-alpha.18", features = [] }
+tauri-runtime-wry = "=1.0.0-alpha.6" # hack to make tauri RC compile. remove when possible
 serde = { workspace = true }
 serde_json = "1.0"
 clap = { version = "4.4.11", features = ["derive"] }
@@ -22,10 +23,13 @@ anyhow = { workspace = true }
 log = { workspace = true }
 futures = { workspace = true }
 specta = { workspace = true }
-tauri-specta = { version = "=2.0.0-rc.4", features = ["javascript", "typescript"] }
-mediatype = { workspace = true }
+tauri-specta = { git = "https://github.com/oscartbeaumont/tauri-specta", branch = "tauri2-alpha18", features = ["javascript", "typescript"] }
+quick-xml = { workspace = true }
+mime_guess = "2.0.4"
+reqwest = "0.11.23"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem
 # DO NOT REMOVE!!
 custom-protocol = ["tauri/custom-protocol"]
+

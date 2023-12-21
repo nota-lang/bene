@@ -5,10 +5,10 @@
     "platform": "browser"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^1.5.8",
+    "@tauri-apps/cli": "^2.0.0-alpha.18",
     "jsdom": "^23.0.1",
     "normalize.css": "^8.0.1",
-    "@tauri-apps/api": "^1.5.2",
+    "@tauri-apps/api": "^2.0.0-alpha.12",
     "solid-js": "^1.8.7"
   }
 }

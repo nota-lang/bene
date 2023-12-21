@@ -7,6 +7,6 @@
     "skipLibCheck": true,
     "strict": true,
     "jsx": "preserve",
-    "jsxImportSource": "solid-js"
+    "jsxImportSource": "solid-js",    
   }
 }

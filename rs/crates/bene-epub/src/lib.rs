@@ -3,10 +3,9 @@ use std::path::Path;
 use anyhow::{Context, Result};
 use futures::future::try_join_all;
 use log::debug;
-use mediatype::MediaType;
 use serde::{Deserialize, Serialize};
 
-pub use zip::{Archive, ArchiveFormat, FileContents, FileZip, MemoryZip};
+pub use zip::{Archive, ArchiveFormat, FileZip, MemoryZip};
 
 mod zip;
 
@@ -80,17 +79,13 @@ pub struct Rendition {
 }
 
 impl Rendition {
-  pub async fn load(archive: Archive, rootfile: &Rootfile) -> Result<Self> {
+  pub async fn load(archive: &mut Archive, rootfile: &Rootfile) -> Result<Self> {
     let root = Path::new(&rootfile.full_path)
       .parent()
       .unwrap()
       .display()
       .to_string();
-    let media_type = MediaType::parse(&rootfile.media_type)?;
-    let package_str = archive
-      .read_file(&rootfile.full_path, media_type)
-      .await?
-      .unwrap_unicode();
+    let package_str = String::from_utf8(archive.read_file(&rootfile.full_path).await?)?;
     let package: Package =
       quick_xml::de::from_str(&package_str).context("Failed to parse package XML file")?;
     debug!("Package: {package:#?}");
@@ -109,24 +104,6 @@ impl Rendition {
   pub fn file_path(&self, path: &str) -> String {
     format!("{}/{path}", self.root)
   }
-
-  // pub async fn load_asset(&self, path: String) -> Option<AssetResponse> {
-  //   let media_type = MediaType::parse("application/octet-stream").unwrap();
-  //   let contents = match self.load_file(&path, media_type).await {
-  //     Ok(contents) => contents,
-  //     Err(e) => {
-  //       warn!("Failed to load asset with error {}", e);
-  //       return None;
-  //     }
-  //   };
-
-  //   let response = Response::builder()
-  //     .header("Content-Type", "application/octet-stream")
-  //     .body(Cow::from(contents.unwrap_binary()))
-  //     .unwrap();
-
-  //   Some(response)
-  // }
 }
 
 #[derive(Serialize, Deserialize, Debug, specta::Type, Clone)]
@@ -155,23 +132,17 @@ pub struct Epub {
   pub renditions: Vec<Rendition>,
 }
 
-const XML_MEDIATYPE: MediaType<'_> =
-  MediaType::new(mediatype::names::APPLICATION, mediatype::names::XML);
-
 impl Epub {
-  pub async fn load(archive: &Archive) -> Result<Self> {
-    let container_str = archive
-      .read_file("META-INF/container.xml", XML_MEDIATYPE)
-      .await?
-      .unwrap_unicode();
+  pub async fn load(archive: &mut Archive) -> Result<Self> {
+    let container_str = String::from_utf8(archive.read_file("META-INF/container.xml").await?)?;
     let container: Container =
       quick_xml::de::from_str(&container_str).context("Failed to parse container.xml")?;
     debug!("Container: {container:#?}");
 
     let rendition_futures = container.rootfiles.rootfiles.iter().map(|rootfile| async {
-      let archive = archive.try_clone().await?;
+      let mut archive = archive.try_clone().await?;
       let rootfile = rootfile.clone();
-      tokio::spawn(async move { Rendition::load(archive, &rootfile).await })
+      tokio::spawn(async move { Rendition::load(&mut archive, &rootfile).await })
         .await
         .unwrap()
     });

@@ -12,11 +12,10 @@ anyhow = { workspace = true }
 async_zip = { version = "0.0.15", features = ["tokio"] }
 itertools = "0.12.0"
 log = { workspace = true }
-mediatype = { workspace = true, features = ["serde"] }
 serde = { workspace = true }
 tokio = { workspace = true, features = ["sync"] }
 tokio-util = "0.7.10"
-quick-xml = { version = "0.31.0", features = ["async-tokio", "serialize"] }
+quick-xml = { workspace = true, features = ["async-tokio", "serialize"] }
 async-trait = "0.1.74"
 specta = { workspace = true }
 futures = { workspace = true }
