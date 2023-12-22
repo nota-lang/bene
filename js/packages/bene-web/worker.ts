@@ -20,8 +20,8 @@ globalSelf.addEventListener("activate", async _event => {
 
 globalSelf.addEventListener("fetch", event => {
   let url = new URL(event.request.url);
-  if (currentEpub && url.pathname.startsWith("/epub")) {
-    let path = url.pathname.slice("/epub/".length);
+  if (currentEpub && url.pathname.startsWith("/epub-content")) {    
+    let path = url.pathname.slice("/epub-content/".length);
     let contents = currentEpub.read_file(path);
     event.respondWith(new Response(contents));
   }

@@ -1,4 +1,5 @@
 import fs from "fs-extra";
+import path from "path";
 import { Plugin, defineConfig } from "vite";
 import solidPlugin from "vite-plugin-solid";
 import topLevelAwait from "vite-plugin-top-level-await";
@@ -10,6 +11,15 @@ let copyBeneReaderPlugin: Plugin = {
     let intvl = setInterval(() => {
       if (fs.pathExistsSync("node_modules/bene-reader/dist/index.html")) {
         fs.copy("node_modules/bene-reader/dist", "dist/bene-reader");
+        const ZIPS = [
+          "PLAI-3-2-2.epub",
+          "epub3-samples/wasteland.epub",
+          "epub3-samples/moby-dick.epub",
+        ];
+        for (let zip of ZIPS) {
+          fs.copy(`../../../epubs/${zip}`, `dist/epubs/${path.basename(zip)}`);
+        }
+
         clearInterval(intvl);
       }
     }, 100);
@@ -28,7 +38,7 @@ export default defineConfig(({ mode }) => ({
       inline: [/^(?!.*vitest).*$/],
     },
   },
-  worker: {    
+  worker: {
     rollupOptions: {
       output: {
         file: "dist/worker.js",

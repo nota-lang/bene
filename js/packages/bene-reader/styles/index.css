@@ -3,10 +3,12 @@
 .epub {
   width: 100dvw;
   height: 100dvh;
-  display: flex;
+  display: flex;  
   position: absolute;
   left: 0;
   top: 0;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 iframe {
@@ -15,8 +17,13 @@ iframe {
 
 .epub-nav {
   width: 400px;
+  border: 1px solid #aaa;
+  min-height: min(400px, 100dvh);
 }
 
 .epub-content {
-  width: 100%;
+  min-width: min(400px, 100dvw);
+  max-width: 100%;
+  min-height: min(800px, 100dvh);
+  flex: 1;
 }

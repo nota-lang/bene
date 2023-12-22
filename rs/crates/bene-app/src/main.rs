@@ -6,7 +6,7 @@ use std::{borrow::Cow, path::PathBuf, sync::Arc};
 use anyhow::{Context, Result};
 use bene_epub::{Archive, Epub, FileZip};
 use clap::Parser;
-use log::{warn, info};
+use log::warn;
 use tauri::{http, App, AppHandle, Manager};
 use tokio::{runtime::Handle, sync::Mutex, task::JoinHandle};
 
@@ -31,22 +31,6 @@ async fn epub(window: tauri::Window, handle: tauri::State<'_, EpubCell>) -> Resu
     }
   }
 }
-
-// fn process_html(src: &str) -> Result<String> {
-//   let mut reader = quick_xml::Reader::from_str(src);
-//   let mut output: Vec<u8> = Vec::new();
-
-//   loop {
-//     match reader.read_event()? {
-//       Event::Text(text) => output.extend(text.into_iter()),
-//       Event::Start(start) => start.name(),
-//       Event::Eof => break,
-//       _ => {}
-//     }
-//   }
-
-//   Ok(String::new())
-// }
 
 #[derive(Parser)]
 struct CliArgs {
@@ -79,7 +63,7 @@ async fn serve_asset(
   request: http::Request<Vec<u8>>,
 ) -> http::Response<Cow<'static, [u8]>> {
   let path = request.uri().path();
-  let (result, path) = match path.strip_prefix("/epub/") {
+  let (result, path) = match path.strip_prefix("/epub-content/") {
     Some(epub_path) => (load_epub_asset(archive, epub_path).await, epub_path),
     None => (load_reader_asset(app, path).await, path),
   };
@@ -164,17 +148,3 @@ async fn main() -> Result<()> {
 
   Ok(())
 }
-
-// #[test]
-// fn ok() {
-//   process_html(
-//     r#"
-// <!DOCTYPE html>
-// <html lang="en">
-//   <head></head>
-//   <body></body>
-// </html>
-// "#,
-//   )
-//   .unwrap();
-// }

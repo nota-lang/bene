@@ -1,10 +1,43 @@
 @import "normalize.css/normalize.css";
 
+:root {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-size: 18px;
+}
+
+body {
+  padding: 1rem;
+}
+
+h1 {
+  margin: 0 0 0.5rem 0;
+}
+
 iframe {
   border: 1px solid #eee;
-  width: 80dvw;
+  width: min(calc(100dvw - 2rem), 1000px);
   height: 80dvh;
-  position: absolute;
-  left: 0;
-  top: 0;
+}
+
+.controls {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.provided-epub {
+  width: 300px;
+}
+
+.custom-epub {
+  display: inline-block;
+  width: 175px;
+  height: 50px;
+  background: #eee;
+  border: 1px dashed #aaa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
