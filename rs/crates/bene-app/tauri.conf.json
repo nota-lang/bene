@@ -1,8 +1,8 @@
 {
   "build": {
-    "beforeBuildCommand": "depot build",
-    "devPath": "http://localhost:5173",
-    "distDir": "../js/packages/bene-app/dist"
+    "beforeBuildCommand": "cd ../../js && depot -p bene-desktop build",
+    "devPath": "../../../js/packages/bene-desktop/dist",
+    "distDir": "../../../js/packages/bene-desktop/dist"
   },
   "package": {
     "productName": "Bene",
@@ -35,8 +35,7 @@
         "height": 1200,
         "resizable": true,
         "title": "Bene Reader",
-        "width": 1200,
-        "url": "bene://localhost:5173"
+        "width": 1200
       }
     ]
   }

@@ -1,14 +1,5 @@
-import { invoke } from "@tauri-apps/api/primitives";
-import {
-  Component,
-  Resource,
-  createResource,
-  createSignal,
-  onMount,
-} from "solid-js";
+import { createResource, createSignal, onMount } from "solid-js";
 import { render } from "solid-js/web";
-
-import "../styles/index.css";
 
 // import { Rendition, commands } from "./bindings";
 
@@ -16,9 +7,7 @@ type Result<T, E> = { status: "ok"; data: T } | { status: "error"; error: E };
 // type Epub = { renditions: Rendition[] };
 
 let epubUrl = (rendition: any, href: string) =>
-  `bene://localhost:5173/epub/${
-    rendition.root ? rendition.root + "/" : ""
-  }${href}`;
+  `/epub/${rendition.root ? rendition.root + "/" : ""}${href}`;
 
 function EpubView({ data }: { data: /*Epub*/ any }) {
   let [renditionIndex] = createSignal(0);
@@ -59,7 +48,9 @@ function EpubView({ data }: { data: /*Epub*/ any }) {
           "tagName" in event.target &&
           event.target.tagName == "a"
         ) {
-          contentIframe!.contentWindow!.location.href = event.target.href;
+          contentIframe!.contentWindow!.location.href = (
+            event.target as any
+          ).href;
         }
       });
     });
@@ -67,14 +58,28 @@ function EpubView({ data }: { data: /*Epub*/ any }) {
 
   return (
     <div class="epub">
-      <iframe ref={contentIframe} class="epub-content" src={chapterUrl()} />
       <iframe ref={navIframe} class="epub-nav" src={navUrl()} />
+      <iframe ref={contentIframe} class="epub-content" src={chapterUrl()} />
     </div>
   );
 }
 
 function App() {
-  let [epubResource] = createResource(async () => await invoke("epub", {}));
+  // TODO: make it so you it rerenders new epub when getting another msg
+  let [epubResource] = createResource(
+    () =>
+      new Promise<any>((resolve, reject) => {
+        window.addEventListener("message", event => {
+          let message = event.data;
+          console.log("Child received message", message);
+          if (message.type == "loaded-epub") {
+            if (message.data.status == "ok") resolve(message.data.data);
+            else reject(message.data.error);
+          }
+        });
+        window.parent.postMessage({ type: "load-epub" }, "*");
+      })
+  );
   return (
     <>
       {epubResource.loading ? (

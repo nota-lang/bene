@@ -1,0 +1,22 @@
+@import "normalize.css/normalize.css";
+
+.epub {
+  width: 100dvw;
+  height: 100dvh;
+  display: flex;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+iframe {
+  border: none;
+}
+
+.epub-nav {
+  width: 400px;
+}
+
+.epub-content {
+  width: 100%;
+}

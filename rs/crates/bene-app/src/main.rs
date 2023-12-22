@@ -6,7 +6,7 @@ use std::{borrow::Cow, path::PathBuf, sync::Arc};
 use anyhow::{Context, Result};
 use bene_epub::{Archive, Epub, FileZip};
 use clap::Parser;
-use log::warn;
+use log::{warn, info};
 use tauri::{http, App, AppHandle, Manager};
 use tokio::{runtime::Handle, sync::Mutex, task::JoinHandle};
 
@@ -63,42 +63,38 @@ fn guess_mime_type(path: &str) -> String {
   }
 }
 
+async fn load_reader_asset(app: &AppHandle, path: &str) -> Result<Vec<u8>> {
+  let path = format!("{}/bene-reader{path}", app.config().build.dist_dir);
+  Ok(tokio::fs::read(path).await?)
+}
+
+async fn load_epub_asset(archive: &Arc<Mutex<Archive>>, path: &str) -> Result<Vec<u8>> {
+  let mut archive = archive.lock().await;
+  archive.read_file(path).await
+}
+
 async fn serve_asset(
-  _app: &AppHandle,
+  app: &AppHandle,
   archive: &Arc<Mutex<Archive>>,
   request: http::Request<Vec<u8>>,
 ) -> http::Response<Cow<'static, [u8]>> {
   let path = request.uri().path();
-  match path.strip_prefix("/epub/") {
-    Some(epub_path) => {
-      log::debug!("Received EPUB request for {epub_path}");
-      let mut archive = archive.lock().await;
-      match archive.read_file(epub_path).await {
-        Ok(contents) => http::Response::builder()
-          .status(http::StatusCode::OK)
-          .header("Content-Type", guess_mime_type(epub_path))
-          .body(Cow::Owned(contents))
-          .unwrap(),
-        Err(e) => {
-          warn!("Failed to read asset {epub_path} with error {e}");
-          http::Response::builder()
-            .status(http::StatusCode::NOT_FOUND)
-            .body(Cow::Owned(vec![]))
-            .unwrap()
-        }
-      }
-    }
-    None => {
-      log::debug!("Received top-level request for {path}");
-
-      // TODO: THIS WILL NOT WORK IN PRODUCTION
-      let new_path = format!("http://localhost:5173{path}");
-      let reqwest_response = reqwest::get(new_path).await.unwrap();
-      let mut http_response = http::Response::builder();
-      let headers = http_response.headers_mut().unwrap();
-      *headers = reqwest_response.headers().clone();
-      let body = reqwest_response.bytes().await.unwrap();
-      http_response.body(Cow::Owned(body.into())).unwrap()
+  let (result, path) = match path.strip_prefix("/epub/") {
+    Some(epub_path) => (load_epub_asset(archive, epub_path).await, epub_path),
+    None => (load_reader_asset(app, path).await, path),
+  };
+  match result {
+    Ok(contents) => http::Response::builder()
+      .status(http::StatusCode::OK)
+      .header("Content-Type", guess_mime_type(path))
+      .body(Cow::Owned(contents))
+      .unwrap(),
+    Err(e) => {
+      warn!("Failed to read asset {path} with error {e}");
+      http::Response::builder()
+        .status(http::StatusCode::NOT_FOUND)
+        .body(Cow::Owned(vec![]))
+        .unwrap()
     }
   }
 }
@@ -138,7 +134,7 @@ async fn main() -> Result<()> {
 
   //   #[cfg(debug_assertions)] // Only export on non-release builds
   //   let specta_builder =
-  //     specta_builder.path("../../../js/packages/bene-app-desktop/src/bindings.ts");
+  //     specta_builder.path("../../../js/packages/bene-desktop/src/bindings.ts");
 
   //   specta_builder.into_plugin()
   // };

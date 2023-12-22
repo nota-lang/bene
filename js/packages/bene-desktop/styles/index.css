@@ -1,0 +1,10 @@
+@import "normalize.css/normalize.css";
+
+iframe {
+  border: none;
+  width: 100dvw;
+  height: 100dvh;
+  position: absolute;
+  left: 0;
+  top: 0;
+}

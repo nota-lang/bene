@@ -13,7 +13,7 @@ async_zip = { version = "0.0.15", features = ["tokio"] }
 itertools = "0.12.0"
 log = { workspace = true }
 serde = { workspace = true }
-tokio = { workspace = true, features = ["sync"] }
+tokio = { workspace = true, features = ["sync", "rt"] }
 tokio-util = "0.7.10"
 quick-xml = { workspace = true, features = ["async-tokio", "serialize"] }
 async-trait = "0.1.74"
