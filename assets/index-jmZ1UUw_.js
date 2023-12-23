@@ -824,7 +824,10 @@ function App() {
     let registration = await registerServiceWorker(iframe.contentWindow.postMessage);
     setNewEpub(() => (data) => registration.active.postMessage({
       type: "new-epub",
-      data
+      data: {
+        data,
+        scope: registration.scope
+      }
     }));
   });
   return (() => {
@@ -845,4 +848,4 @@ function App() {
   })();
 }
 render(() => createComponent(App, {}), document.getElementById("root"));
-//# sourceMappingURL=index-nUTo_4eb.js.map
+//# sourceMappingURL=index-jmZ1UUw_.js.map

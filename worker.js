@@ -286,6 +286,7 @@
   }
   let globalSelf = self;
   let currentEpub;
+  let currentScope;
   globalSelf.addEventListener("install", async (_event) => {
     console.log("Installed on service side.");
     await globalSelf.skipWaiting();
@@ -299,10 +300,10 @@
     installChannel.postMessage("installed");
   });
   globalSelf.addEventListener("fetch", (event) => {
-    const EPUB_PREFIX = "/bene-reader/epub-content/";
-    let url = new URL(event.request.url);
-    if (currentEpub && url.pathname.startsWith(EPUB_PREFIX)) {
-      let path = url.pathname.slice(EPUB_PREFIX.length);
+    const EPUB_PATH = "bene-reader/epub-content/";
+    let epubBaseUrl = currentScope + EPUB_PATH;
+    if (currentEpub && event.request.url.startsWith(epubBaseUrl)) {
+      let path = event.request.url.slice(epubBaseUrl.length);
       let contents = currentEpub.read_file(path);
       event.respondWith(new Response(contents));
     }
@@ -310,7 +311,9 @@
   globalSelf.addEventListener("message", async (event) => {
     let message = event.data;
     if (message.type == "new-epub") {
-      currentEpub = load_epub(message.data);
+      let { data, scope } = message.data;
+      currentEpub = load_epub(data);
+      currentScope = scope;
       let metadata = JSON.parse(currentEpub.metadata());
       let clients = await globalSelf.clients.matchAll();
       for (let client of clients) {
