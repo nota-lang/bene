@@ -729,9 +729,7 @@ async function registerServiceWorker(post) {
   let registrations = await navigator.serviceWorker.getRegistrations();
   await Promise.all(registrations.map((reg) => reg.unregister()));
   console.log("Unregistered service workers.");
-  let registration = await navigator.serviceWorker.register(workerUrl, {
-    scope: "/"
-  });
+  let registration = await navigator.serviceWorker.register(workerUrl);
   console.log("Registered worker, waiting for it to activate.", registration);
   await installedPromise;
   console.assert(registration.active !== null, "Service worker is not active?");
@@ -847,4 +845,4 @@ function App() {
   })();
 }
 render(() => createComponent(App, {}), document.getElementById("root"));
-//# sourceMappingURL=index-c6dEr_Vv.js.map
+//# sourceMappingURL=index-JH3juYIJ.js.map

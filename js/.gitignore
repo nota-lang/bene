@@ -1,5 +1,0 @@
-node_modules
-dist
-docs
-
-packages/bene-desktop/src/bindings.ts
