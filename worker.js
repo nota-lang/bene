@@ -299,9 +299,10 @@
     installChannel.postMessage("installed");
   });
   globalSelf.addEventListener("fetch", (event) => {
+    const EPUB_PREFIX = "/bene-reader/epub-content/";
     let url = new URL(event.request.url);
-    if (currentEpub && url.pathname.startsWith("/epub-content")) {
-      let path = url.pathname.slice("/epub-content/".length);
+    if (currentEpub && url.pathname.startsWith(EPUB_PREFIX)) {
+      let path = url.pathname.slice(EPUB_PREFIX.length);
       let contents = currentEpub.read_file(path);
       event.respondWith(new Response(contents));
     }

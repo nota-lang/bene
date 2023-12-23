@@ -615,7 +615,7 @@ function cleanChildren(parent, current, marker, replacement) {
   return [node];
 }
 const _tmpl$ = /* @__PURE__ */ template(`<div class=epub><iframe class=epub-nav></iframe><iframe class=epub-content>`), _tmpl$2 = /* @__PURE__ */ template(`<pre style=padding:5px>Waiting for epub...`), _tmpl$3 = /* @__PURE__ */ template(`<pre style=padding:5px>`);
-let epubUrl = (rendition, href) => `/epub-content/${rendition.root ? rendition.root + "/" : ""}${href}`;
+let epubUrl = (rendition, href) => `epub-content/${rendition.root ? rendition.root + "/" : ""}${href}`;
 function EpubView(props) {
   let [renditionIndex] = createSignal(0);
   let rendition = () => props.data.renditions[renditionIndex()];
@@ -698,4 +698,4 @@ function App() {
 window.addEventListener("load", () => {
   render(() => createComponent(App, {}), document.getElementById("root"));
 });
-//# sourceMappingURL=index-o--0K-eI.js.map
+//# sourceMappingURL=index-iyY7Fd16.js.map
