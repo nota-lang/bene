@@ -614,7 +614,7 @@ function cleanChildren(parent, current, marker, replacement) {
     parent.insertBefore(node, marker);
   return [node];
 }
-const _tmpl$ = /* @__PURE__ */ template(`<div class=epub><iframe class=epub-nav></iframe><iframe class=epub-content>`), _tmpl$2 = /* @__PURE__ */ template(`<pre style=padding:5px>Waiting for epub...`), _tmpl$3 = /* @__PURE__ */ template(`<pre style=padding:5px>`);
+const _tmpl$ = /* @__PURE__ */ template(`<div class=epub><iframe class=epub-nav referrerpolicy=no-referrer></iframe><iframe class=epub-content referrerpolicy=no-referrer>`), _tmpl$2 = /* @__PURE__ */ template(`<pre style=padding:5px>Waiting for epub...`), _tmpl$3 = /* @__PURE__ */ template(`<pre style=padding:5px>`);
 let epubUrl = (rendition, href) => `epub-content/${rendition.root ? rendition.root + "/" : ""}${href}`;
 function EpubView(props) {
   let [renditionIndex] = createSignal(0);
@@ -698,4 +698,4 @@ function App() {
 window.addEventListener("load", () => {
   render(() => createComponent(App, {}), document.getElementById("root"));
 });
-//# sourceMappingURL=index-iyY7Fd16.js.map
+//# sourceMappingURL=index-GCuam55h.js.map
