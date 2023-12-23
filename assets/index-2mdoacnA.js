@@ -720,7 +720,7 @@ function cleanChildren(parent, current, marker, replacement) {
   return [node];
 }
 const workerUrl = "" + new URL("../worker.js", import.meta.url).href;
-const _tmpl$ = /* @__PURE__ */ template(`<select class=provided-epub><option>Select an epub...`), _tmpl$2 = /* @__PURE__ */ template(`<option>`), _tmpl$3 = /* @__PURE__ */ template(`<div class=custom-epub>Drop an EPUB here`), _tmpl$4 = /* @__PURE__ */ template(`<div><h1>Bene Reader</h1><header class=controls></header><iframe src=bene-reader/index.html>`);
+const _tmpl$ = /* @__PURE__ */ template(`<select class=provided-epub><option>Select an epub...`), _tmpl$2 = /* @__PURE__ */ template(`<option>`), _tmpl$3 = /* @__PURE__ */ template(`<div class=custom-epub>Drop an EPUB here`), _tmpl$4 = /* @__PURE__ */ template(`<div><h1>Bene Reader</h1><header class=controls></header><iframe src=bene-reader/index.html referrerpolicy=no-referrer>`);
 async function registerServiceWorker(post) {
   let installChannel = new BroadcastChannel("install-channel");
   let installedPromise = new Promise((resolve) => {
@@ -848,4 +848,4 @@ function App() {
   })();
 }
 render(() => createComponent(App, {}), document.getElementById("root"));
-//# sourceMappingURL=index-jmZ1UUw_.js.map
+//# sourceMappingURL=index-2mdoacnA.js.map
