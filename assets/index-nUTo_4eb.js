@@ -762,7 +762,7 @@ const ZIPS = [{
 }];
 function ProvidedEpubs(props) {
   async function fetchZip(file) {
-    let response = await fetch(`/epubs/${file}`);
+    let response = await fetch(`epubs/${file}`);
     let buffer = await response.arrayBuffer();
     props.newEpub(new Uint8Array(buffer));
   }
@@ -845,4 +845,4 @@ function App() {
   })();
 }
 render(() => createComponent(App, {}), document.getElementById("root"));
-//# sourceMappingURL=index-JH3juYIJ.js.map
+//# sourceMappingURL=index-nUTo_4eb.js.map
