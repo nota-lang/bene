@@ -92,9 +92,6 @@ importers:
       normalize.css:
         specifier: ^8.0.1
         version: 8.0.1
-      rs-utils:
-        specifier: file:rs-utils/pkg
-        version: file:packages/bene-web/rs-utils/pkg
       solid-js:
         specifier: ^1.8.7
         version: 1.8.7
@@ -3174,9 +3171,4 @@ packages:
   /yocto-queue@1.0.0:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
-    dev: true
-
-  file:packages/bene-web/rs-utils/pkg:
-    resolution: {directory: packages/bene-web/rs-utils/pkg, type: directory}
-    name: rs-utils
     dev: true

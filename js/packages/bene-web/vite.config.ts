@@ -32,6 +32,11 @@ export default defineConfig(({ mode }) => ({
   define: {
     "process.env.NODE_ENV": JSON.stringify(mode),
   },
+  resolve: {
+    alias: {
+      "rs-utils": "./rs-utils/pkg"
+    }
+  },
   test: {
     environment: "jsdom",
     deps: {
