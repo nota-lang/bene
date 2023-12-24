@@ -1,6 +1,7 @@
 {
   "name": "bene-desktop",
   "version": "0.1.0",
+  "type": "module",
   "depot": {
     "platform": "browser",
     "no-server": true

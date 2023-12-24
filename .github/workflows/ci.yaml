@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "**"
+    tags-ignore:
+      - "v*"
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install wasm-pack
+        uses: baptiste0928/cargo-install@v2
+        with:
+          crate: wasm-pack
+
+      - name: Install Depot
+        run: curl https://raw.githubusercontent.com/cognitive-engineering-lab/depot/main/scripts/install.sh | sh
+
+      - name: Test frontend
+        run: depot test
+        working-directory: js
+
+      - name: Test backend
+        run: cargo test
+        working-directory: rs
+
+      - name: Build Wasm package
+        run: depot -p bene-web build
+        working-directory: js
+
+      - name: Deploy to Github Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: js/packages/bene-web/dist
