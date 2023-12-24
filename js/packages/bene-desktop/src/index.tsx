@@ -6,7 +6,8 @@ window.addEventListener("message", async event => {
 
   let message = event.data;
   console.log("Parent received message", message);
-  if (message.type == "load-epub") {
+
+  if (message.type == "ready") {
     let epubResult;
     try {
       let epub = await invoke("epub", {});
@@ -14,7 +15,6 @@ window.addEventListener("message", async event => {
     } catch (e: any) {
       epubResult = { status: "error", error: e.toString() };
     }
-
     readerWindow.postMessage({ type: "loaded-epub", data: epubResult }, "*");
   }
 });

@@ -13,9 +13,7 @@ async function registerServiceWorker(post: (data: any) => void) {
   await Promise.all(registrations.map(reg => reg.unregister()));
   console.log("Unregistered service workers.");
 
-  let registration = await navigator.serviceWorker.register(workerUrl, {
-    scope: "/",
-  });
+  let registration = await navigator.serviceWorker.register(workerUrl);
   console.log("Registered worker, waiting for it to activate.", registration);
 
   await installedPromise;
@@ -61,7 +59,7 @@ type NewEpubCallback = (data: Uint8Array) => void;
 
 function ProvidedEpubs(props: { newEpub: NewEpubCallback }) {
   async function fetchZip(file: string) {
-    let response = await fetch(`/epubs/${file}`);
+    let response = await fetch(`epubs/${file}`);
     let buffer = await response.arrayBuffer();
     props.newEpub(new Uint8Array(buffer));
   }
@@ -126,7 +124,10 @@ function App() {
       () => data =>
         registration.active!.postMessage({
           type: "new-epub",
-          data,
+          data: {
+            data,
+            scope: registration.scope,
+          },
         })
     );
   });
@@ -138,9 +139,14 @@ function App() {
         <ProvidedEpubs newEpub={newEpub()} />
         <CustomEpub newEpub={newEpub()} />
       </header>
-      <iframe ref={iframe} src="bene-reader/index.html" />
+      <iframe
+        ref={iframe}
+        src="bene-reader/index.html"
+        referrerPolicy="no-referrer"
+      />
     </div>
   );
+  // pick up from ehre: referrerPolicy for google fonts
 }
 
 render(() => <App />, document.getElementById("root")!);

@@ -7,7 +7,7 @@ import { render } from "solid-js/web";
 // type Epub = { renditions: Rendition[] };
 
 let epubUrl = (rendition: any, href: string) =>
-  `/epub-content/${rendition.root ? rendition.root + "/" : ""}${href}`;
+  `epub-content/${rendition.root ? rendition.root + "/" : ""}${href}`;
 
 function EpubView(props: { data: /*Epub*/ any }) {
   let [renditionIndex] = createSignal(0);
@@ -58,8 +58,18 @@ function EpubView(props: { data: /*Epub*/ any }) {
 
   return (
     <div class="epub">
-      <iframe ref={navIframe} class="epub-nav" src={navUrl()} />
-      <iframe ref={contentIframe} class="epub-content" src={chapterUrl()} />
+      <iframe
+        ref={navIframe}
+        class="epub-nav"
+        src={navUrl()}
+        referrerPolicy="no-referrer"
+      />
+      <iframe
+        ref={contentIframe}
+        class="epub-content"
+        src={chapterUrl()}
+        referrerPolicy="no-referrer"
+      />
     </div>
   );
 }
