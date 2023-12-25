@@ -275,7 +275,7 @@
     if (wasm !== void 0)
       return wasm;
     if (typeof input === "undefined") {
-      input = new URL("" + new URL("assets/rs_utils_bg-VTT_SgYa.wasm", self.location.href).href, self.location.href);
+      input = new URL("" + new URL("assets/rs_utils_bg-tDmCqLNu.wasm", self.location.href).href, self.location.href);
     }
     const imports = __wbg_get_imports();
     if (typeof input === "string" || typeof Request === "function" && input instanceof Request || typeof URL === "function" && input instanceof URL) {
