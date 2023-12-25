@@ -30,6 +30,9 @@ jobs:
       - name: Install Depot
         run: curl https://raw.githubusercontent.com/cognitive-engineering-lab/depot/main/scripts/install.sh | sh
 
+      - name: Install system dependencies
+        run: sudo apt-get install -y libgtk-3-dev libjavascriptcoregtk-4.1-dev libsoup-3.0-dev libwebkit2gtk-4.1-dev
+
       - name: Test frontend
         run: depot test
         working-directory: js
