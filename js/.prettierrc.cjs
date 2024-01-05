@@ -4,6 +4,7 @@ module.exports = {
   importOrder: ["<THIRD_PARTY_MODULES>", "^[./]"],
   importOrderSeparation: true,
   importOrderSortSpecifiers: true,
-  parser: "typescript",
+  importOrderParserPlugins: ["typescript", "decorators-legacy", "jsx"],
+  parser: "typescript",  
   plugins: [require("@trivago/prettier-plugin-sort-imports")],
 };

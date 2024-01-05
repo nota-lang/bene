@@ -1,3 +1,4 @@
+import componentScriptUrl from "bene-components?url";
 import { createSignal, onMount } from "solid-js";
 import { render } from "solid-js/web";
 
@@ -54,6 +55,14 @@ function EpubView(props: { data: /*Epub*/ any }) {
         }
       });
     });
+
+    contentIframe!.addEventListener("load", () => {
+      let contentDoc = contentIframe!.contentDocument!;
+      let script = contentDoc.createElement("script");
+      script.setAttribute("type", "text/javascript");
+      script.setAttribute("src", componentScriptUrl);
+      contentDoc.body.appendChild(script);
+    });
   });
 
   return (
@@ -69,6 +78,7 @@ function EpubView(props: { data: /*Epub*/ any }) {
         class="epub-content"
         src={chapterUrl()}
         referrerPolicy="no-referrer"
+        sandbox="allow-same-origin allow-scripts"
       />
     </div>
   );

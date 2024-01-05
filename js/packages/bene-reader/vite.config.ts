@@ -1,9 +1,7 @@
-import fs from "fs";
 import { defineConfig } from "vite";
 import solidPlugin from "vite-plugin-solid";
 
-let manifest = JSON.parse(fs.readFileSync("package.json", "utf-8"));
-export default defineConfig(({mode}) => ({
+export default defineConfig(({ mode }) => ({
   plugins: [solidPlugin()],
   base: "./",
   define: {

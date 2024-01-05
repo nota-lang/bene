@@ -57,12 +57,19 @@ const ZIPS = [
 
 type NewEpubCallback = (data: Uint8Array) => void;
 
+declare var TEST_EPUB: string | undefined;
+
 function ProvidedEpubs(props: { newEpub: NewEpubCallback }) {
   async function fetchZip(file: string) {
     let response = await fetch(`epubs/${file}`);
     let buffer = await response.arrayBuffer();
     props.newEpub(new Uint8Array(buffer));
   }
+
+  if (TEST_EPUB) {
+    onMount(() => fetchZip(TEST_EPUB!));
+  }
+
   return (
     <select
       class="provided-epub"
@@ -114,7 +121,7 @@ function CustomEpub(props: { newEpub: NewEpubCallback }) {
 
 function App() {
   let iframe: HTMLIFrameElement | undefined;
-  let [newEpub, setNewEpub] = createSignal<NewEpubCallback>(() => {});
+  let [newEpub, setNewEpub] = createSignal<NewEpubCallback | undefined>();
 
   onMount(async () => {
     let registration = await registerServiceWorker(
@@ -136,8 +143,12 @@ function App() {
     <div>
       <h1>Bene Reader</h1>
       <header class="controls">
-        <ProvidedEpubs newEpub={newEpub()} />
-        <CustomEpub newEpub={newEpub()} />
+        {newEpub() ? (
+          <>
+            <ProvidedEpubs newEpub={newEpub()!} />
+            <CustomEpub newEpub={newEpub()!} />
+          </>
+        ) : null}
       </header>
       <iframe
         ref={iframe}

@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "moduleResolution": "bundler",
+    "module": "es2022",
     "target": "es2022",
     "declaration": true,
     "allowJs": true,
@@ -8,5 +9,7 @@
     "strict": true,
     "jsx": "preserve",
     "jsxImportSource": "solid-js",    
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
   }
 }

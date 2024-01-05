@@ -10,5 +10,8 @@
     "jsdom": "^23.0.1",
     "normalize.css": "^8.0.1",
     "solid-js": "^1.8.7"
+  },
+  "dependencies": {
+    "bene-components": "workspace:*"
   }
 }
