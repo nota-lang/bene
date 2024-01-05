@@ -2,9 +2,6 @@ use bene_epub::{Archive, Epub, MemoryZip};
 use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
 
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
 #[wasm_bindgen]
 pub struct EpubCtxt {
   epub: Epub,

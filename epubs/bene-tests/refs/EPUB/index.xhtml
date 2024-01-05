@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" xmlns:epub="http://www.idpf.org/2007/ops">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" xmlns:epub="http://www.idpf.org/2007/ops" epub:prefix="bene: http://example.com">
   <head>
     <title>Ref Test</title>
     <meta charset="utf-8"></meta>
   </head>
   <body>
     <section>
-      <h1 id="sec1">Introduction</h1>
-      <p>Hello world!</p>
-      <pre>
-        <code>
-fn main() {
+      <h1 id="sec1">Introduction</h1>      
+      <code-description>
+        <pre><code>fn main() {
     let <span id="code-x">x</span> = <span id="code-5">5</span>;
 
     let x = x + 1;
@@ -21,10 +20,12 @@ fn main() {
     }
 
     println!("The value of x is: {x}");
-}
-        </code>
-      </pre>
-      <p>This program first binds <a href="#code-x"><code>x</code></a> to a value of <a href="#code-5"><code>5</code></a>. Then it creates a new variable x by repeating let x =, taking the original value and adding 1 so the value of x is then 6.</p>
+}</code></pre>
+        <p>
+          This program first binds <a href="#code-x"><code>x</code></a> to a value of <a href="#code-5"><code>5</code></a>.
+          Then it creates a new variable x by repeating let x =, taking the original value and adding 1 so the value of x is then 6.
+        </p>
+      </code-description>
     </section>
   </body>
 </html>

@@ -1,0 +1,15 @@
+{
+  "name": "bene-components",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/bene-components.iife.js",
+  "depot": {
+    "platform": "browser"
+  },
+  "devDependencies": {
+    "@codemirror/lang-rust": "^6.0.1",
+    "codemirror": "^6.0.1",
+    "jsdom": "^23.0.1",
+    "lit": "^3.1.0"
+  }
+}

@@ -1,21 +1,21 @@
-import fs from "fs-extra";
+import fg from "fast-glob";
+import path from "path";
 import { Plugin, defineConfig } from "vite";
 import solidPlugin from "vite-plugin-solid";
 
-let copyBeneReaderPlugin: Plugin = {
-  name: "copyBeneReader",
-  writeBundle() {
-    let intvl = setInterval(() => {
-      if (fs.pathExistsSync("node_modules/bene-reader/dist/index.html")) {        
-        fs.copy("node_modules/bene-reader/dist", "dist/bene-reader");
-        clearInterval(intvl);
-      }
-    }, 100);
+// Ensures that bene-desktop rebuilds when bene-reader rebuilds
+let watchPublicPlugin: Plugin = {
+  name: "watch-public-plugin",
+  async buildStart() {
+    let files = await fg("public/**/*");
+    for (let file of files) {
+      this.addWatchFile(path.resolve(file));
+    }
   },
 };
 
 export default defineConfig(({ mode }) => ({
-  plugins: [solidPlugin(), copyBeneReaderPlugin],
+  plugins: [solidPlugin(), watchPublicPlugin],
   appType: "mpa",
   base: "./",
   define: {
