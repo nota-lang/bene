@@ -1,10 +1,16 @@
-import { For, createSignal, onMount } from "solid-js";
+import { For, createEffect, createResource, onMount } from "solid-js";
 import { render } from "solid-js/web";
 
 import workerUrl from "../worker.ts?worker&url";
 
 async function registerServiceWorker(post: (data: any) => void) {
   let installChannel = new BroadcastChannel("install-channel");
+  let logChannel = new BroadcastChannel("log-channel");
+
+  logChannel.addEventListener("message", event =>
+    console.log("Service worker:", event.data)
+  );
+
   let installedPromise = new Promise(resolve => {
     installChannel.addEventListener("message", () => resolve(undefined));
   });
@@ -59,21 +65,11 @@ type NewEpubCallback = (data: Uint8Array) => void;
 
 declare var TEST_EPUB: string | undefined;
 
-function ProvidedEpubs(props: { newEpub: NewEpubCallback }) {
-  async function fetchZip(file: string) {
-    let response = await fetch(`epubs/${file}`);
-    let buffer = await response.arrayBuffer();
-    props.newEpub(new Uint8Array(buffer));
-  }
-
-  if (TEST_EPUB) {
-    onMount(() => fetchZip(TEST_EPUB!));
-  }
-
+function ProvidedEpubs(props: { fetchZip: (url: string) => void }) {
   return (
     <select
       class="provided-epub"
-      onchange={event => fetchZip(event.target.value)}
+      onchange={event => props.fetchZip(event.target.value)}
     >
       <option>Select an epub...</option>
       <For each={ZIPS}>
@@ -121,43 +117,45 @@ function CustomEpub(props: { newEpub: NewEpubCallback }) {
 
 function App() {
   let iframe: HTMLIFrameElement | undefined;
-  let [newEpub, setNewEpub] = createSignal<NewEpubCallback | undefined>();
 
-  onMount(async () => {
-    let registration = await registerServiceWorker(
-      iframe!.contentWindow!.postMessage
-    );
-    setNewEpub(
-      () => data =>
-        registration.active!.postMessage({
-          type: "new-epub",
-          data: {
-            data,
-            scope: registration.scope,
-          },
-        })
-    );
+  let [registration] = createResource(
+    async () =>
+      await registerServiceWorker(data =>
+        iframe!.contentWindow!.postMessage(data)
+      )
+  );
+
+  let setNewEpub = (url: string, data: Uint8Array) => {
+    let reg = registration()!;
+    reg.active!.postMessage({
+      type: "new-epub",
+      data: {
+        data,
+        url,
+        scope: reg.scope,
+      },
+    });
+  };
+
+  async function fetchZip(file: string) {
+    let url = new URL(`epubs/${file}`, window.location.href).href;
+    let response = await fetch(url);
+    let buffer = await response.arrayBuffer();
+    setNewEpub(url, new Uint8Array(buffer));
+  }
+
+  createEffect(() => {
+    let reg = registration();
+    if (reg && TEST_EPUB) fetchZip(TEST_EPUB);
   });
 
   return (
-    <div>
-      <h1>Bene Reader</h1>
-      <header class="controls">
-        {newEpub() ? (
-          <>
-            <ProvidedEpubs newEpub={newEpub()!} />
-            <CustomEpub newEpub={newEpub()!} />
-          </>
-        ) : null}
-      </header>
-      <iframe
-        ref={iframe}
-        src="bene-reader/index.html"
-        referrerPolicy="no-referrer"
-      />
-    </div>
+    <iframe
+      ref={iframe}
+      src="bene-reader/index.html"
+      referrerPolicy="no-referrer"
+    />
   );
-  // pick up from ehre: referrerPolicy for google fonts
 }
 
 render(() => <App />, document.getElementById("root")!);

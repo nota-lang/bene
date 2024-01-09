@@ -6,19 +6,21 @@
 }
 
 body {
-  padding: 1rem;
-}
-
-h1 {
-  margin: 0 0 0.5rem 0;
+  overflow: hidden;
 }
 
 iframe {
-  border: 1px solid #eee;
-  width: min(calc(100dvw - 2rem), 1000px);
-  height: 80dvh;
+  width: 100dvw;
+  height: 100dvh;
+  border: 0;
+  display: block;
 }
 
+/* h1 {
+  margin: 0 0 0.5rem 0;
+} */
+
+/* 
 .controls {
   display: flex;
   gap: 15px;
@@ -40,4 +42,4 @@ iframe {
   display: flex;
   align-items: center;
   justify-content: center;
-}
+} */
