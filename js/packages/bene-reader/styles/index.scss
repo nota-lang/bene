@@ -1,0 +1,179 @@
+@import "normalize.css/normalize.css";
+
+:root {
+  --toolbar-bg-color: rgb(249, 249, 250);
+  --toolbar-sidebar-toggle-icon: url("../img/toolbarButton-sidebarToggle.svg");
+  --toolbar-download-icon: url("../img/toolbarButton-download.svg");
+  --toolbar-page-down-icon: url("../img/toolbarButton-pageDown.svg");
+  --toolbar-page-up-icon: url("../img/toolbarButton-pageUp.svg");
+  --toolbar-zoom-in-icon: url("../img/toolbarButton-zoomIn.svg");
+  --toolbar-zoom-out-icon: url("../img/toolbarButton-zoomOut.svg");
+  --toolbar-icon-bg-color: rgb(0, 0, 0);
+  --button-hover-color: rgb(221, 222, 223);
+  --separator-color: rgba(0, 0, 0, 0.3);
+  --dropdown-btn-bg-color: rgb(215, 215, 219);
+  --body-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --body-bg-color: rgb(212, 212, 215);
+  --field-border-color: rgb(187, 187, 188);
+  --field-color: rgb(6, 6, 6);
+  --field-bg-color: white;
+}
+
+.epub {
+  width: 100dvw;
+  height: 100dvh;  
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: var(--body-font);
+  font-size: 14px;
+  background-color: var(--body-bg-color);
+
+  .toolbar {
+    background-color: var(--toolbar-bg-color);
+    height: 32px;
+    display: flex;
+    justify-content: space-between;
+
+    > div {
+      display: flex;
+      align-items: center;
+    }
+
+    .toolbar-button {
+      min-width: 16px;
+      width: 28px;
+      height: 28px;
+      padding: 2px 6px 0;
+      border: none;
+      border-radius: 2px;
+      user-select: none;
+      cursor: default;
+      box-sizing: border-box;
+      background: none;
+      position: relative;
+
+      &:hover {
+        background-color: var(--button-hover-color);
+      }
+
+      &::before {
+        position: absolute;
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        content: "";
+        mask-size: cover;
+        top: 6px;
+        left: 6px;
+        background-color: var(--toolbar-icon-bg-color);
+      }
+
+      &.sidebar-toggle::before {        
+        mask-image: var(--toolbar-sidebar-toggle-icon);      
+      }
+
+      &.zoom-out::before {
+        mask-image: var(--toolbar-zoom-out-icon);
+      }
+
+      &.zoom-in::before {
+        mask-image: var(--toolbar-zoom-in-icon);
+      }
+
+      &.page-down::before {
+        mask-image: var(--toolbar-page-down-icon);
+      }
+
+      &.page-up::before {
+        mask-image: var(--toolbar-page-up-icon);
+      }
+
+      &.download::before {
+        mask-image: var(--toolbar-download-icon);
+      }
+    }
+
+    .toolbar-button-spacer {
+      width: 30px;
+    }
+
+    .split-toolbar-button-separator {
+      width: 1px;
+      height: 20px;
+      background-color: var(--separator-color);
+      margin: 6px 0;      
+    }
+
+    input[type=number] {
+      appearance: textfield;
+      text-align: end;
+
+      &::-webkit-outer-spin-button, &::-webkit-inner-spin-button {
+        appearance: none;
+        margin: 0;
+      }
+    }
+
+    .page-input {
+      border: 1px solid var(--field-border-color);
+      border-radius: 2px;
+      background-color: var(--field-bg-color);
+      color: var(--field-color);
+      padding: 4px 7px;
+      width: 40px;
+    }
+
+    .label {
+      margin-left: 5px;
+    }
+
+    .scale-input {
+      background-color: var(--dropdown-btn-bg-color);
+      border: 0;      
+      padding: 3px 5px;
+      width: 25px;
+    }
+  }
+    
+  .viewer {
+    display: flex;
+    height: calc(100dvh - 32px);
+
+    iframe {
+      border: none;
+      width: 100%;
+    }
+
+    > div {
+      overflow: auto;
+      overscroll-behavior-y: contain;
+    }
+
+    .nav {
+      width: 200px;
+      transition: 0.25s width;
+      box-shadow: inset -1px 0 0 rgb(0 0 0 / 0.25);
+      overflow: hidden;
+
+      .nav-frame {
+        width: 200px;
+      }
+
+      &.hidden {
+        width: 0;
+      }
+    }
+
+    .content {
+      flex: 1;
+
+      .content-frame {
+        max-width: 600px;
+        background: white;
+        margin: 5px auto;
+        padding: 0.5in;
+      }
+    }
+  }
+}

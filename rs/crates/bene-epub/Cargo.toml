@@ -19,3 +19,4 @@ quick-xml = { workspace = true, features = ["async-tokio", "serialize"] }
 async-trait = "0.1.74"
 specta = { workspace = true }
 futures = { workspace = true }
+mime_guess = "2.0.4"

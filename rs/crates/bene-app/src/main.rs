@@ -38,14 +38,6 @@ struct CliArgs {
   path: PathBuf,
 }
 
-fn guess_mime_type(path: &str) -> String {
-  let guess = mime_guess::from_path(path);
-  match (guess.first(), path.split_once('.')) {
-    (Some(mime), _) => mime.to_string(),
-    (None, Some((_, ext))) if ext == "tsx" || ext == "ts" => "text/javascript".to_string(),
-    _ => "application/octet-stream".to_string(),
-  }
-}
 
 async fn load_reader_asset(app: &AppHandle, path: &str) -> Result<Vec<u8>> {
   let path = format!("{}/bene-reader{path}", app.config().build.dist_dir);
@@ -70,7 +62,7 @@ async fn serve_asset(
   match result {
     Ok(contents) => http::Response::builder()
       .status(http::StatusCode::OK)
-      .header("Content-Type", guess_mime_type(path))
+      .header("Content-Type", bene_epub::guess_mime_type(path))
       .body(Cow::Owned(contents))
       .unwrap(),
     Err(e) => {
