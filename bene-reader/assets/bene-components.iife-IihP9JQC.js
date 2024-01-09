@@ -7740,13 +7740,13 @@ var BeneComponents = function(exports) {
   };
   var mac = typeof navigator != "undefined" && /Mac/.test(navigator.platform);
   var ie$1 = typeof navigator != "undefined" && /MSIE \d|Trident\/(?:[7-9]|\d{2,})\..*rv:(\d+)/.exec(navigator.userAgent);
-  for (var i$3 = 0; i$3 < 10; i$3++)
-    base[48 + i$3] = base[96 + i$3] = String(i$3);
-  for (var i$3 = 1; i$3 <= 24; i$3++)
-    base[i$3 + 111] = "F" + i$3;
-  for (var i$3 = 65; i$3 <= 90; i$3++) {
-    base[i$3] = String.fromCharCode(i$3 + 32);
-    shift[i$3] = String.fromCharCode(i$3);
+  for (var i$4 = 0; i$4 < 10; i$4++)
+    base[48 + i$4] = base[96 + i$4] = String(i$4);
+  for (var i$4 = 1; i$4 <= 24; i$4++)
+    base[i$4 + 111] = "F" + i$4;
+  for (var i$4 = 65; i$4 <= 90; i$4++) {
+    base[i$4] = String.fromCharCode(i$4 + 32);
+    shift[i$4] = String.fromCharCode(i$4);
   }
   for (var code in base)
     if (!shift.hasOwnProperty(code))
@@ -17979,7 +17979,16 @@ var BeneComponents = function(exports) {
       return this.cssText;
     }
   };
-  const r$4 = (t2) => new n$4("string" == typeof t2 ? t2 : t2 + "", void 0, s$3), S$1 = (s2, o2) => {
+  const r$4 = (t2) => new n$4("string" == typeof t2 ? t2 : t2 + "", void 0, s$3), i$3 = (t2, ...e2) => {
+    const o2 = 1 === t2.length ? t2[0] : e2.reduce((e3, s2, o3) => e3 + ((t3) => {
+      if (true === t3._$cssResult$)
+        return t3.cssText;
+      if ("number" == typeof t3)
+        return t3;
+      throw Error("Value passed to 'css' function must be a 'css' function result: " + t3 + ". Use 'unsafeCSS' to pass non-literal values, but take care to ensure page security.");
+    })(s2) + t2[o3 + 1], t2[0]);
+    return new n$4(o2, t2, s$3);
+  }, S$1 = (s2, o2) => {
     if (e$4)
       s2.adoptedStyleSheets = o2.map((t2) => t2 instanceof CSSStyleSheet ? t2 : t2.styleSheet);
     else
@@ -18682,6 +18691,7 @@ var BeneComponents = function(exports) {
       __defProp(target, key, result);
     return result;
   };
+  const codeHighlight = Decoration.mark({ class: "code-highlight" });
   exports.CodeDescription = class CodeDescription extends s$1 {
     constructor() {
       super(...arguments);
@@ -18690,9 +18700,34 @@ var BeneComponents = function(exports) {
     }
     firstUpdated() {
       let preEl = this.children.item(0);
+      let codeEl = preEl.querySelector("code");
+      let spans = {};
+      let index = 0;
+      codeEl.childNodes.forEach((node) => {
+        if (node.nodeType == Node.TEXT_NODE) {
+          index += node.textContent.length;
+        } else if (node.nodeType == Node.ELEMENT_NODE) {
+          let el = node;
+          let end = index + el.innerText.length;
+          let id = el.getAttribute("id");
+          if (id)
+            spans[id] = [index, end];
+          index = end;
+        } else {
+          console.warn("Unexpected node type", node.nodeType);
+        }
+      });
       let code2 = preEl.innerText;
+      let decorations2 = RangeSet.of(
+        Object.values(spans).map(([from, to]) => codeHighlight.range(from, to))
+      );
       this.editor = new EditorView({
-        extensions: [minimalSetup, rust()],
+        extensions: [
+          minimalSetup,
+          rust(),
+          EditorState.readOnly.of(true),
+          EditorView.decorations.of(decorations2)
+        ],
         parent: this.codeRef.value,
         doc: code2
       });
@@ -18705,6 +18740,11 @@ var BeneComponents = function(exports) {
     `;
     }
   };
+  exports.CodeDescription.styles = i$3`
+    .code-highlight {
+      text-decoration: underline;
+    }
+  `;
   exports.CodeDescription = __decorateClass([
     t$1("code-description")
   ], exports.CodeDescription);

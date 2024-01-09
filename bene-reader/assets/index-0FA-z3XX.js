@@ -765,7 +765,7 @@ var throttle = (callback, wait) => {
     onCleanup(clear);
   return Object.assign(throttled, { clear });
 };
-const componentScriptUrl = "" + new URL("bene-components.iife-xT-jfp_E.js", import.meta.url).href;
+const componentScriptUrl = "" + new URL("bene-components.iife-IihP9JQC.js", import.meta.url).href;
 var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
 function getDefaultExportFromCjs(x) {
   return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
@@ -6644,8 +6644,8 @@ function Content(props) {
     });
     iframe.addEventListener("load", () => {
       let contentDoc = iframe.contentDocument;
-      insertJs(contentDoc, componentScriptUrl);
       insertCss(contentDoc, normalizeCssUrl);
+      insertJs(contentDoc, componentScriptUrl);
       let htmlEl = contentDoc.documentElement;
       let iframeObserver = new ResizeObserver(() => {
         let height = htmlEl.getBoundingClientRect().height;
@@ -6667,8 +6667,9 @@ function Content(props) {
     if (!el)
       return;
     el.innerText = `
-body {
-  font-size: ${state.fontSize}px;
+html {
+  font-size: ${state.fontSize}px;  
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }    
 `;
   });
@@ -6685,7 +6686,6 @@ body {
   })();
 }
 function Viewer() {
-  useContext(StateContext);
   let navigateEvent = new EventTarget();
   return (() => {
     const _el$24 = _tmpl$4();
@@ -6763,4 +6763,4 @@ window.addEventListener("load", () => {
   render(() => createComponent(App, {}), document.getElementById("root"));
 });
 delegateEvents(["click", "input"]);
-//# sourceMappingURL=index-sGg3dB5B.js.map
+//# sourceMappingURL=index-0FA-z3XX.js.map
