@@ -8,6 +8,8 @@
   },
   "devDependencies": {
     "@codemirror/lang-rust": "^6.0.1",
+    "@codemirror/state": "^6.4.0",
+    "@codemirror/view": "^6.23.0",
     "codemirror": "^6.0.1",
     "jsdom": "^23.0.1",
     "lit": "^3.1.0"

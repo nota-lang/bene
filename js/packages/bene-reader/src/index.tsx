@@ -5,8 +5,6 @@ import normalizeCssUrl from "normalize.css?url";
 import {
   createContext,
   createEffect,
-  createMemo,
-  createResource,
   createSignal,
   onMount,
   useContext,
@@ -237,8 +235,8 @@ function Content(props: { navigateEvent: EventTarget }) {
 
     iframe.addEventListener("load", () => {
       let contentDoc = iframe.contentDocument!;
-      insertJs(contentDoc, componentScriptUrl);
       insertCss(contentDoc, normalizeCssUrl);
+      insertJs(contentDoc, componentScriptUrl);
 
       let htmlEl = contentDoc.documentElement;
 
@@ -269,8 +267,9 @@ function Content(props: { navigateEvent: EventTarget }) {
     if (!el) return;
 
     el.innerText = `
-body {
-  font-size: ${state.fontSize}px;
+html {
+  font-size: ${state.fontSize}px;  
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }    
 `;
   });
@@ -289,7 +288,6 @@ body {
 }
 
 function Viewer() {
-  let [state] = useContext(StateContext)!;
   let navigateEvent = new EventTarget();
   return (
     <div class="viewer">
