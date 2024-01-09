@@ -130,6 +130,24 @@
       wasm.__wbindgen_add_to_stack_pointer(16);
     }
   }
+  function guess_mime_type(url) {
+    let deferred2_0;
+    let deferred2_1;
+    try {
+      const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+      const ptr0 = passStringToWasm0(url, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+      const len0 = WASM_VECTOR_LEN;
+      wasm.guess_mime_type(retptr, ptr0, len0);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getInt32Memory0()[retptr / 4 + 1];
+      deferred2_0 = r0;
+      deferred2_1 = r1;
+      return getStringFromWasm0(r0, r1);
+    } finally {
+      wasm.__wbindgen_add_to_stack_pointer(16);
+      wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+    }
+  }
   class EpubCtxt {
     static __wrap(ptr) {
       ptr = ptr >>> 0;
@@ -275,7 +293,7 @@
     if (wasm !== void 0)
       return wasm;
     if (typeof input === "undefined") {
-      input = new URL("" + new URL("assets/rs_utils_bg-Ruz3EQVj.wasm", self.location.href).href, self.location.href);
+      input = new URL("" + new URL("assets/rs_utils_bg-by4hsvLq.wasm", self.location.href).href, self.location.href);
     }
     const imports = __wbg_get_imports();
     if (typeof input === "string" || typeof Request === "function" && input instanceof Request || typeof URL === "function" && input instanceof URL) {
@@ -287,31 +305,46 @@
   let globalSelf = self;
   let currentEpub;
   let currentScope;
-  globalSelf.addEventListener("install", async (_event) => {
-    console.log("Installed on service side.");
-    await globalSelf.skipWaiting();
-    await __wbg_init();
-    init_rs();
-  });
   let installChannel = new BroadcastChannel("install-channel");
-  globalSelf.addEventListener("activate", async (_event) => {
-    console.log("Activated on service side.");
-    await globalSelf.clients.claim();
+  let logChannel = new BroadcastChannel("log-channel");
+  let log = (...args) => logChannel.postMessage(args.map((arg) => arg.toString()).join("	"));
+  globalSelf.addEventListener("install", async (_event) => {
+    log("Installed");
+    await Promise.all([globalSelf.skipWaiting(), __wbg_init()]);
+    init_rs();
+    log("Initialized");
     installChannel.postMessage("installed");
   });
+  globalSelf.addEventListener("activate", async (_event) => {
+    log("Activated");
+    await globalSelf.clients.claim();
+    log("Claimed");
+  });
   globalSelf.addEventListener("fetch", (event) => {
+    if (!currentEpub || !currentScope)
+      return;
     const EPUB_PATH = "bene-reader/epub-content/";
     let epubBaseUrl = currentScope + EPUB_PATH;
-    if (currentEpub && event.request.url.startsWith(epubBaseUrl)) {
+    if (event.request.url.startsWith(epubBaseUrl)) {
+      log("Handling request for", event.request.url);
       let path = event.request.url.slice(epubBaseUrl.length);
       let contents = currentEpub.read_file(path);
-      event.respondWith(new Response(contents));
+      event.respondWith(
+        new Response(contents, {
+          status: 200,
+          headers: {
+            "Content-Type": guess_mime_type(event.request.url)
+          }
+        })
+      );
+    } else {
+      log("Ignoring request for", event.request.url);
     }
   });
   globalSelf.addEventListener("message", async (event) => {
     let message = event.data;
     if (message.type == "new-epub") {
-      let { data, scope } = message.data;
+      let { data, scope, url } = message.data;
       currentEpub = load_epub(data);
       currentScope = scope;
       let metadata = JSON.parse(currentEpub.metadata());
@@ -319,7 +352,10 @@
       for (let client of clients) {
         client.postMessage({
           type: "loaded-epub",
-          data: metadata
+          data: {
+            metadata,
+            url
+          }
         });
       }
     }
