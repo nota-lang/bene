@@ -1,29 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" xmlns:epub="http://www.idpf.org/2007/ops" epub:prefix="bene: http://example.com">
+<html 
+  xmlns="http://www.w3.org/1999/xhtml" 
+  xml:lang="en" 
+  lang="en" 
+  xmlns:epub="http://www.idpf.org/2007/ops" 
+  epub:prefix="bene: http://example.com"
+>
   <head>
     <title>Ref Test</title>
     <meta charset="utf-8"></meta>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
   </head>
   <body>
     <section>
       <h1 id="sec1">Introduction</h1>      
       <code-description>
         <pre><code>fn main() {
-    let <span id="code-x">x</span> = <span id="code-5">5</span>;
+    let <span id="code-1">x</span> = <span id="code-2">5</span>;
 
-    let x = x + 1;
+    <span id="code-4">let <span id="code-3">x</span> =</span> <span id="code-15">x</span> <span id="code-16">+</span> <span id="code-5">1</span>;
 
-    {
-        let x = x * 2;
+    <span id="code-7">{</span>
+        <span id="code-8">let</span> <span id="code-9">x</span> = <span id="code-10">x</span> <span id="code-17">*</span> <span id="code-11">2</span>;
         println!("The value of x in the inner scope is: {x}");
-    }
+    <span id="code-13">}</span>
 
-    println!("The value of x is: {x}");
+    println!("The value of x is: {<span id="code-14">x</span>}");
 }</code></pre>
         <p>
-          This program first binds <a href="#code-x"><code>x</code></a> to a value of <a href="#code-5"><code>5</code></a>.
-          Then it creates a new variable x by repeating let x =, taking the original value and adding 1 so the value of x is then 6.
+          This program first binds <a href="#code-1"><code>x</code></a> to a value of <a href="#code-2"><code>5</code></a>.
+          Then it creates a new variable <a href="#code-3"><code>x</code></a> by repeating <a href="#code-4"><code>let x =</code></a>, taking <a href="#code-15">the original value</a> and <a href="#code-16">adding</a> <a href="#code-5">1</a> so the value of <a href="#code-3"><code>x</code></a> is then 6.
+          Then, within an inner scope created with the <a href="#code-7">curly brackets</a>, the third <a href="#code-8"><code>let</code></a> statement also shadows <a href="#code-3"><code>x</code></a> and creates <a href="#code-9">a new variable</a>, <a href="#code-17">multiplying</a> <a href="#code-10">the previous value</a> by <a href="#code-11">2</a> to give <a href="#code-9"><code>x</code></a> a value of 12. 
+          When that <a href="#code-13">scope is over</a>, <a href="#code-9">the inner shadowing</a> ends and <a href="#code-14"><code>x</code></a> returns to being 6.
         </p>
       </code-description>
     </section>
