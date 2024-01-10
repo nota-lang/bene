@@ -1,0 +1,9 @@
+@import "normalize.css/normalize.css";
+
+html {
+  line-height: 1.5em;
+}
+
+section > h1:first-child {
+  margin-top: 0;
+}

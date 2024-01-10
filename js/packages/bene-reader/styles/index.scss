@@ -169,10 +169,12 @@
       flex: 1;
 
       .content-frame {
-        max-width: 600px;
+        max-width: 800px;
+        box-sizing: border-box;
+        padding: 0.5in;
+        
         background: white;
         margin: 5px auto;
-        padding: 0.5in;
       }
     }
   }

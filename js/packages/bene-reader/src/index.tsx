@@ -1,7 +1,6 @@
 import { debounce, throttle } from "@solid-primitives/scheduled";
 import componentScriptUrl from "bene-components?url";
 import _ from "lodash";
-import normalizeCssUrl from "normalize.css?url";
 import {
   createContext,
   createEffect,
@@ -12,6 +11,7 @@ import {
 import { SetStoreFunction, createStore } from "solid-js/store";
 import { render } from "solid-js/web";
 
+import contentCssUrl from "../styles/content.scss?worker&url";
 import navCssUrl from "../styles/nav.scss?worker&url";
 
 // import { Rendition, commands } from "./bindings";
@@ -24,14 +24,6 @@ function insertJs(doc: Document, url: string) {
   script.setAttribute("type", "text/javascript");
   script.setAttribute("src", url);
   doc.body.appendChild(script);
-}
-
-function insertCss(doc: Document, url: string) {
-  let style = doc.createElement("link");
-  style.setAttribute("rel", "stylesheet");
-  style.setAttribute("type", "text/css");
-  style.setAttribute("href", url);
-  doc.body.appendChild(style);
 }
 
 interface PageInfo {
@@ -235,7 +227,7 @@ function Content(props: { navigateEvent: EventTarget }) {
 
     iframe.addEventListener("load", () => {
       let contentDoc = iframe.contentDocument!;
-      insertCss(contentDoc, normalizeCssUrl);
+      insertJs(contentDoc, contentCssUrl);
       insertJs(contentDoc, componentScriptUrl);
 
       let htmlEl = contentDoc.documentElement;
