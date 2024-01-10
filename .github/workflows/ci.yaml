@@ -42,7 +42,7 @@ jobs:
         working-directory: rs
 
       - name: Build Wasm package
-        run: depot -p bene-web build
+        run: depot -p bene-web build --release
         working-directory: js
 
       - name: Deploy to Github Pages

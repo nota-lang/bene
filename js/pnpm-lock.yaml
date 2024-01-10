@@ -68,6 +68,9 @@ importers:
       '@codemirror/view':
         specifier: ^6.23.0
         version: 6.23.0
+      '@types/lodash':
+        specifier: ^4.14.202
+        version: 4.14.202
       codemirror:
         specifier: ^6.0.1
         version: 6.0.1(@lezer/common@1.2.0)
@@ -77,6 +80,9 @@ importers:
       lit:
         specifier: ^3.1.0
         version: 3.1.0
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
 
   packages/bene-desktop:
     devDependencies:
