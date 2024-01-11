@@ -156,10 +156,10 @@ impl Epub {
 
 pub fn guess_mime_type(path: &str) -> String {
   let guess = mime_guess::from_path(path);
-  match (guess.first(), path.split_once('.')) {
-    (_, Some((_, "xhtml"))) => "text/html".to_string(),
+  match (guess.first(), path.split('.').last().unwrap()) {
+    (_, "xhtml") => "text/html".to_string(),
     (Some(mime), _) => mime.to_string(),
-    (None, Some((_, ext))) if ext == "tsx" || ext == "ts" => "text/javascript".to_string(),
+    (None, ext) if ext == "tsx" || ext == "ts" => "text/javascript".to_string(),
     _ => "application/octet-stream".to_string(),
   }
 }

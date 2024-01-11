@@ -30,16 +30,22 @@ globalSelf.addEventListener("fetch", event => {
   const EPUB_PATH = "bene-reader/epub-content/";
   let epubBaseUrl = currentScope + EPUB_PATH;
   if (event.request.url.startsWith(epubBaseUrl)) {
-    log("Handling request for", event.request.url);
     let path = event.request.url.slice(epubBaseUrl.length);
     let contents = currentEpub.read_file(path);
+    let mimeType = guess_mime_type(event.request.url);
     event.respondWith(
       new Response(contents, {
         status: 200,
         headers: {
-          "Content-Type": guess_mime_type(event.request.url),
+          "Content-Type": mimeType,
         },
       })
+    );
+    log(
+      "Handling request for",
+      event.request.url,
+      "with guessed type",
+      mimeType
     );
   } else {
     log("Ignoring request for", event.request.url);
