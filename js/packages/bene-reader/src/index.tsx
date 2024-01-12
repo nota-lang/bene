@@ -40,7 +40,7 @@ interface State {
   showNav: boolean;
   pageInfo?: PageInfo;
   epub: any;
-  url: URL;
+  url?: URL;
 
   rendition(): any;
   chapterId(): string;
@@ -84,10 +84,10 @@ function Toolbar() {
     });
   }
 
-  function downloadEpub() {
+  function downloadEpub(url: URL) {
     let a = document.createElement("a");
-    a.href = state.url.toString();
-    a.download = _.last(state.url.pathname.split("/"))!;
+    a.href = url.toString();
+    a.download = _.last(url.pathname.split("/"))!;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -127,10 +127,12 @@ function Toolbar() {
         <span class="label">px</span>
       </div>
       <div class="toolbar-right">
-        <button
-          class="toolbar-button download"
-          onClick={() => downloadEpub()}
-        />
+        {state.url ? (
+          <button
+            class="toolbar-button download"
+            onClick={() => downloadEpub(state.url!)}
+          />
+        ) : null}
       </div>
     </div>
   );
@@ -166,6 +168,14 @@ function Nav(props: { navigateEvent: EventTarget }) {
           );
         })
       );
+
+      let htmlEl = navDoc.documentElement;
+
+      let iframeObserver = new ResizeObserver(() => {
+        let height = htmlEl.getBoundingClientRect().height;
+        iframe.style.height = height + "px";
+      });
+      iframeObserver.observe(htmlEl);
     });
   });
 
@@ -296,7 +306,7 @@ function EpubView(props: { data: /*Epub*/ any }) {
     fontSize: 16,
     showNav: false,
     epub: props.data.metadata,
-    url: new URL(props.data.url),
+    url: props.data.url ? new URL(props.data.url) : undefined,
 
     rendition() {
       return props.data.metadata.renditions[this.renditionIndex];
@@ -321,6 +331,31 @@ function EpubView(props: { data: /*Epub*/ any }) {
 
 const LOADING_THRESHOLD = 250;
 
+function registerDropEvents() {
+  document.addEventListener("dragover", event => {
+    event.stopPropagation();
+    event.preventDefault();
+    event.dataTransfer!.dropEffect = "copy";
+  });
+
+  document.addEventListener("drop", event => {
+    event.stopPropagation();
+    event.preventDefault();
+
+    const files = event.dataTransfer?.files;
+    if (files?.length && files.length > 0) {
+      const file = files[0];
+      window.parent.postMessage(
+        {
+          type: "user-upload",
+          data: file,
+        },
+        "*"
+      );
+    }
+  });
+}
+
 function App() {
   let [epub, setEpub] = createSignal<any>(undefined);
   let [stillWaiting, setStillWaiting] = createSignal(false);
@@ -335,6 +370,7 @@ function App() {
       }
     });
     window.parent.postMessage({ type: "ready" }, "*");
+    registerDropEvents();
   });
 
   return (

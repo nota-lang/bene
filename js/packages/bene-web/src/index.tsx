@@ -125,7 +125,7 @@ function App() {
       )
   );
 
-  let setNewEpub = (url: string, data: Uint8Array) => {
+  let setNewEpub = (data: Uint8Array, url?: string) => {
     let reg = registration()!;
     reg.active!.postMessage({
       type: "new-epub",
@@ -141,12 +141,34 @@ function App() {
     let url = new URL(`epubs/${file}`, window.location.href).href;
     let response = await fetch(url);
     let buffer = await response.arrayBuffer();
-    setNewEpub(url, new Uint8Array(buffer));
+    setNewEpub(new Uint8Array(buffer), url);
   }
 
   createEffect(() => {
     let reg = registration();
     if (reg && TEST_EPUB) fetchZip(TEST_EPUB);
+  });
+
+  onMount(() => {
+    window.addEventListener("message", event => {
+      if (event.source != iframe!.contentWindow) return;
+
+      let message = event.data;
+      if (message.type == "user-upload") {
+        let file = message.data;
+
+        const reader = new FileReader();
+
+        reader.onload = async e => {
+          if (!e.target) return;
+          const arrayBuffer = e.target.result as ArrayBuffer;
+          const byteArray = new Uint8Array(arrayBuffer);
+          setNewEpub(byteArray);
+        };
+
+        reader.readAsArrayBuffer(file);
+      }
+    });
   });
 
   return (
