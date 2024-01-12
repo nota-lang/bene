@@ -19,6 +19,12 @@
   --field-bg-color: white;
 }
 
+@mixin mobile {
+  @media (max-width: 600px) {
+    @content;
+  }
+}
+
 .epub {
   width: 100dvw;
   height: 100dvh;  
@@ -154,7 +160,7 @@
       width: 200px;
       transition: 0.25s width;
       box-shadow: inset -1px 0 0 rgb(0 0 0 / 0.25);
-      overflow: hidden;
+      overflow-x: hidden;
 
       .nav-frame {
         width: 200px;
@@ -175,6 +181,12 @@
         
         background: white;
         margin: 5px auto;
+
+        @include mobile {
+          padding: 0.25in;
+          width: 100vw;
+          margin: 0;
+        }
       }
     }
   }

@@ -11,6 +11,9 @@
     <manifest>
         <item id="page" href="index.xhtml" media-type="application/xhtml+xml" />
         <item id="nav" href="nav.xhtml" properties="nav" media-type="application/xhtml+xml" />
+        <item id="img-tags" href="img/tags.jpg" media-type="image/jpeg" />
+        <item id="img-before-resize" href="img/after-resize.jpg" media-type="image/jpeg" />
+        <item id="img-after-resize" href="img/before-resize.jpg" media-type="image/jpeg" />
     </manifest>
     <spine>
         <itemref idref="page" />

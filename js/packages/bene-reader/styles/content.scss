@@ -1,9 +1,80 @@
 @import "normalize.css/normalize.css";
+@namespace epub "http://www.idpf.org/2007/ops";
 
-html {
-  line-height: 1.5em;
+@mixin mobile {
+  @media (max-width: 600px) {
+    @content;
+  }
 }
 
-section > h1:first-child {
-  margin-top: 0;
+
+html {
+  line-height: 1.5;
+  text-align: justify;
+  hyphens: auto;
+  word-spacing: -1px;
+
+  @include mobile {
+    text-align: left;
+    word-spacing: 0;
+  }
+}
+
+.title, h1, h2, h3, h4, h5, h6 {
+  line-height: 1.2;
+}
+
+ul, ol {
+  @include mobile {
+    padding-left: 1em;
+  }
+}
+
+div.title {
+  font-size: 3em;
+}
+
+section {
+  margin: 3em 0;
+}
+
+img {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+figcaption {  
+  display: flex;
+  justify-content: center;
+  font-style: italic;
+}
+
+figure {
+  background-color: #f8f8f8;
+  padding: 1em;
+  margin-left: 0;
+  margin-right: 0;  
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  overflow-x: auto;
+
+  img.border {
+    border: 1px solid #aaa;
+  }
+
+  pre {
+    margin: 0;
+  }
+
+  figure {
+    margin: 0 0 1.5em 0;
+    padding: 0;
+    border: none;
+    overflow-x: visible;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
 }
