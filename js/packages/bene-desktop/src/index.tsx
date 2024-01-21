@@ -11,7 +11,7 @@ window.addEventListener("message", async event => {
     let epubResult;
     try {
       let epub = await invoke("epub", {});
-      epubResult = { status: "ok", data: epub };
+      epubResult = { status: "ok", data: { metadata: epub, url: undefined } };
     } catch (e: any) {
       epubResult = { status: "error", error: e.toString() };
     }

@@ -126,9 +126,7 @@ export class CodeDescription extends LitElement {
   }
 
   firstUpdated() {
-    let steps = this.renderRoot.querySelectorAll<HTMLSpanElement>(
-      'span[data-type="code-step"]'
-    );
+    let steps = this.renderRoot.querySelectorAll<HTMLElement>("code-step");
     steps.forEach(step => {
       let anchors = Array.from(step.querySelectorAll<HTMLAnchorElement>("a"));
 
@@ -201,6 +199,10 @@ export class CodeDescription extends LitElement {
             a.classList.remove("code-highlight", `highlight-${i}`);
           }
         });
+
+        this.editor!.dispatch({
+          effects: setDecorations.of({ decorations: [] }),
+        });
       });
     });
   }
@@ -218,7 +220,10 @@ export class CodeDescription extends LitElement {
       rust(),
       EditorState.readOnly.of(true),
       highlightField,
-      EditorView.baseTheme({ ".cm-scroller": { lineHeight: 1.7 } }),
+      EditorView.baseTheme({
+        ".cm-scroller": { lineHeight: "1.7" },
+        ".cm-content": { fontSize: "90%" },
+      }),
     ];
 
     this.editor = new EditorView({ doc, root, extensions });

@@ -1,4 +1,5 @@
 import { debounce, throttle } from "@solid-primitives/scheduled";
+import componentStyleUrl from "bene-components/dist/style.css?url";
 import componentScriptUrl from "bene-components?url";
 import _ from "lodash";
 import {
@@ -24,6 +25,14 @@ function insertJs(doc: Document, url: string) {
   script.setAttribute("type", "text/javascript");
   script.setAttribute("src", url);
   doc.body.appendChild(script);
+}
+
+function insertCss(doc: Document, url: string) {
+  let link = doc.createElement("link");
+  link.setAttribute("rel", "stylesheet");
+  link.setAttribute("type", "text/css");
+  link.setAttribute("href", url);
+  doc.head.appendChild(link);
 }
 
 interface PageInfo {
@@ -111,7 +120,7 @@ function Toolbar() {
         />
         <span class="label">of {state.pageInfo?.numPages ?? "-"}</span>
       </div>
-      <div class="toolbar -middle">
+      <div class="toolbar-middle">
         <button class="toolbar-button zoom-out" onClick={() => setFont(-1)} />
         <div class="split-toolbar-button-separator" />
         <button class="toolbar-button zoom-in" onClick={() => setFont(1)} />
@@ -219,6 +228,7 @@ function Content(props: { navigateEvent: EventTarget }) {
         container.scrollTop + pageHeight >= docHeight
           ? numPages
           : 1 + Math.floor(container.scrollTop / pageHeight);
+      currentPage = _.clamp(currentPage, 1, numPages);
       let pages: PageInfo = {
         numPages,
         pageHeight,
@@ -226,6 +236,18 @@ function Content(props: { navigateEvent: EventTarget }) {
         container,
       };
       if (!_.isEqual(pages, state.pageInfo)) setState({ pageInfo: pages });
+    }
+
+    // Need to add target="blank" to all anchors, or else external navigation will
+    // occur within the reader's iframe.
+    function updateAnchors(doc: Document) {
+      let anchors = doc.querySelectorAll<HTMLAnchorElement>("a[href]");
+      anchors.forEach(a => {
+        let url = new URL(a.href);
+        if (url.host != window.location.host) {
+          a.setAttribute("target", "blank");
+        }
+      });
     }
 
     props.navigateEvent.addEventListener("navigate", e => {
@@ -239,6 +261,7 @@ function Content(props: { navigateEvent: EventTarget }) {
       let contentDoc = iframe.contentDocument!;
       insertJs(contentDoc, contentCssUrl);
       insertJs(contentDoc, componentScriptUrl);
+      insertCss(contentDoc, componentStyleUrl);
 
       let htmlEl = contentDoc.documentElement;
 
@@ -261,6 +284,8 @@ function Content(props: { navigateEvent: EventTarget }) {
       let styleEl = contentDoc.createElement("style");
       contentDoc.body.appendChild(styleEl);
       setStyleEl(styleEl);
+
+      updateAnchors(contentDoc);
     });
   });
 
@@ -364,7 +389,7 @@ function App() {
   onMount(() => {
     window.addEventListener("message", event => {
       let message = event.data;
-      console.log("Received message from service worker:", message);
+      console.log("Received message from window:", message);
       if (message.type == "loaded-epub") {
         setEpub(message.data);
       }
