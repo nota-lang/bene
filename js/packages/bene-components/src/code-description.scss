@@ -70,13 +70,17 @@ $colors: (rgb(31,119,180), rgb(255,127,14), rgb(44,160,44), rgb(214,39,40), rgb(
 .description {
   line-height: 2em;
 
+  > :last-child {
+    margin-bottom: 0;
+  }
+
   a {
     text-decoration: none;
     color: inherit;
     white-space: nowrap;
   }
 
-  span[data-type="code-step"] {
+  code-step {
     padding: calc(0.5 * (1lh - 1em)) 0;
 
     &::before, &::after {

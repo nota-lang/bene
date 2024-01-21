@@ -1,0 +1,18 @@
+@import 'tippy.js/themes/light-border.css';
+@import 'tippy.js/dist/svg-arrow.css';
+
+a[data-target="dfn"] {
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px dotted #555;
+  
+  -webkit-touch-callout: none; // prevents link preview from appearing for definition links
+}
+
+.tippy-box {
+  border-radius: 4px;  
+
+  .tippy-content {
+    padding: 0.5rem 1rem;  
+  }
+}

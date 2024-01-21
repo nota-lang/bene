@@ -2,6 +2,7 @@
 
 :root {
   --toolbar-bg-color: rgb(249, 249, 250);
+  --toolbar-border-color: rgb(184, 184, 184);
   --toolbar-sidebar-toggle-icon: url("../img/toolbarButton-sidebarToggle.svg");
   --toolbar-download-icon: url("../img/toolbarButton-download.svg");
   --toolbar-page-down-icon: url("../img/toolbarButton-pageDown.svg");
@@ -9,6 +10,7 @@
   --toolbar-zoom-in-icon: url("../img/toolbarButton-zoomIn.svg");
   --toolbar-zoom-out-icon: url("../img/toolbarButton-zoomOut.svg");
   --toolbar-icon-bg-color: rgb(0, 0, 0);
+  --toolbar-box-shadow: 0 1px 0 var(--toolbar-border-color);
   --button-hover-color: rgb(221, 222, 223);
   --separator-color: rgba(0, 0, 0, 0.3);
   --dropdown-btn-bg-color: rgb(215, 215, 219);
@@ -40,10 +42,22 @@
     height: 32px;
     display: flex;
     justify-content: space-between;
+    box-shadow: var(--toolbar-box-shadow);    
+    position: relative;
+    z-index: 1000;
 
     > div {
       display: flex;
       align-items: center;
+      padding: 0 3px;
+    }
+
+    .toolbar-left {
+      padding-left: 2px;
+    }
+
+    .toolbar-right {
+      padding-right: 2px;
     }
 
     .toolbar-button {
@@ -102,6 +116,10 @@
 
     .toolbar-button-spacer {
       width: 30px;
+
+      @include mobile {
+        width: 10px;
+      }
     }
 
     .split-toolbar-button-separator {

@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html 
+  xmlns="http://www.w3.org/1999/xhtml" 
+  xml:lang="en" 
+  lang="en" 
+  xmlns:epub="http://www.idpf.org/2007/ops"
+  epub:prefix="bene: http://example.com"
+>
+  <head>
+    <title>Portable EPUBs</title>
+    <meta charset="utf-8"></meta>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+  </head>
+  <body>
+    <header>
+      <doc-title>Portable EPUBs</doc-title>
+      <doc-authors>
+        <doc-author>
+          <doc-author-name><a href="https://willcrichton.net/">Will Crichton</a></doc-author-name>
+          <doc-author-affiliation>Brown University</doc-author-affiliation>
+        </doc-author>
+      </doc-authors>
+      <doc-publication-date>January 21, 2024</doc-publication-date>
+      <doc-abstract>
+        Despite decades of advances in document rendering technology, most of the world's documents are stuck in the 1990s due to the limitations of PDF.
+        Yet, modern document formats like HTML have yet to provide a competitive alternative to PDF. This post explores why this is the case, and proposes a way forward based on the EPUB format.
+      </doc-abstract>
+    </header>
+    <section>
+      <h1 id="good-and-bad-pdf">The Good and Bad of PDF</h1>
+
+      <p>
+        PDF is the <i>de facto</i> file format for reading and sharing digital documents: papers, textbooks, flyers, you name it.
+        People use the PDF format rather than DOC or JPEG for several reasons:
+      </p>
+
+      <ul>
+        <li><strong>PDFs are self-contained.</strong> A PDF is a single file that contains all the images, fonts, and other data needed to render it. It's easy to pass around a PDF, and a PDF is unlikely to be missing some critical dependency on your computer.</li>
+        <li><strong>PDFs are rendered consistently.</strong> A PDF specifies precisely how it should be rendered, so a PDF author can be confident that a reader will see the same PDF under any conditions.</li>
+        <li><strong>PDFs are stable over time.</strong> PDFs from decades ago still render the same today. PDFs have a <a href="https://www.iso.org/standard/75839.html">relatively stable standard.</a> PDFs cannot be easily edited like a DOC file.</li>
+      </ul>
+
+      <p>Yet, in the 32 years since the initial release of PDF, a lot has changed. People print out documents less and less. People use phones, tablets, and e-readers to read digital documents. The internet happened; web browsers now provide an platform for rendering rich documents. These changes have laid bare the limitations of PDF:</p>
+
+      <ul>
+        <li><strong>PDFs cannot easily adapt to different screen sizes.</strong> Most PDFs are designed to mimic 8.5x11" paper (or worse, <a href="https://en.wikipedia.org/wiki/PDF#/media/File:Seitengroesse_PDF_7.png">145,161 km<sup>2</sup></a>). These PDFs are readable on a computer monitor, but they are less readable on a tablet, and far less readable on a phone.</li>
+        <li><strong>PDFs cannot be easily understood by programs.</strong> A plain PDF is just a scattered sequence of lines and characters. For accessibility, screen readers <a href="https://dl.acm.org/doi/10.1145/2851581.2892588">may not know</a> which order to read through the text. For data extraction, scraping tables out of a PDF is an <a href="https://openaccess.thecvf.com/content/CVPR2022/html/Smock_PubTables-1M_Towards_Comprehensive_Table_Extraction_From_Unstructured_Documents_CVPR_2022_paper.html">open</a> <a href="https://ieeexplore.ieee.org/document/5277546">area</a> of <a href="https://www.sciencedirect.com/science/article/pii/S030645731830205X?casa_token=jNV6uhUNLs0AAAAA:p6EMBh3X54Ulv9Ghtca1WPR2iL6fkhpVOVsbXj7zzinRYVa72HUGQb6VBOIPFdFoHwjEGDSB">research</a>.</li>        
+        <li><strong>PDFs cannot easily express interaction.</strong> PDFs were primarily designed as static documents that cannot react to user input beyond filling in forms.</li>
+      </ul>
+ 
+      <p>
+        The underlying issue behind all four bullets is that PDF's core representation of a document is fundamentally unstructured. A PDF consists of commands like:
+      </p>
+      
+      <figure>
+      <pre>Move the cursor to the right by 0.5 inches.
+Set the current font color to black.
+Draw the text "Hello World" at the current position.</pre>
+      </figure>
+
+      <p>A document is organized into sentences, paragraphs and sections. PDF commands are "unstructured" because a PDF's organization is only clear to a person looking at the rendered document, and not clear from the commands themselves. Reflowing, accessibility, data extraction, and interaction <em>all</em> rely on understanding the structure of a document, and hence these aspects are not easy to integrate with PDFs.</p>
+
+      <p>This leads to the question: <strong>how can we design digital documents with the benefits of PDFs but without the limitations?</strong></p>
+    </section>
+
+
+    <section>
+      <h1 id="cant-fix-pdf">Can't We Just Fix PDF?</h1>
+
+      <p>A simple answer is to improve the PDF format. After all, we already have millions of PDFs — why bother with another format?</p>
+
+      <p>The designers of PDF are well aware of its limitations. I carefully hedged each bullet with the phrase "easily", because PDF does make it <em>possible</em> to overcome each limitation, at least partially. PDFs can be annotated with their <a href="https://opensource.adobe.com/dc-acrobat-sdk-docs/library/pdfmark/pdfmark_Logical.html">logical structure</a> to create a <a href="https://www.washington.edu/accesstech/documents/tagged-pdf/">tagged PDF</a>. Most PDF exporters will not add tags automatically — the simplest option is to use Adobe's subscription-only <a href="https://www.adobe.com/acrobat/acrobat-pro.html">Acrobat Pro</a>, which provides an "Automatically tag PDF" action. For example, here is <a href="https://arxiv.org/abs/2310.04368">a recent paper of mine</a> with added tags:</p>
+
+      <figure>
+        <img src="img/tags.jpg" width="500" class="border" />
+        <figcaption>A LaTeX-generated paper with automatically added tags.</figcaption>
+      </figure>
+
+      <p>
+        If you squint, you can see that the logical structure closely resembles the HTML document model. The document has sections, headings, paragraphs, and links. Adobe characterizes the logical structure as an accessibility feature, but it has other benefits. You may be surprised to know that Adobe Acrobat allows you to reflow tagged PDFs at different screen sizes. You may be unsurprised to know that reflowing does not always work well. For example:
+      </p>
+
+      <figure>
+        <figure>
+          <img src="img/before-resize.jpg" class="border" />
+          <figcaption>
+            A section of the paper in its default fixed layout. 
+            Note that the second paragraph is wrapped around the code snippet.
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="img/after-resize.jpg" class="border" width="350" />
+          <figcaption>
+            The same section of the paper after reflowing to a smaller width. 
+            Note that the code is now interleaved with the second paragraph.
+          </figcaption>
+        </figure>
+      </figure>
+
+      <p>
+        In theory, these issues could be fixed. If the world's PDF exporters could be modified to include logical structure. If Adobe's reflowing algorithm could be improved to fix its edge cases. If the reflowing algorithm could be specified, and if Adobe were willing to release it publicly, and if it were implemented in each PDF viewer. And that doesn't even cover interaction! So in practice, I don't think we can just fix the PDF format, at least within a reasonable time frame.
+      </p>
+    </section>
+
+    <section>
+      <h1 id="good-and-bad-html">The Good and Bad of HTML</h1>
+
+      <p>In the meantime, we already have a structured document format which can be flexibly and interactively rendered: HTML (and CSS and Javascript, but here just collectively referred to as HTML). The HTML format provides almost exactly the inverse advantages and disadvantages of PDF.</p>
+      
+      <ul>
+        <li><strong>HTML can more easily adapt to different screen sizes.</strong> Over the last 20 years, web developers and browser vendors have created a wide array of techniques for <a href="https://developer.mozilla.org/en-US/docs/Learn/CSS/CSS_layout/Responsive_Design">responsive design</a>.</li>
+        <li><strong>HTML can be more easily understood by a program.</strong>  HTML provides both an inherent structure plus <a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA">additional attributes</a> to support accessibility tools.</li> 
+        <li><strong>HTML can more easily express interaction.</strong> People have used HTML to produce amazing interactive documents that would be impossible in PDF. Think: <a href="https://distill.pub/">Distill.pub</a>, <a href="https://explorabl.es/">Explorable Explanations</a>, <a href="https://ciechanow.ski/">Bartosz Ciechanowski</a>, and <a href="http://worrydream.com/">Bret Victor</a>, just to name a few.</li> 
+      </ul>
+
+      <p>
+        Again, these advantages are hedged with "more easily". One can easily produce a convoluted or inaccessible HTML document. But on balance, these aspects are more true than not compared to PDF. But HTML is lacking where PDF shines:
+      </p>
+
+      <ul>
+        <li><strong>HTML is not self-contained.</strong> HTML files contain URL references to external files that may be hosted on a server. You cannot just download an HTML file and have it always render correctly.</li>
+        <li><strong>HTML is not always rendered consistently.</strong> HTML's dynamic layout means that an author may not see the same document as a reader. Moreover, HTML layout is not fully specified, so browsers may differ in their implementation.</li>
+        <li><strong>HTML is not fully stable over time.</strong> Browsers try to maintain backwards compatibility (<a href="https://www.spacejam.com/1996/">come on and slam!</a>), but the HTML format is still evolving. The <a href="https://html.spec.whatwg.org/">HTML standard</a> is a "living standard" due to the rapidly changing needs and feature sets of modern browsers.</li>
+      </ul>
+
+      <p>
+        So I've been thinking: <strong>how can we design HTML documents to gain the benefits of PDFs without losing the key strengths of HTML?</strong> The rest of this document will present some early prototypes and tentative proposals in this direction.
+      </p>
+    </section>
+
+    <section>
+      <h1 id="epub-intro">Self-Contained HTML with EPUB</h1>
+
+      <p>
+        First, how can we make HTML documents self-contained? This is an old problem with many potential solutions. <a href="https://en.wikipedia.org/wiki/WARC_(file_format)">WARC</a>, <a href="https://en.wikipedia.org/wiki/Webarchive">webarchive</a>, and <a href="https://en.wikipedia.org/wiki/MHTML">MHTML</a> are all file formats designed to contain all the resources needed to render a web page. But these formats are more designed for snapshotting an existing website, rather than serving as a single source of truth for an web document. From my research, the most sensible format for this purpose is EPUB.
+      </p>
+
+      <p>
+        EPUB is a "distribution and interchange format for digital publications and documents", per the <a href="https://www.w3.org/TR/epub-overview-33/#">EPUB 3 Overview</a>. Reductively, an EPUB is a ZIP archive of web files: HTML, CSS, JS, and assets like images and fonts. On a technical level, what distinguishes EPUB from archival formats is that EPUB includes well-specified files that describe metadata about a document. On a social level, EPUB appears to be the HTML publication format with the most adoption and momentum in 2024, compared to formats like <a href="https://en.wikipedia.org/wiki/Mobipocket">Mobi</a>.
+      </p>
+
+      <p>The <a href="https://www.w3.org/TR/epub-33">EPUB spec</a> has all the gory details, but to give you a rough sense, a sample EPUB might have the following file structure:</p> 
+
+      <figure>
+        <pre>sample.epub
+├── META-INF
+│   └── container.xml
+└── EPUB
+    ├── package.opf
+    ├── nav.xhtml
+    ├── chapter1.xhtml
+    ├── chapter2.xhtml
+    └── img
+        └── sample.jpg</pre>
+      </figure>
+
+      <p>An EPUB contains <a href="https://www.w3.org/TR/epub-33/#sec-contentdocs">content documents</a> (like <code>chapter1.xhtml</code> and <code>chapter2.xhtml</code>) which contain the core HTML content. Content documents can contain relative links to assets in the EPUB, like <code>img/sample.jpg</code>. The <a href="https://www.w3.org/TR/epub-33/#sec-nav">navigation document</a> (<code>nav.xhtml</code>) provides a table of contents, and the <a href="https://www.w3.org/TR/epub-33/#sec-package-doc">package document</a> (<code>package.opf</code>) provides metadata about the document. These files collectively define one "rendition" of the whole document, and the <a href="https://www.w3.org/TR/epub-33/#sec-container-metainf-container.xml">container file</a> (<code>container.xml</code>) points to each rendition contained in the EPUB.</p>
+
+      <p>The EPUB format optimizes for easily machine-readable content and metadata. HTML content is required to be in XML format (hence, <strong>X</strong>HTML). Document metadata like the title and author is provided in structured form in the package document. The navigation document has a carefully prescribed tag structure so the TOC can be consistently extracted.</p>
+
+      <p>Overall, EPUB's structured format makes it a solid candidate for a single-file HTML document container. However, EPUB is not a silver bullet. EPUB is quite permissive in what kinds of content one can put into a content document. Much of the remainder of this document will be about some preliminary proposals for additional restrictions on EPUB that achive the design goals stated earlier.</p>
+
+      <p>For example, a major issue for self-containment is that EPUB content can embed external assets. A content document can legally include an image or font file whose <code>src</code> is a URL to a hosted server. This is not hypothetical, either; as of the time of writing, Google Doc's EPUB exporter will emit CSS that contains <code>@include</code>s of external Google Fonts files. The problem is that this EPUB will not render correctly without an internet connection, nor will it render correctly if Google changes the link of its font files.</p>
+
+      <p><dfn-container>Hence, I will propose a new format which I call a <dfn id="portable-epub">portable EPUB</dfn>, which is an EPUB with additional requirements and recommendations to improve PDF-like portability.</dfn-container> The first requirement is:</p>
+        
+      <div class="callout">
+        <strong>Local asset requirement:</strong> All assets (like images, scripts, and fonts) included in a content document of a <a href="#portable-epub" data-target="dfn">portable EPUB</a> must refer to local files included in the EPUB. Hyperlinks to external files are permissible.
+      </div>  
+    </section>
+
+    <section>
+      <h1 id="rendering-epub">Consistently and Flexibly Rendering an EPUB</h1>
+
+      <p>
+        There is a fundamental tension between consistency and flexibility in document rendering. A PDF is consistent because it is designed to render in one way: one layout, one choice of fonts, one choice of colors, one pagination, and so on. Consistency is desirable because an author can be confident that their document will not look terrible for a reader. Consistency has subtler benefits &#8212; because a PDF is chunked into a consistent set of pages, a person can cite a passage by referring to the page containing the passage.
+      </p>
+
+      <p>On the other hand, flexibility is desirable because people want to read documents under different conditions. Device conditions include screen size (from phone to monitor) and screen capabilities (E-ink vs. LCD). Readers may prefer larger fonts or higher contrasts for visibility, alternative color schemes for color blindness, or alternative font faces for <a href="https://opendyslexic.org/">dyslexia</a>. Flexible layout could even obviate manual figure placement, such as by ensuring that a figure is on screen when a reference to the figure is visible.</p>
+
+      <p>
+        Finding a balance between consistency and flexibility is arguably the most fundamental design challenge in attempting to replace PDF with EPUB. To navigate this trade-off, we first need to talk about EPUB reading systems, or the tools that render an EPUB for human consumption. To get a sense of variation between reading systems, I tried rendering this document as an EPUB (without any styling, just HTML) on four systems: <a href="https://calibre-ebook.com/">Calibre</a>, <a href="https://www.adobe.com/solutions/ebook/digital-editions.html">Adobe Digital Editions</a>, <a href="https://www.apple.com/apple-books/">Apple Books</a>, and <a href="https://www.amazon.com/dp/B09SWW583J">Amazon Kindle</a>. This is how the first page looks on each system (omitting Calibre because it looked the same as Adobe Digital Edition):
+        <!-- The W3C has an  that lays out the minimal requirements for being an EPUB reader.  -->
+      </p>
+
+      <figure>
+        <figure>
+          <img src="img/adobe-digital-edition.jpg" class="border" width="500" />
+          <figcaption>Adobe Digital Editions</figcaption>
+        </figure>
+
+        <figure>
+          <img src="img/apple-books.jpg" class="border" width="500" />
+          <figcaption>Apple Books</figcaption>
+        </figure>
+
+        <figure>
+          <img src="img/kindle.jpg" class="border" width="500" />
+          <figcaption>Amazon Kindle</figcaption>
+        </figure>
+      </figure>
+
+      <p>
+        Calibre and Adobe Digital Editions both render the document in a plain web view, as if you opened the HTML file directly in the browser. Apple Books applies some styling, using the <a href="https://en.wikipedia.org/wiki/New_York_(2019_typeface)">New York</a> font by default and changing link decorations. Amazon Kindle increases the line height and also uses my Kindle's globally-configured default font, <a href="https://en.wikipedia.org/wiki/Palatino">Palatino</a>.        
+      </p>
+
+      <p>This variation showcases how an EPUB's rendering can be influenced by three parties: the reading system, the document, and the reader. The key question is: how much leeway should each party have? I think the right answer is that we need to classify all rendering parameters as either <em>configurable</em> or <em>non-configurable</em>. For example:
+      </p>
+
+      <ul>
+        <li><strong>Configurable:</strong> font face, font size, line height, text color, background color, text content (for auto-translation).</li>
+        <li><strong>Non-configurable:</strong> text position, text order, image content, document structure.</li>
+      </ul>
+
+      <p>
+        A document defines the non-configurable parameters by its content. A reading system, a document, and a reader can <em>all</em> provide configurable parameters with the expectation that the document overrides the reading system (consistent with the <a href="https://www.w3.org/TR/epub-rs-33/#sec-css">EPUB Reading Systems specification</a>), and that the reader overrides BOTH the document and the reading system. In short:
+      </p>
+
+      <div class="callout">
+        <strong>Rendering configuration requirement:</strong> a <a href="#portable-epub" data-target="dfn">portable EPUB</a> must provide non-configurable rendering parameters, and it may provide configurable parameters. A <a href="#portable-epub" data-target="dfn">portable EPUB</a> reading system and a reader may only provide configurable parameters, with the priority order of reading system &#60; document &#60; reader.
+      </div>
+    </section>
+
+    <section>
+      <h1 id="reading-system">A Lighter EPUB Reading System</h1>
+      <p>
+        A problem with many EPUB reading systems is that there are parameters which <em>should</em> be configurable, but are not. For example, to emulate the experience of reading a book, most reading systems will chunk an EPUB into pages. A reader cannot scroll the document but rather "turn" the page, meaning textually-adjacent content can be split up between pages. Whether a document is paginated or scrolled should be a reader's choice, but 3/4 reading systems I tested would only permit pagination (Calibre being the exception).
+      </p>
+
+      <p>More generally, I have found that EPUB reading systems feel very "heavy", as opposed to "lighter" PDF reading systems like <a href="https://en.wikipedia.org/wiki/Preview_(macOS)">Preview</a>. Loading an EPUB into Apple Books or Calibre will import the EPUB into the application's library, which both copies and potentially decompresses the file. Loading an EPUB on a Kindle requires waiting several minutes for the <a href="https://www.amazon.com/sendtokindle">Send to Kindle</a> service to complete.</p>
+
+      <p>Therefore I decided to build a lighter EPUB reading system, <a href="https://github.com/nota-lang/bene/">Bene</a>. You're using it right now. This document is an EPUB &#8212; you can download it by clicking the button in the top-right corner. The styling and icons are mostly borrowed from <a href="https://github.com/mozilla/pdf.js">pdf.js</a>. Bene is implemented in <a href="https://tauri.app/">Tauri</a>, so it can work as both a desktop app and a browser app. Please appreciate this picture of Bene running as a desktop app:</p>
+
+      <figure>
+        <img src="img/bene.png" width="600" />
+        <figcaption>The Bene reading system running as a desktop app. Wow! It works!</figcaption>
+      </figure>
+
+      <p>Bene is designed to make opening and reading an EPUB feel fast and non-committal. The app is much quicker to open on my Macbook (&#60;1sec) than other desktop apps. It dynamically reads files out from the ZIP so no additional disk space is used. The backend is implemented in Rust and compiled to Wasm for the browser version.</p>
+
+      <p>The general design goal of Bene is to embody my ideals for a <a href="#portable-epub" data-target="dfn">portable EPUB</a> reader. That is, a utilitarian interface into an EPUB that satisfies my additional requirements for portability. Bene should (although does not currently) make all configurable render parameters... configurable. Long-term, I want Bene to provide richer document interactions than a standard EPUB reader, which means we must discuss scripting.</p>
+    </section>
+
+    <section>
+      <h1 id="defensive-scripting">Defensively Scripting EPUBs</h1>
+
+      <p>
+        To some people, the idea of code in their documents is unappealing. Last time one of my <a href="https://nota-lang.org/">document-related projects</a> was posted to Hacker News, the <a href="https://news.ycombinator.com/item?id=37951616">top comment</a> was complaining about dynamic documents. The sentiment is understandable &#8212; concerns include:
+      </p>
+
+      <ul>
+        <li><strong>Bad code:</strong> your document shouldn't crash or glitch due to a failure in a script.</li>
+        <li><strong>Bad browsers:</strong> your document shouldn't fail to render when a browser updates.</li>
+        <li><strong>Bad actors:</strong> a malicious document shouldn't be able to pwn your computer.</li>
+        <li><strong>Bad interfaces:</strong> a script shouldn't cause your document to become unreadable.</li>
+      </ul>
+
+      <p>Yet, document scripting provides many opportunities for improving how we communicate information. For one example, if you haven't yet, try hovering your mouse over any instance of the term <a href="#portable-epub" data-target="dfn">portable EPUB</a> (or long press it on a touch screen). You should see a tooltip appear with the term's definition. The goal of these tooltips is to simplify reading a document that contains a lot of specialized notation or terminology. If you forget a definition, you can quickly look it up without having to jump around.</p>
+
+      <p>The key design challenge is how to permit useful scripting behaviors while limiting the downsides of scripting. One strategy is as follows:</p>
+
+      <div class="callout">
+        <strong>Structure over scripts principle:</strong> documents should prefer structural annotations over scripts where possible. Documents should rely on reading systems to utilize structure where possible.
+      </div>
+
+      <p>As an example of this principle, consider how the <a href="#portable-epub" data-target="dfn">portable EPUB</a> definition and references are expressed in this document:</p>
+
+      <figure>
+        <figure>
+          <syntax-highlight language="html" word-wrap="true"><pre><code>&#x3C;p&#x3E;&#x3C;dfn-container&#x3E;Hence, I will propose a new format which I call a &#x3C;dfn id=&#x22;portable-epub&#x22;&#x3E;portable EPUB&#x3C;/dfn&#x3E;, which is an EPUB with additional requirements and recommendations to improve PDF-like portability.&#x3C;/dfn-container&#x3E; The first requirement is:&#x3C;/p&#x3E;</code></pre></syntax-highlight>
+          <figcaption>Creating a definition</figcaption>
+        </figure>
+
+        <figure>
+          <syntax-highlight language="html" word-wrap="true"><pre><code>For one example, if you haven't yet, try hovering your mouse over any instance of the term &#x3C;a href=&#x22;#portable-epub&#x22; data-target=&#x22;dfn&#x22;&#x3E;portable EPUB&#x3C;/a&#x3E; (or long press it on a touch screen).</code></pre></syntax-highlight>
+          <figcaption>Referencing a definition</figcaption>
+        </figure>
+      </figure>
+
+      <p>The definition uses the <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dfn"><code>&#x3C;dfn&#x3E;</code></a> element wrapped in a custom <code>&#x3C;dfn-container&#x3E;</code> element to indicate the scope of the definition. The reference to the definition uses a standard anchor with an addition <code>data-target</code> attribute to emphasize that a definition is being linked. The document itself does not provide a script. The Bene reading system automatically detects these annotations and provides the tooltip interaction.</p>
+    </section>
+        
+    <section>
+      <h1 id="web-components">Encapsulating Scripts with Web Components</h1>
+
+      <p>But what if a document wants to provide an interactive component that isn't natively supported by the reading system? For instance, I have recently been working with <i>The Rust Programming Language</i>, a textbook that explains the different features of Rust. It contains a lot of passages <a href="https://doc.rust-lang.org/book/ch03-01-variables-and-mutability.html#shadowing">like this one:</a></p>
+
+      <figure>
+        <syntax-highlight language="rust">
+        <pre><code>fn main() {
+    let x = 5;
+    let x = x + 1;
+    {
+        let x = x * 2;
+        println!("The value of x in the inner scope is: {x}");
+    }
+    println!("The value of x is: {x}");
+}</code></pre></syntax-highlight>
+        <p>This program first binds <code class="hljs">x</code> to a value of <code class="hljs">5</code>. Then it creates a new variable
+          <code class="hljs">x</code> by repeating <code class="hljs">let x =</code>, taking the original value and adding <code class="hljs">1</code> so the
+          value of <code class="hljs">x</code> is then <code class="hljs">6</code>. Then, within an inner scope created with the curly
+          brackets, the third <code class="hljs">let</code> statement also shadows <code class="hljs">x</code> and creates a new
+          variable, multiplying the previous value by <code class="hljs">2</code> to give <code class="hljs">x</code> a value of <code class="hljs">12</code>.
+          When that scope is over, the inner shadowing ends and <code class="hljs">x</code> returns to being <code class="hljs">6</code>.
+          When we run this program, it will output the following:</p>
+      </figure>
+
+      <p>A challenge in reading this passage is finding the correspondences between the prose and the code. An interactive code reading component can help you track those correspondences, like this (try mousing-over or clicking-on each sentence):</p>
+
+      <figure>
+      <code-description>
+        <pre><code>fn main() {
+    let <span id="code-1">x</span> = <span id="code-2">5</span>;
+    <span id="code-4">let <span id="code-3">x</span> =</span> <span id="code-15">x</span> <span id="code-16">+</span> <span id="code-5">1</span>;
+    <span id="code-18"><span id="code-7">{</span>
+        <span id="code-8">let</span> <span id="code-9">x</span> = <span id="code-10">x</span> <span id="code-17">*</span> <span id="code-11">2</span>;
+        println!("The value of x in the inner scope is: {x}");
+    <span id="code-13">}</span></span>
+    println!("The value of x is: {<span id="code-14">x</span>}");
+}</code></pre>
+        <p>
+          <code-step>This program first binds <a href="#code-1"><code>x</code></a> to a value of <a href="#code-2"><code>5</code></a>.</code-step>
+          <code-step>Then it creates a new variable <a href="#code-3"><code>x</code></a> by repeating <a href="#code-4"><code>let x =</code></a>,</code-step>
+          <code-step>taking <a href="#code-15">the original value</a> and <a href="#code-16">adding</a> <a href="#code-5">1</a> 
+          so the value of <a href="#code-3"><code>x</code></a> is then 6.</code-step>
+          <code-step>Then, within an <a href="#code-18">inner scope</a> created with the <a href="#code-7">curly</a> <a href="#code-13">brackets</a>,</code-step> 
+          <code-step>the third <a href="#code-8"><code>let</code></a> statement also shadows <a href="#code-3"><code>x</code></a> and creates 
+          <a href="#code-9">a new variable</a>,</code-step>
+          <code-step><a href="#code-17">multiplying</a> <a href="#code-10">the previous value</a> by <a href="#code-11">2</a> 
+          to give <a href="#code-9"><code>x</code></a> a value of 12.</code-step>
+          <code-step>When <a href="#code-18">that scope</a> <a href="#code-13">is over</a>, <a href="#code-9">the inner shadowing</a> ends and <a href="#code-14"><code>x</code></a> returns to being 6.</code-step>
+        </p>
+      </code-description>     
+      </figure> 
+      
+      <p>The interactive code description component is used as follows:</p>
+
+      <figure>
+<syntax-highlight language="html" word-wrap="true">
+<pre><code>&#x3C;code-description&#x3E;
+  &#x3C;pre&#x3E;&#x3C;code&#x3E;fn main() {
+    let &#x3C;span id=&#x22;code-1&#x22;&#x3E;x&#x3C;/span&#x3E; = &#x3C;span id=&#x22;code-2&#x22;&#x3E;5&#x3C;/span&#x3E;;
+    &#x3C;!-- rest of the code... --&#x3E;
+}&#x3C;/code&#x3E;&#x3C;/pre&#x3E;
+  &#x3C;p&#x3E;
+    &#x3C;code-step&#x3E;This program first binds &#x3C;a href=&#x22;#code-1&#x22;&#x3E;&#x3C;code&#x3E;x&#x3C;/code&#x3E;&#x3C;/a&#x3E; to a value of &#x3C;a href=&#x22;#code-2&#x22;&#x3E;&#x3C;code&#x3E;5&#x3C;/code&#x3E;&#x3C;/a&#x3E;.&#x3C;/code-step&#x3E;
+    &#x3C;!-- rest of the prose... --&#x3E;
+  &#x3C;/p&#x3E;
+&#x3C;/code-description&#x3E;</code></pre></syntax-highlight>      
+      </figure>
+
+      <p>Again, the document content contains no actual script. It contains a custom element <code>&#x3C;code-description&#x3E;</code>, and it contains a series of annotations as spans and anchors. The <code>&#x3C;code-description&#x3E;</code> element is implemented as a <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components">web component</a>.</p>
+
+      <p>Web components are a programming model for writing encapsulated interactive fragments of HTML, CSS, and Javascript. Web components are one of many ways to write componentized HTML, such as <a href="https://react.dev/">React</a>, <a href="https://www.solidjs.com/">Solid</a>, <a href="https://svelte.dev/">Svelte</a>, and <a href="https://angular.io/">Angular</a>. I see web components as the most suitable as a framework for <a href="#portable-epub" data-target="dfn">portable EPUBs</a> because:
+      </p>
+
+      <ul>
+        <li><strong>Web components are a standardized technology.</strong> Its key features like <a href="https://html.spec.whatwg.org/multipage/custom-elements.html#custom-elements">custom elements</a> (for specifying the behavior of novel elements) and <a href="https://dom.spec.whatwg.org/#shadow-trees">shadow trees</a> (for encapsulating a custom element from the rest of the document) are part of the official HTML and DOM specifications. This improves the likelihood that future browsers will maintain backwards compatibility with web components written today.</li>
+        <li><strong>Web components are designed for tight encapusulation.</strong> The shadow tree mechanism ensures that styling applied within a custom component cannot accidentally affect other components on the page.</li>
+        <li><strong>Web components have a decent ecosystem to leverage.</strong> As far as I can tell, web components are primarily used by Google, which has created notable frameworks like <a href="https://lit.dev">Lit</a>.</li>
+        <li><strong>Web components provide a clear fallback mechanism.</strong> If a renderer does not support Javascript, or if a renderer loses the ability to render web components, then an HTML renderer will simply ignore custom tags and render their contents.</li>
+      </ul>
+
+      <p>
+        Thus, I propose one principle and one requirement:
+      </p>
+
+      <div class="callout">
+        <strong>Encapsulated scripts principle:</strong> interactive components should be implemented as web components when possible, or otherwise be carefully designed to avoid conflicting with the base document or other components.
+      </div>
+
+      <div class="callout">
+        <strong>Components fallback requirement:</strong> interactive components must provide a fallback mechanism for rendering a reasonable substitute if Javascript is disabled.
+      </div>
+    </section>
+    <section>
+      <h1 id="where-to-go">Where To Go From Here?</h1>
+
+      <p>
+        Every time I have told someone <q>I want to replace PDF</q>, the statement has been met with extreme skepticism. Hopefully this document has convinced you that HTML-via-EPUB could potentially be a viable and desirable document format for the future.
+      </p>
+
+      <p>My short-term goal is to implement a few more documents in the <a href="#portable-epub" data-target="dfn">portable EPUB</a> format, such as my <a href="https://willcrichton.net/nota">PLDI paper</a>. That will challenge both the file format and the reading system to be flexible enough to support each document type. In particular, each document should look good under a range of reading conditions (screen sizes, font sizes and faces, etc.).</p>
+
+      <p>My long-term goal is to design a document language that makes it easy to generate <a href="#portable-epub" data-target="dfn">portable EPUBs</a>. Writing XHTML by hand is not reasonable. I designed <a href="https://nota-lang.org/">Nota</a> before I was thinking about EPUBs, so its next iteration will be targeted at this new format.</p>
+
+      <p>
+        If you have any thoughts about how to make this work or why I'm wrong, let me know by <a href="mailto:crichton.will@gmail.com">email</a> or <a href="https://twitter.com/tonofcrates">Twitter</a> or <a href="https://mastodon.social/@tonofcrates">Mastodown</a> or wherever this gets posted. If you would like to help out, please reach out! This is just a passion project in my free time (for now...), so any programming or document authoring assistance could provide a lot of momentum to the project. 
+      </p>
+    </section>
+  </body>
+</html>
