@@ -89,6 +89,7 @@ async fn main() -> Result<()> {
     Epub::load(&mut archive_clone).await
   })));
 
+  #[allow(unused_variables)]
   let setup = |app: &mut App| {
     #[cfg(debug_assertions)] // only include this code on debug builds
     {

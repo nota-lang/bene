@@ -402,7 +402,7 @@ function App() {
     <>
       {epub() === undefined ? (
         stillWaiting() ? (
-          <pre style="padding:5px">Waiting for epub...</pre>
+          <pre style="padding:5px">(waiting for document to load...)</pre>
         ) : null
       ) : epub().status == "error" ? (
         <pre style="padding:5px">{epub().error.toString()}</pre>

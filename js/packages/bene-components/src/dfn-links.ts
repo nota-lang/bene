@@ -26,7 +26,6 @@ function initDefinitionLinks() {
       console.warn("Missing definition for reference", id);
       return;
     }
-    let isMobile = window.screen.width < 600;
     tippy(link, {
       content: `“${def}”`,
       arrow: roundArrow,
@@ -34,7 +33,6 @@ function initDefinitionLinks() {
       placement: "auto",
       interactive: true,
       delay: [200, 0],
-      // trigger: isMobile ? "click" : "mouseenter focus",
       touch: ["hold", 500],
     });
   });
