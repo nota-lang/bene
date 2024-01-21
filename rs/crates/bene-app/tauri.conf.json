@@ -1,6 +1,6 @@
 {
   "build": {
-    "beforeBuildCommand": "cd ../../js && depot -p bene-desktop build",
+    "beforeBuildCommand": "cd ../../js && depot -p bene-desktop build --release",
     "devPath": "../../../js/packages/bene-desktop/dist",
     "distDir": "../../../js/packages/bene-desktop/dist"
   },

@@ -1,12 +1,10 @@
 @import "normalize.css/normalize.css";
-@namespace epub "http://www.idpf.org/2007/ops";
 
 @mixin mobile {
   @media (max-width: 600px) {
     @content;
   }
 }
-
 
 html {
   line-height: 1.5;
