@@ -31,22 +31,13 @@ export class SyntaxHighlight extends LitElement {
     ];
 
     if (this.language) {
-      let languages: { [lang: string]: () => Extension } = {
-        rust,
-        html,
-      };
+      let languages: { [lang: string]: () => Extension } = { rust, html };
       let langConstructor = languages[this.language];
-      if (langConstructor) {
-        extensions.push(langConstructor());
-      } else {
-        console.warn(`Missing language package: ${langConstructor}`);
-      }
+      if (langConstructor) extensions.push(langConstructor());
+      else console.warn(`Missing language package: ${langConstructor}`);
     }
 
-    console.log(this.wordWrap);
-    if (this.wordWrap) {
-      extensions.push(EditorView.lineWrapping);
-    }
+    if (this.wordWrap) extensions.push(EditorView.lineWrapping);
 
     this.editor = new EditorView({ doc, root, extensions });
   }

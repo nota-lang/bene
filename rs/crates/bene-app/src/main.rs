@@ -3,7 +3,7 @@
 
 use std::{borrow::Cow, path::PathBuf, sync::Arc};
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use bene_epub::{Archive, Epub, FileZip};
 use clap::Parser;
 use log::warn;
@@ -38,15 +38,18 @@ struct CliArgs {
   path: PathBuf,
 }
 
-
 async fn load_reader_asset(app: &AppHandle, path: &str) -> Result<Vec<u8>> {
   let path = format!("{}/bene-reader{path}", app.config().build.dist_dir);
   Ok(tokio::fs::read(path).await?)
 }
 
-async fn load_epub_asset(archive: &Arc<Mutex<Archive>>, path: &str) -> Result<Vec<u8>> {
+async fn load_epub_asset(
+  epub: &Epub,
+  archive: &Arc<Mutex<Archive>>,
+  path: &str,
+) -> Result<Vec<u8>> {
   let mut archive = archive.lock().await;
-  archive.read_file(path).await
+  epub.load_asset(&mut archive, path).await
 }
 
 async fn serve_asset(
@@ -56,7 +59,10 @@ async fn serve_asset(
 ) -> http::Response<Cow<'static, [u8]>> {
   let path = request.uri().path();
   let (result, path) = match path.strip_prefix("/epub-content/") {
-    Some(epub_path) => (load_epub_asset(archive, epub_path).await, epub_path),
+    Some(epub_path) => match app.try_state::<Epub>() {
+      Some(epub) => (load_epub_asset(&epub, archive, epub_path).await, epub_path),
+      None => (Err(anyhow!("Epub not loaded yet")), epub_path),
+    },
     None => (load_reader_asset(app, path).await, path),
   };
   match result {

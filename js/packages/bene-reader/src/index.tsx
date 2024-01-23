@@ -47,9 +47,11 @@ interface State {
   chapterIndex: number;
   fontSize: number;
   showNav: boolean;
+  width: number;
   pageInfo?: PageInfo;
   epub: any;
   url?: URL;
+  initialPath?: string;
 
   rendition(): any;
   chapterId(): string;
@@ -197,13 +199,71 @@ function Nav(props: { navigateEvent: EventTarget }) {
   );
 }
 
+function ResizeHandle() {
+  let [_state, setState] = useContext(StateContext)!;
+  let handleRef: HTMLDivElement | undefined;
+
+  function onMouseDown(event: MouseEvent) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    let handleBounds = handleRef!.getBoundingClientRect();
+    let deltaX = handleBounds.right - event.x;
+
+    let iframes = document.querySelectorAll<HTMLIFrameElement>("iframe");
+    iframes.forEach(iframe => {
+      iframe.style.pointerEvents = "none";
+    });
+
+    function onMouseMove(event: MouseEvent) {
+      let width = Math.abs(event.x + deltaX - window.innerWidth / 2) * 2;
+      setState({ width });
+    }
+
+    function onMouseUp() {
+      iframes.forEach(iframe => {
+        iframe.style.pointerEvents = "auto";
+      });
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    }
+
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  }
+
+  return (
+    <div
+      class="resize-handle-container"
+      onMouseDown={onMouseDown}
+      ref={handleRef}
+    >
+      <div class="resize-handle" />
+    </div>
+  );
+}
+
 function Content(props: { navigateEvent: EventTarget }) {
   let [state, setState] = useContext(StateContext)!;
   let [styleEl, setStyleEl] = createSignal<HTMLStyleElement | undefined>(
     undefined
   );
 
+  function updateStyleEl(el: HTMLStyleElement) {
+    el.innerText = `
+      html {
+        font-size: ${state.fontSize}px;  
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      }
+
+      article {
+        max-width: ${state.width}px;
+      }
+      `;
+  }
+
   let chapterUrl = () => {
+    if (state.initialPath) return state.initialPath;
     let id = state.chapterId();
     let rend = state.rendition();
     let items = rend.package.manifest.item!;
@@ -212,17 +272,28 @@ function Content(props: { navigateEvent: EventTarget }) {
   };
 
   let containerRef: HTMLDivElement | undefined;
-  let frameRef: HTMLDivElement | undefined;
   let iframeRef: HTMLIFrameElement | undefined;
 
   onMount(() => {
     let container = containerRef!;
-    let frame = frameRef!;
     let iframe = iframeRef!;
+
+    const SCROLL_KEY = "bene-scroll-info";
+    interface ScrollInfo {
+      scrollTop: number;
+      docHeight: number;
+    }
+
+    let initializedScroll = chapterUrl().includes("#");
+    let savedScrollStr = localStorage.getItem(SCROLL_KEY);
+    let savedScroll =
+      savedScrollStr !== null
+        ? (JSON.parse(savedScrollStr) as ScrollInfo)
+        : undefined;
 
     function updatePageInfo() {
       let pageHeight = container.getBoundingClientRect().height;
-      let docHeight = frame.getBoundingClientRect().height;
+      let docHeight = iframe.getBoundingClientRect().height;
       let numPages = Math.ceil(docHeight / pageHeight);
       let currentPage =
         container.scrollTop + pageHeight >= docHeight
@@ -236,74 +307,131 @@ function Content(props: { navigateEvent: EventTarget }) {
         container,
       };
       if (!_.isEqual(pages, state.pageInfo)) setState({ pageInfo: pages });
+
+      if (
+        savedScroll &&
+        !initializedScroll &&
+        savedScroll.docHeight == docHeight
+      ) {
+        container.scrollTo({ top: savedScroll.scrollTop });
+        initializedScroll = true;
+      }
+
+      let scrollInfo: ScrollInfo = {
+        scrollTop: container.scrollTop,
+        docHeight,
+      };
+      localStorage.setItem(SCROLL_KEY, JSON.stringify(scrollInfo));
     }
 
-    // Need to add target="blank" to all anchors, or else external navigation will
-    // occur within the reader's iframe.
-    function updateAnchors(doc: Document) {
-      let anchors = doc.querySelectorAll<HTMLAnchorElement>("a[href]");
-      anchors.forEach(a => {
-        let url = new URL(a.href);
-        if (url.host != window.location.host) {
-          a.setAttribute("target", "blank");
-        }
-      });
-    }
-
-    props.navigateEvent.addEventListener("navigate", e => {
-      let contentWindow = iframe.contentWindow!;
-
-      let url = (e as CustomEvent<string>).detail;
-      contentWindow.location.href = url;
-    });
-
-    iframe.addEventListener("load", () => {
-      let contentDoc = iframe.contentDocument!;
+    function injectReaderStylesAndScripts(contentDoc: Document) {
       insertJs(contentDoc, contentCssUrl);
-      insertJs(contentDoc, componentScriptUrl);
       insertCss(contentDoc, componentStyleUrl);
 
-      let htmlEl = contentDoc.documentElement;
+      let styleEl = contentDoc.createElement("style");
+      updateStyleEl(styleEl);
+      contentDoc.head.appendChild(styleEl);
+      setStyleEl(styleEl);
 
+      insertJs(contentDoc, componentScriptUrl);
+    }
+
+    function matchFrameHeightToDocHeight(contentDoc: Document) {
+      let htmlEl = contentDoc.documentElement;
       let iframeObserver = new ResizeObserver(() => {
         let height = htmlEl.getBoundingClientRect().height;
         iframe.style.height = height + "px";
       });
       iframeObserver.observe(htmlEl);
+    }
 
+    function registerPageInfoCallbacks(
+      container: HTMLDivElement,
+      iframe: HTMLIFrameElement
+    ) {
       let pageObserver = new ResizeObserver(() => updatePageInfo());
       pageObserver.observe(container);
-      pageObserver.observe(frame);
+      pageObserver.observe(iframe);
 
       const SCROLL_CALLBACK_DELAY = 30;
       container.addEventListener(
         "scroll",
         throttle(() => updatePageInfo(), SCROLL_CALLBACK_DELAY)
       );
+    }
 
-      let styleEl = contentDoc.createElement("style");
-      contentDoc.body.appendChild(styleEl);
-      setStyleEl(styleEl);
+    function updateAnchors(contentWindow: any, contentDoc: Document) {
+      function updateAnchor(a: HTMLAnchorElement) {
+        if (!a.href) return;
 
-      updateAnchors(contentDoc);
+        let url = new URL(a.href);
+        if (url.host != window.location.host) {
+          // Need to add target="blank" to all anchors, or else external navigation will
+          // occur within the reader's iframe.
+          a.setAttribute("target", "blank");
+        } else {
+          a.addEventListener("click", () => {
+            window.parent.postMessage(
+              {
+                type: "navigate",
+                data: a.href,
+              },
+              "*"
+            );
+          });
+        }
+      }
+
+      function updateAll(container: HTMLElement) {
+        let anchors = container.querySelectorAll<HTMLAnchorElement>("a[href]");
+        anchors.forEach(updateAnchor);
+      }
+
+      updateAll(contentDoc.documentElement);
+
+      let observer = new MutationObserver(records =>
+        records.forEach(record =>
+          record.addedNodes.forEach(added => {
+            if (added instanceof contentWindow.HTMLElement)
+              updateAll(added as any);
+          })
+        )
+      );
+      observer.observe(contentDoc.documentElement, {
+        subtree: true,
+        childList: true,
+      });
+    }
+
+    function handleTocNavigation(contentWindow: Window) {
+      props.navigateEvent.addEventListener("navigate", e => {
+        let url = (e as CustomEvent<string>).detail;
+        contentWindow.location.href = url;
+      });
+    }
+
+    iframe.addEventListener("load", () => {
+      let contentWindow = iframe.contentWindow!;
+      let contentDoc = iframe.contentDocument!;
+
+      injectReaderStylesAndScripts(contentDoc);
+      matchFrameHeightToDocHeight(contentDoc);
+      registerPageInfoCallbacks(container, iframe);
+      updateAnchors(contentWindow, contentDoc);
+      handleTocNavigation(contentWindow);
     });
   });
 
   createEffect(() => {
     let el = styleEl();
     if (!el) return;
-
-    el.innerText = `
-html {
-  font-size: ${state.fontSize}px;  
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-}    
-`;
+    updateStyleEl(el);
   });
 
   return (
     <div ref={containerRef} class="content">
-      <div ref={frameRef} class="content-frame">
+      <div class="content-frame" style={{ "max-width": `${state.width}px` }}>
+        <ResizeHandle />
         <iframe
           ref={iframeRef}
           src={chapterUrl()}
@@ -330,8 +458,10 @@ function EpubView(props: { data: /*Epub*/ any }) {
     chapterIndex: 0,
     fontSize: 16,
     showNav: false,
+    width: 800,
     epub: props.data.metadata,
     url: props.data.url ? new URL(props.data.url) : undefined,
+    initialPath: props.data.path,
 
     rendition() {
       return props.data.metadata.renditions[this.renditionIndex];
@@ -389,7 +519,7 @@ function App() {
   onMount(() => {
     window.addEventListener("message", event => {
       let message = event.data;
-      console.log("Received message from window:", message);
+      console.debug("Received message from window:", message);
       if (message.type == "loaded-epub") {
         setEpub(message.data);
       }

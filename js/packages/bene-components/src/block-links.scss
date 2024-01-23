@@ -1,0 +1,30 @@
+@mixin mobile {
+  @media (max-width: 600px) {
+    @content;
+  }
+}
+
+a.block-link {
+  position: relative;
+
+  > a {
+    display: block;
+    position: absolute;
+    left: -37px;
+    width: 30px;
+    height: 30px;
+    opacity: 0;
+    cursor: pointer;
+    transition: opacity 0.1s;
+    color: #aaa;
+    text-align: center;
+
+    @include mobile {
+      display: none;
+    }
+
+    &:hover {
+      opacity: 1;      
+    }
+  }
+}

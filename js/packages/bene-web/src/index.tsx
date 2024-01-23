@@ -115,6 +115,20 @@ function CustomEpub(props: { newEpub: NewEpubCallback }) {
   );
 }
 
+function serializeUrl(url: URL) {
+  let trimmedPath = url.pathname.slice("/bene-reader/".length);
+  return encodeURIComponent(trimmedPath) + "$" + url.hash.slice("#".length);
+}
+
+function deserializeUrl(location: Location): string | undefined {
+  if (location.hash === "") return undefined;
+  let contents = location.hash.slice("#".length);
+  let parts = contents.split("$");
+  let trimmedPath = decodeURIComponent(parts[0]);
+  let hash = parts.slice(1).join("-");
+  return trimmedPath + "#" + hash;
+}
+
 function App() {
   let iframe: HTMLIFrameElement | undefined;
 
@@ -127,12 +141,14 @@ function App() {
 
   let setNewEpub = (data: Uint8Array, url?: string) => {
     let reg = registration()!;
+    let path = deserializeUrl(window.location);
     reg.active!.postMessage({
       type: "new-epub",
       data: {
         data,
         url,
         scope: reg.scope,
+        path,
       },
     });
   };
@@ -167,6 +183,11 @@ function App() {
         };
 
         reader.readAsArrayBuffer(file);
+      } else if (message.type == "navigate") {
+        let urlStr = message.data as string;
+        let url = new URL(urlStr);
+        let hash = serializeUrl(url);
+        window.history.pushState(undefined, "", "#" + hash);
       }
     });
   });

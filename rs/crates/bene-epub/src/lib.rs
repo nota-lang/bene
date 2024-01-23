@@ -152,6 +152,10 @@ impl Epub {
 
     Ok(Epub { renditions })
   }
+
+  pub async fn load_asset(&self, archive: &mut Archive, path: &str) -> Result<Vec<u8>> {
+    archive.read_file(path).await
+  }
 }
 
 pub fn guess_mime_type(path: &str) -> String {
