@@ -14,12 +14,14 @@ nav {
 
   ol {
     padding: 0;
+    padding-left: 1.25em;
 
     li {
-      list-style-position: inside;
-      padding: 4px;
+      padding: 0.25em 0;
 
       a {
+        display: block;
+        padding: 0 0.25em;
         text-decoration: none;
         color: var(--treeitem-color);
       }   

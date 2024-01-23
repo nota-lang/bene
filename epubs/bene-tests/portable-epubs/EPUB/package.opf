@@ -18,6 +18,8 @@
         <item id="img-apple-books" href="img/apple-books.jpg" media-type="image/jpeg" />
         <item id="img-kindle" href="img/kindle.jpg" media-type="image/jpeg" />
         <item id="img-bene" href="img/bene.png" media-type="image/png" />
+        <item id="img-history-of-writing-kindle" href="img/history-of-writing-kindle.jpg" media-type="image/jpeg" />
+        <item id="img-history-of-writing-pdf" href="img/history-of-writing-pdf.jpg" media-type="image/jpeg" />
     </manifest>
     <spine>
         <itemref idref="page" />

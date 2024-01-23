@@ -18,6 +18,17 @@ html {
   }
 }
 
+article {  
+  box-sizing: border-box;
+  padding: 0.5in;
+  background: white;
+  
+  @include mobile {
+    padding: 0.25in;
+    width: 100vw;    
+  }
+}
+
 document-title, h1, h2, h3, h4, h5, h6 {
   line-height: 1.2;
   font-weight: normal;
@@ -54,12 +65,7 @@ header {
       doc-author-name {
         &:has(+ doc-author-affiliation):after {
           content: ", "
-        }
-
-        a {
-          text-decoration: none;
-          color: inherit;
-        }
+        }        
       }
     }
   }
@@ -68,7 +74,8 @@ header {
     display: block;
     margin: 1em 0;
     border: 1px solid #ccc;
-    padding: 0.5em;
+    padding: 1em;
+    border-radius: 4px;
   }
 }
 
@@ -86,6 +93,10 @@ figcaption {
   display: flex;
   justify-content: center;
   font-style: italic;
+
+  i {
+    font-style: normal;
+  }
 }
 
 figure {
@@ -126,4 +137,12 @@ div.callout {
   border: 1px solid #ccc;
   padding: 1em;
   margin: 1em 0;
+}
+
+a {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }

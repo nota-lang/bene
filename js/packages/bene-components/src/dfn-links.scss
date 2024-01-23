@@ -7,6 +7,10 @@ a[data-target="dfn"] {
   border-bottom: 1px dotted #555;
   
   -webkit-touch-callout: none; // prevents link preview from appearing for definition links
+
+  &:hover {
+    text-decoration: none;
+  }
 }
 
 .tippy-box {

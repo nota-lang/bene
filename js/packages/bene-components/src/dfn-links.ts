@@ -9,7 +9,7 @@ function initDefinitionLinks() {
   let definitions: { [id: string]: string } = {};
   definitionEls.forEach(el => {
     let parent = el.closest<HTMLElement>("dfn-container, p");
-    if (!parent) {
+    if (parent === null) {
       console.warn("Missing parent for definition", el);
       return;
     }
@@ -21,13 +21,13 @@ function initDefinitionLinks() {
   );
   links.forEach(link => {
     let id = link.href.split("#")[1];
-    let def = definitions[id];
-    if (!def) {
+    let content = definitions[id];
+    if (content === undefined) {
       console.warn("Missing definition for reference", id);
       return;
     }
     tippy(link, {
-      content: `“${def}”`,
+      content,
       arrow: roundArrow,
       theme: TIPPY_THEME,
       placement: "auto",

@@ -31,8 +31,9 @@ globalSelf.addEventListener("fetch", event => {
   let epubBaseUrl = currentScope + EPUB_PATH;
   if (event.request.url.startsWith(epubBaseUrl)) {
     let path = event.request.url.slice(epubBaseUrl.length);
+    path = path.split("#")[0];
     let contents = currentEpub.read_file(path);
-    let mimeType = guess_mime_type(event.request.url);
+    let mimeType = guess_mime_type(path);
     event.respondWith(
       new Response(contents, {
         status: 200,
@@ -55,7 +56,7 @@ globalSelf.addEventListener("fetch", event => {
 globalSelf.addEventListener("message", async event => {
   let message = event.data;
   if (message.type == "new-epub") {
-    let { data, scope, url } = message.data;
+    let { data, scope, url, path } = message.data;
     currentEpub = load_epub(data);
     currentScope = scope;
     let metadata = JSON.parse(currentEpub.metadata());
@@ -66,6 +67,7 @@ globalSelf.addEventListener("message", async event => {
         data: {
           metadata,
           url,
+          path,
         },
       });
     }
