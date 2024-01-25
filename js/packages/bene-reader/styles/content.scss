@@ -11,12 +11,12 @@ html {
   text-align: justify;
   hyphens: auto;
   word-spacing: -1px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  // -webkit-font-smoothing: antialiased;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;  
 
   @include mobile {
     text-align: left;
     word-spacing: 0;
+    text-wrap: pretty;
   }
 }
 
@@ -24,12 +24,15 @@ article {
   box-sizing: border-box;
   padding: 0.5in;
   background: white;
-  
+  margin: 0 auto;
+  position: relative;
+
   @include mobile {
     padding: 0.25in;
     width: 100vw;    
   }
 }
+
 
 document-title, h1, h2, h3, h4, h5, h6 {
   line-height: 1.2;
