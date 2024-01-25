@@ -6,6 +6,7 @@ import {
   createContext,
   createEffect,
   createSignal,
+  on,
   onMount,
   useContext,
 } from "solid-js";
@@ -252,8 +253,7 @@ function Content(props: { navigateEvent: EventTarget }) {
   function updateStyleEl(el: HTMLStyleElement) {
     el.innerText = `
       html {
-        font-size: ${state.fontSize}px;  
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        font-size: ${state.fontSize}px;        
       }
 
       article {
@@ -428,6 +428,17 @@ function Content(props: { navigateEvent: EventTarget }) {
     updateStyleEl(el);
   });
 
+  let firstRender = false;
+  createEffect(
+    on(
+      () => state.epub,
+      () => {
+        if (!firstRender) firstRender = true;
+        else iframeRef!.contentWindow!.location.reload();
+      }
+    )
+  );
+
   return (
     <div ref={containerRef} class="content">
       <div class="content-frame" style={{ "max-width": `${state.width}px` }}>
@@ -472,6 +483,14 @@ function EpubView(props: { data: /*Epub*/ any }) {
         "@idref"
       ];
     },
+  });
+
+  createEffect(() => {
+    setState({
+      epub: props.data.metadata,
+      url: props.data.url ? new URL(props.data.url) : undefined,
+      initialPath: props.data.path,
+    });
   });
 
   return (

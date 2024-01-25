@@ -8,7 +8,7 @@ async function registerServiceWorker(post: (data: any) => void) {
   let logChannel = new BroadcastChannel("log-channel");
 
   logChannel.addEventListener("message", event =>
-    console.log("Service worker:", event.data)
+    console.debug("Service worker:", event.data)
   );
 
   let installedPromise = new Promise(resolve => {
@@ -17,14 +17,14 @@ async function registerServiceWorker(post: (data: any) => void) {
 
   let registrations = await navigator.serviceWorker.getRegistrations();
   await Promise.all(registrations.map(reg => reg.unregister()));
-  console.log("Unregistered service workers.");
+  console.debug("Unregistered service workers.");
 
   let registration = await navigator.serviceWorker.register(workerUrl);
-  console.log("Registered worker, waiting for it to activate.", registration);
+  console.debug("Registered worker, waiting for it to activate.", registration);
 
   await installedPromise;
   console.assert(registration.active !== null, "Service worker is not active?");
-  console.log("Service worker activated.");
+  console.debug("Service worker activated.");
 
   window.addEventListener("beforeunload", () => registration.unregister());
 

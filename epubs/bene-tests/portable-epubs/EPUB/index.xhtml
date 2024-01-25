@@ -31,8 +31,7 @@
       <h1 id="good-and-bad-pdf">The Good and Bad of PDF</h1>
 
       <p>
-        PDF is the <i>de facto</i> file format for reading and sharing digital documents: papers, textbooks, flyers, you name it.
-        People use the PDF format for several reasons:
+        PDF is the de facto file format for reading and sharing digital documents like papers, textbooks, and flyers. People use the PDF format for several reasons:
       </p>
 
       <ul>
@@ -41,7 +40,7 @@
         <li><strong>PDFs are stable over time.</strong> PDFs from decades ago still render the same today. PDFs have a <a href="https://www.iso.org/standard/75839.html">relatively stable standard</a>. PDFs cannot be easily edited.</li>
       </ul>
 
-      <p>Yet, in the 32 years since the initial release of PDF, a lot has changed. People print out documents less and less. People use phones, tablets, and e-readers to read digital documents. The internet happened; web browsers now provide an platform for rendering rich documents. These changes have laid bare the limitations of PDF:</p>
+      <p>Yet, in the 32 years since the initial release of PDF, a lot has changed. People print out documents less and less. People use phones, tablets, and e-readers to read digital documents. The internet happened; web browsers now provide a platform for rendering rich documents. These changes have laid bare the limitations of PDF:</p>
 
       <ul>
         <li><strong>PDFs cannot easily adapt to different screen sizes.</strong> Most PDFs are designed to mimic 8.5x11" paper (or worse, <a href="https://en.wikipedia.org/wiki/PDF#/media/File:Seitengroesse_PDF_7.png">145,161 km<sup>2</sup></a>). These PDFs are readable on a computer monitor, but they are less readable on a tablet, and far less readable on a phone.</li>
@@ -59,7 +58,7 @@ Set the current font color to black.
 Draw the text "Hello World" at the current position.</pre>
       </figure>
 
-      <p>A document is organized into sentences, paragraphs and sections. PDF commands are unstructured because a PDF's organization is only clear to a person looking at the rendered document, and not clear from the commands themselves. Reflowing, accessibility, data extraction, and interaction <em>all</em> rely on programmatically understanding the structure of a document. Hence, these aspects are not easy to integrate with PDFs.</p>
+      <p>PDF commands are unstructured because a document's organization is only clear to a person looking at the rendered document, and not clear from the commands themselves. Reflowing, accessibility, data extraction, and interaction <em>all</em> rely on programmatically understanding the structure of a document. Hence, these aspects are not easy to integrate with PDFs.</p>
 
       <p>This raises the question: <strong>how can we design digital documents with the benefits of PDFs but without the limitations?</strong></p>
     </section>
@@ -68,7 +67,7 @@ Draw the text "Hello World" at the current position.</pre>
     <section>
       <h1 id="cant-fix-pdf">Can't We Just Fix PDF?</h1>
 
-      <p>A simple answer is to improve the PDF format. After all, we already have millions of PDFs — why bother with another format?</p>
+      <p>A simple answer is to improve the PDF format. After all, we already have billions of PDFs — why reinvent the wheel?</p>
 
       <p>The designers of PDF are well aware of its limitations. I carefully hedged each bullet with <q>easily</q>, because PDF does make it <em>possible</em> to overcome each limitation, at least partially. PDFs can be annotated with their <a href="https://opensource.adobe.com/dc-acrobat-sdk-docs/library/pdfmark/pdfmark_Logical.html">logical structure</a> to create a <a href="https://www.washington.edu/accesstech/documents/tagged-pdf/">tagged PDF</a>. Most PDF exporters will not add tags automatically — the simplest option is to use Adobe's subscription-only <a href="https://www.adobe.com/acrobat/acrobat-pro.html">Acrobat Pro</a>, which provides an <q>Automatically tag PDF</q> action. For example, here is <a href="https://arxiv.org/abs/2310.04368">a recent paper of mine</a> with added tags:</p>
 
@@ -133,11 +132,11 @@ Draw the text "Hello World" at the current position.</pre>
       <h1 id="epub-intro">Self-Contained HTML with EPUB</h1>
 
       <p>
-        First, how can we make HTML documents self-contained? This is an old problem with many potential solutions. <a href="https://en.wikipedia.org/wiki/WARC_(file_format)">WARC</a>, <a href="https://en.wikipedia.org/wiki/Webarchive">webarchive</a>, and <a href="https://en.wikipedia.org/wiki/MHTML">MHTML</a> are all file formats designed to contain all the resources needed to render a web page. But these formats are more designed for snapshotting an existing website, rather than serving as a single source of truth for an web document. From my research, the most sensible format for this purpose is EPUB.
+        First, how can we make HTML documents self-contained? This is an old problem with many potential solutions. <a href="https://en.wikipedia.org/wiki/WARC_(file_format)">WARC</a>, <a href="https://en.wikipedia.org/wiki/Webarchive">webarchive</a>, and <a href="https://en.wikipedia.org/wiki/MHTML">MHTML</a> are all file formats designed to contain all the resources needed to render a web page. But these formats are more designed for snapshotting an existing website, rather than serving as a single source of truth for a web document. From my research, the most sensible format for this purpose is EPUB.
       </p>
 
       <p>
-        EPUB is a <q>distribution and interchange format for digital publications and documents</q>, per the <a href="https://www.w3.org/TR/epub-overview-33/#">EPUB 3 Overview</a>. Reductively, an EPUB is a ZIP archive of web files: HTML, CSS, JS, and assets like images and fonts. On a technical level, what distinguishes EPUB from archival formats is that EPUB includes well-specified files that describe metadata about a document. On a social level, EPUB appears to be the HTML publication format with the most adoption and momentum in 2024, compared to formats like <a href="https://en.wikipedia.org/wiki/Mobipocket">Mobi</a>.
+        EPUB is a <q>distribution and interchange format for digital publications and documents</q>, per the <a href="https://www.w3.org/TR/epub-overview-33/#">EPUB 3 Overview</a>. Reductively, an EPUB is a ZIP archive of web files: HTML, CSS, JS, and assets like images and fonts. On a technical level, what distinguishes EPUB from archival formats is that EPUB includes well-specified files that describe metadata about a document. On a social level, EPUB appears to be the HTML publication format with the most adoption and momentum in 2024, compared to moribund formats like <a href="https://en.wikipedia.org/wiki/Mobipocket">Mobi</a>.
       </p>
 
       <p>The <a href="https://www.w3.org/TR/epub-33">EPUB spec</a> has all the gory details, but to give you a rough sense, a sample EPUB might have the following file structure:</p> 
@@ -157,11 +156,11 @@ Draw the text "Hello World" at the current position.</pre>
 
       <p>An EPUB contains <a href="https://www.w3.org/TR/epub-33/#sec-contentdocs">content documents</a> (like <code>chapter1.xhtml</code> and <code>chapter2.xhtml</code>) which contain the core HTML content. Content documents can contain relative links to assets in the EPUB, like <code>img/sample.jpg</code>. The <a href="https://www.w3.org/TR/epub-33/#sec-nav">navigation document</a> (<code>nav.xhtml</code>) provides a table of contents, and the <a href="https://www.w3.org/TR/epub-33/#sec-package-doc">package document</a> (<code>package.opf</code>) provides metadata about the document. These files collectively define one <q>rendition</q> of the whole document, and the <a href="https://www.w3.org/TR/epub-33/#sec-container-metainf-container.xml">container file</a> (<code>container.xml</code>) points to each rendition contained in the EPUB.</p>
 
-      <p>The EPUB format optimizes for easily machine-readable content and metadata. HTML content is required to be in XML format (hence, <strong>X</strong>HTML). Document metadata like the title and author is provided in structured form in the package document. The navigation document has a carefully prescribed tag structure so the TOC can be consistently extracted.</p>
+      <p>The EPUB format optimizes for machine-readable content and metadata. HTML content is required to be in XML format (hence, <strong>X</strong>HTML). Document metadata like the title and author is provided in structured form in the package document. The navigation document has a carefully prescribed tag structure so the TOC can be consistently extracted.</p>
 
       <p>Overall, EPUB's structured format makes it a solid candidate for a single-file HTML document container. However, EPUB is not a silver bullet. EPUB is quite permissive in what kinds of content can be put into a content document.</p>
 
-      <p>For example, a major issue for self-containment is that EPUB content can embed external assets. A content document can legally include an image or font file whose <code>src</code> is a URL to a hosted server. This is not hypothetical, either; as of the time of writing, Google Doc's EPUB exporter will emit CSS that contains <code>@include</code>s of external Google Fonts files. The problem is that such an EPUB will not render correctly without an internet connection, nor will it render correctly if Google changes the link of its font files.</p>
+      <p>For example, a major issue for self-containment is that EPUB content can embed external assets. A content document can legally include an image or font file whose <code>src</code> is a URL to a hosted server. This is not hypothetical, either; as of the time of writing, Google Doc's EPUB exporter will emit CSS that will <code>@include</code> external Google Fonts files. The problem is that such an EPUB will not render correctly without an internet connection, nor will it render correctly if Google changes the URLs of its font files.</p>
 
       <p><dfn-container>Hence, I will propose a new format which I call a <dfn id="portable-epub">portable EPUB</dfn>, which is an EPUB with additional requirements and recommendations to improve PDF-like portability.</dfn-container> The first requirement is:</p>
         
@@ -174,14 +173,13 @@ Draw the text "Hello World" at the current position.</pre>
       <h1 id="consistency-vs-flexibility">Consistency vs. Flexibility in Rendering</h1>
 
       <p>
-        There is a fundamental tension between consistency and flexibility in document rendering. A PDF is consistent because it is designed to render in one way: one layout, one choice of fonts, one choice of colors, one pagination, and so on. Consistency is desirable because an author can be confident that their document will not look terrible for a reader. Consistency has subtler benefits &#8212; because a PDF is chunked into a consistent set of pages, a person can cite a passage by referring to the page containing the passage.
+        There is a fundamental tension between consistency and flexibility in document rendering. A PDF is consistent because it is designed to render in one way: one layout, one choice of fonts, one choice of colors, one pagination, and so on. Consistency is desirable because an author can be confident that their document will look good for a reader (or at least, not look bad). Consistency has subtler benefits &#8212; because a PDF is chunked into a consistent set of pages, a passage can be cited by referring to the page containing the passage.
       </p>
 
-      <p>On the other hand, flexibility is desirable because people want to read documents under different conditions. Device conditions include screen size (from phone to monitor) and screen capabilities (E-ink vs. LCD). Readers may prefer larger fonts or higher contrasts for visibility, alternative color schemes for color blindness, or alternative font faces for <a href="https://opendyslexic.org/">dyslexia</a>. Sufficiently flexible documents can permit readers to select a level of detail appropriate for their background (<a href="https://tomasp.net/coeffects/">here's an example</a>).</p>
+      <p>On the other hand, flexibility is desirable because people want to read documents under different conditions. Device conditions include screen size (from phone to monitor) and screen capabilities (E-ink vs. LCD). Some readers may prefer larger fonts or higher contrasts for visibility, alternative color schemes for color blindness, or alternative font faces for <a href="https://opendyslexic.org/">dyslexia</a>. Sufficiently flexible documents can even permit readers to select a level of detail appropriate for their background (<a href="https://tomasp.net/coeffects/">here's an example</a>).</p>
 
       <p>
-        Finding a balance between consistency and flexibility is arguably the most fundamental design challenge in attempting to replace PDF with EPUB. To navigate this trade-off, we first need to talk about <dfn id="reading-system">EPUB reading systems</dfn>, or the tools that render an EPUB for human consumption. To get a sense of variation between reading systems, I tried rendering this post as an EPUB (without any styling, just HTML) on four systems: <a href="https://calibre-ebook.com/">Calibre</a>, <a href="https://www.adobe.com/solutions/ebook/digital-editions.html">Adobe Digital Editions</a>, <a href="https://www.apple.com/apple-books/">Apple Books</a>, and <a href="https://www.amazon.com/dp/B09SWW583J">Amazon Kindle</a>. This is how the first page looks on each system (omitting Calibre because it looked the same as Adobe Digital Edition):
-        <!-- The W3C has an  that lays out the minimal requirements for being an EPUB reader.  -->
+        Finding a balance between consistency and flexibility is arguably the most fundamental design challenge in attempting to replace PDF with EPUB. To navigate this trade-off, we first need to talk about <dfn id="reading-system">EPUB reading systems</dfn>, or the tools that render an EPUB for human consumption. To get a sense of variation between reading systems, I tried rendering this post as an EPUB (without any styling, just HTML) on four systems: <a href="https://calibre-ebook.com/">Calibre</a>, <a href="https://www.adobe.com/solutions/ebook/digital-editions.html">Adobe Digital Editions</a>, <a href="https://www.apple.com/apple-books/">Apple Books</a>, and <a href="https://www.amazon.com/dp/B09SWW583J">Amazon Kindle</a>. This is how the first page looks on each system (omitting Calibre because it looked the same as Adobe Digital Editions):
       </p>
 
       <figure>
@@ -217,14 +215,14 @@ Draw the text "Hello World" at the current position.</pre>
         <figcaption><span>A figure in the EPUB version of <i>A History of Writing</i> on my Kindle</span></figcaption>
       </figure>
 
-      <p>When I read this page, I thought, <q>wow, this looks like crap.</q> The figure is way too small (although you can long-press the image and zoom), and the position of the figure seems nonsensical. I found a PDF version online, and indeed it has a proper size in the right location:</p>
+      <p>When I read this page, I thought, <q>wow, this looks like crap.</q> The figure is way too small (although you can long-press the image and zoom), and the position of the figure seems nonsensical. I found a PDF version online, and indeed the PDF's figure has a proper size in the right location:</p>
 
       <figure>
         <img src="img/history-of-writing-pdf.jpg" width="500" class="border" />
         <figcaption><span>A figure in the PDF version of <i>A History of Writing</i> on my Mac</span></figcaption>
       </figure>
 
-      <p>This is not a fully fair comparison, but it nonetheless exemplifies an author's reasonable concern today with EPUB: <em>what if it makes my book looks like crap?</em></p>
+      <p>This is not a fully fair comparison, but it nonetheless exemplifies an author's reasonable concern today with EPUB: <em>what if it makes my document looks like crap?</em></p>
     </section>
 
     <section>
@@ -235,7 +233,7 @@ Draw the text "Hello World" at the current position.</pre>
       </p>
 
       <ol>
-        <li>The document format (i.e., <a href="#portable-epub" data-target="dfn">portable EPUB</a>) needs to establish a subset of HTML which could represent most documents (but not all).</li>
+        <li>The document format (i.e., <a href="#portable-epub" data-target="dfn">portable EPUB</a>) needs to establish a subset of HTML (call it <q>portable HTML</q>) which could represent most, but not all, documents.</li>
         <li>Reading systems need to guarantee that a document within the subset will always look reasonable under all reading conditions.</li>
         <li>If a document uses features outside this subset, then the document author is responsible for ensuring the readability of the document.</li>
       </ol>
@@ -244,7 +242,7 @@ Draw the text "Hello World" at the current position.</pre>
         If someone wants to write a document such as this post, then that person need not be a frontend web developer to feel confident that their document will render reasonably. Conversely, if someone wants to stuff the entire Facebook interface into an EPUB, then fine, but it's on them to ensure the document is responsive.
       </p>
 
-      <p>For instance, one simple HTML subset could be described by this grammar:</p>
+      <p>For instance, one simple version of portable HTML could be described by this grammar:</p>
 
       <figure>
         <pre>Document ::= &#x3C;article&#x3E; Block* &#x3C;/article&#x3E;
@@ -257,8 +255,13 @@ Inline   ::= text | &#x3C;strong&#x3E; Inline* &#x3C;/strong&#x3E;</pre>
         I am essentially proposing to extend this idea for content documents, but as a soft constraint rather than a hard constraint. Finding the right subset of HTML will take some experimentation, so I can only gesture toward the broad solution here.
       </p>
 
+
       <div class="callout">
-        <strong>HTML subset principle:</strong> when possible, systems that generate <a href="#portable-epub" data-target="dfn">portable EPUBs</a> should output HTML within a subset that is guaranteed to be rendered well by <a href="#portable-epub" data-target="dfn">portable EPUB</a> reading systems.
+        <strong>Portable HTML rendering requirement:</strong> if a document only uses features in the portable HTML subset, then a <a href="#portable-epub" data-target="dfn">portable EPUB</a> reading system must guarantee that the document will render reasonably.
+      </div>
+
+      <div class="callout">
+        <strong>Portable HTML generation principle:</strong> when possible, systems that generate <a href="#portable-epub" data-target="dfn">portable EPUBs</a> should output portable HTML.
       </div>
 
       <p>A related challenge is to define when a particular rendering is <q>good</q> or <q>reasonable</q>, so one could evaluate either a document or a reading system on its conformance to spec. For instance, if document content is accidentally rendered in an inaccesible location off-screen, then that would be a bad rendering. A more aggressive definition might say that any rendering which violates accessibility guidelines is a bad rendering. Again, finding the right standard for rendering quality will take some experimentation.</p>
@@ -437,6 +440,20 @@ Inline   ::= text | &#x3C;strong&#x3E; Inline* &#x3C;/strong&#x3E;</pre>
       <p>
         If you have any thoughts about how to make this work or why I'm wrong, let me know by <a href="mailto:crichton.will@gmail.com">email</a> or <a href="https://twitter.com/tonofcrates">Twitter</a> or <a href="https://mastodon.social/@tonofcrates">Mastodon</a> or wherever this gets posted. If you would like to help out, please reach out! This is just a passion project in my free time (for now...), so any programming or document authoring assistance could provide a lot of momentum to the project. 
       </p>
+    </section>
+    <section>
+      <h1>But What About...</h1>
+
+      <p>A brief postscript for a few things I haven't touched on.</p>
+
+      <p>
+        <strong>...security?</strong> You might dislike the idea that document authors can run arbitrary Javascript on your personal computer. But then again, you presumably use both a PDF reader and a web browser on the daily, and those both run Javascript. What I'm proposing is not really any <em>less</em> secure than our current state of affairs. If anything, I'd hope that browsers are more battle-hardened than PDF viewers regarding code execution.
+      </p>
+
+      <p><strong>...aesthetics?</strong> People often intuit that LaTeX-generated PDFs look prettier than HTML documents, or even prettier than PDFs created by other software. This is because Donald Knuth took his job <a href="https://www-cs-faculty.stanford.edu/~knuth/dt.html">very seriously</a>. In particular, the <a href="https://onlinelibrary.wiley.com/doi/abs/10.1002/spe.4380111102?">Knuth-Plass line-breaking algorithm</a> tends to produce better-looking justified text than whatever algorithm is used by browsers.</p>
+      <p>There's two ways to make progress here. One is for browsers to provide more typography tools. Allegedly, <code>text-wrap: pretty</code> is <a href="https://developer.chrome.com/blog/css-text-wrap-pretty/">supposed to help</a>, but in my brief testing it doesn't seem to improve line-break quality. The other way is to <a href="https://mpetroff.net/2020/05/pre-calculated-line-breaks-for-html-css/">pre-calculate line breaks</a>, which would only work for fixed-layout renditions.</p>
+
+      <p><strong>...page citations?</strong> I think we just have to give up on citing content by pages. Instead, we should mandate a consistent numbering scheme for block elements within a document, and have people cite using that scheme. For example, Bene will auto-number all blocks. If you're on a desktop, try hovering your mouse in the left column next to the top-right of any paragraph.</p>
     </section>
     </article>
   </body>
