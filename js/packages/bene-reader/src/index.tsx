@@ -109,38 +109,62 @@ function Toolbar() {
       <div class="toolbar-left">
         <button
           class="toolbar-button sidebar-toggle"
+          aria-label="Show navigation"
           onClick={() => setState({ showNav: !state.showNav })}
         />
         <div class="toolbar-button-spacer" />
-        <button class="toolbar-button page-up" onClick={() => setPage(-1)} />
+        <button
+          class="toolbar-button page-up"
+          aria-label="Previous page"
+          onClick={() => setPage(-1)}
+        />
         <div class="split-toolbar-button-separator" />
-        <button class="toolbar-button page-down" onClick={() => setPage(1)} />
+        <button
+          class="toolbar-button page-down"
+          aria-label="Next page"
+          onClick={() => setPage(1)}
+        />
         <input
           type="number"
           class="page-input"
+          aria-label="Page number"
           value={state.pageInfo?.currentPage}
         />
-        <span class="label">of {state.pageInfo?.numPages ?? "-"}</span>
+        <span class="label" aria-label="Total pages">
+          of {state.pageInfo?.numPages ?? "-"}
+        </span>
       </div>
       <div class="toolbar-middle">
-        <button class="toolbar-button zoom-out" onClick={() => setFont(-1)} />
+        <button
+          class="toolbar-button zoom-out"
+          aria-label="Reduce font size"
+          onClick={() => setFont(-1)}
+        />
         <div class="split-toolbar-button-separator" />
-        <button class="toolbar-button zoom-in" onClick={() => setFont(1)} />
+        <button
+          class="toolbar-button zoom-in"
+          aria-label="Increase font size"
+          onClick={() => setFont(1)}
+        />
         <input
           type="number"
           class="scale-input"
+          aria-label="Set font size"
           value={state.fontSize}
           onInput={debounce(e => {
             let fontSize = parseInt(e.target.value);
             if (!isNaN(fontSize)) setState({ fontSize });
           }, DEBOUNCE_TIME)}
         />
-        <span class="label">px</span>
+        <span class="label" aria-label="Font size unit">
+          px
+        </span>
       </div>
       <div class="toolbar-right">
         {state.url ? (
           <button
             class="toolbar-button download"
+            aria-label="Download EPUB"
             onClick={() => downloadEpub(state.url!)}
           />
         ) : null}
@@ -191,6 +215,7 @@ function Nav(props: { navigateEvent: EventTarget }) {
     <iframe
       class="nav"
       classList={{ show: state.showNav }}
+      aria-label="Document navigation"
       ref={iframeRef}
       src={navUrl()}
       referrerPolicy="no-referrer"
@@ -390,6 +415,7 @@ function Content(props: { navigateEvent: EventTarget }) {
   return (
     <iframe
       class="content"
+      aria-label="Document content"
       ref={iframeRef}
       src={chapterUrl()}
       referrerPolicy="no-referrer"
