@@ -6,6 +6,8 @@
 
 a.block-link {
   position: relative;
+  display: block;
+  height: 0;
 
   > a {
     display: block;

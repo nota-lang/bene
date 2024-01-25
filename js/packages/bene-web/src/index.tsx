@@ -3,6 +3,8 @@ import { render } from "solid-js/web";
 
 import workerUrl from "../worker.ts?worker&url";
 
+declare var process: { env: { NODE_ENV: "development" | "production" } };
+
 async function registerServiceWorker(post: (data: any) => void) {
   let installChannel = new BroadcastChannel("install-channel");
   let logChannel = new BroadcastChannel("log-channel");
@@ -16,17 +18,32 @@ async function registerServiceWorker(post: (data: any) => void) {
   });
 
   let registrations = await navigator.serviceWorker.getRegistrations();
-  await Promise.all(registrations.map(reg => reg.unregister()));
-  console.debug("Unregistered service workers.");
+  let registration = registrations.find(
+    reg => reg.active && reg.active.scriptURL.endsWith("worker.js")
+  );
 
-  let registration = await navigator.serviceWorker.register(workerUrl);
-  console.debug("Registered worker, waiting for it to activate.", registration);
+  if (process.env.NODE_ENV === "development") {
+    await Promise.all(registrations.map(reg => reg.unregister()));
+    registration = undefined;
+    console.debug("Unregistered service workers.");
 
-  await installedPromise;
-  console.assert(registration.active !== null, "Service worker is not active?");
-  console.debug("Service worker activated.");
+    window.addEventListener("beforeunload", () => registration!.unregister());
+  }
 
-  window.addEventListener("beforeunload", () => registration.unregister());
+  if (!registration) {
+    registration = await navigator.serviceWorker.register(workerUrl);
+    console.debug(
+      "Registered worker, waiting for it to activate.",
+      registration
+    );
+
+    await installedPromise;
+    console.assert(
+      registration.active !== null,
+      "Service worker is not active?"
+    );
+    console.debug("Service worker activated.");
+  }
 
   navigator.serviceWorker.addEventListener("message", event => {
     let message = event.data;
@@ -48,7 +65,7 @@ async function registerServiceWorker(post: (data: any) => void) {
 declare var TEST_EPUB: string | undefined;
 
 function serializeUrl(url: URL) {
-  let trimmedPath = url.pathname.slice("/bene-reader/".length);
+  let trimmedPath = url.pathname.split("/bene-reader/")[1];
   return encodeURIComponent(trimmedPath) + "$" + url.hash.slice("#".length);
 }
 
