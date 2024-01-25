@@ -61,6 +61,7 @@ globalSelf.addEventListener("message", async event => {
     currentScope = scope;
     let metadata = JSON.parse(currentEpub.metadata());
     let clients = await globalSelf.clients.matchAll();
+    log("Loaded new epub, broadcasting to window");
     for (let client of clients) {
       client.postMessage({
         type: "loaded-epub",
