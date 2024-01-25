@@ -15,4 +15,4 @@ function retryHash() {
 }
 retryHash();
 
-console.log("Loaded component script.");
+console.debug("Loaded component script.");

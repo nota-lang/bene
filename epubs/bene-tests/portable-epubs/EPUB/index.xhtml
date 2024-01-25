@@ -205,9 +205,6 @@ Draw the text "Hello World" at the current position.</pre>
 
       <p>
         As you can see, an EPUB may look quite different on different reading systems. The variation displayed above seems reasonable to me. But how different is <em>too</em> different? For instance, I was recently reading <a href="https://press.uchicago.edu/ucp/books/book/distributed/H/bo70558916.html"><i>A History of Writing</i></a> on my Kindle. Here's an example of how a figure in the book renders on the Kindle:
-        
-        <!-- I think it's useful to consider this question in terms of render priorities: -->
-        <!-- This variation raises a few key questions: should there be a canonical rendering of an EPUB? Should there be a limit on the types of layouts expressible by an EPUB? How much should a reader or a reading system be allowed to change about how an EPUB renders?  -->
       </p>
 
       <figure>
@@ -271,6 +268,12 @@ Inline   ::= text | &#x3C;strong&#x3E; Inline* &#x3C;/strong&#x3E;</pre>
       <div class="callout">
         <strong>Fixed-layout fallback principle:</strong> systems that generate <a href="#portable-epub" data-target="dfn">portable EPUBs</a> can consider providing both a reflowable and fixed-layout rendition of a document.
       </div>
+
+      <p>It's possible that the reading system, the document author, and the reader can each express preferences about how a document should render. If these preferences are conflicting, then the renderer should generally prioritize the reader over the author, and the author over the reading system. This is an ideal use case for the "cascading" aspect of CSS:</p>
+
+      <div class="callout">
+        <strong>Cascading styles principle:</strong> both documents and reading systems should express stylistic preferences (such as font face, font size, and document width) as CSS styles which can be overriden (e.g., do not use <code>!important</code>). The reading system should load the CSS rules such that the priority order is reading system styles &#x3C; document styles &#x3C; reader styles.
+      </div>
     </section>
 
     <section>
@@ -289,9 +292,10 @@ Inline   ::= text | &#x3C;strong&#x3E; Inline* &#x3C;/strong&#x3E;</pre>
         <figcaption>The Bene reading system running as a desktop app. Wow! It works!</figcaption>
       </figure>
 
-      <p>Bene is designed to make opening and reading an EPUB feel fast and non-committal. The app is much quicker to open on my Macbook (&#60;1sec) than other desktop apps. It dynamically reads files out from the ZIP so no additional disk space is used. The backend is implemented in Rust and compiled to Wasm for the browser version.</p>
+      <p>Bene is designed to make opening and reading an EPUB feel fast and non-committal. The app is much quicker to open on my Macbook (&#60;1sec) than other desktop apps. It decompresses files on-the-fly so no additional disk space is used. The backend is implemented in Rust and compiled to Wasm for the browser version.</p>
 
-      <p>The general design goal of Bene is to embody my ideals for a <a href="#portable-epub" data-target="dfn">portable EPUB</a> reader. That is, a utilitarian interface into an EPUB that satisfies my additional requirements for portability. Long-term, I want Bene to provide richer document interactions than a standard EPUB reader, which means we must discuss scripting.</p>
+
+      <p>The general design goal of Bene is to embody my ideals for a <a href="#portable-epub" data-target="dfn">portable EPUB</a> reader. That is, a utilitarian interface into an EPUB that satisfies my additional requirements for portability. Bene allows you to configure document rendering by changing the font size (try the +/- buttons in the top bar) and the viewer width (if you're on desktop, move your mouse over the right edge of the document, and drag the handle). Long-term, I want Bene to also provide richer document interactions than a standard EPUB reader, which means we must discuss scripting.</p>
     </section>
 
     <section>
@@ -447,8 +451,7 @@ Inline   ::= text | &#x3C;strong&#x3E; Inline* &#x3C;/strong&#x3E;</pre>
       <p>A brief postscript for a few things I haven't touched on.</p>
 
       <p>
-        <strong>...security?</strong> You might dislike the idea that document authors can run arbitrary Javascript on your personal computer. But then again, you presumably use both a PDF reader and a web browser on the daily, and those both run Javascript. What I'm proposing is not really any <em>less</em> secure than our current state of affairs. If anything, I'd hope that browsers are more battle-hardened than PDF viewers regarding code execution.
-      </p>
+        <strong>...security?</strong> You might dislike the idea that document authors can run arbitrary Javascript on your personal computer. But then again, you presumably use both a PDF reader and a web browser on the daily, and those both run Javascript. What I'm proposing is not really any <em>less</em> secure than our current state of affairs. If anything, I'd hope that browsers are more battle-hardened than PDF viewers regarding code execution. Certainly the designers of EPUB reading systems should be careful to not give documents any <em>additional</em> capabilities beyond those already provided by the browser.</p>
 
       <p><strong>...aesthetics?</strong> People often intuit that LaTeX-generated PDFs look prettier than HTML documents, or even prettier than PDFs created by other software. This is because Donald Knuth took his job <a href="https://www-cs-faculty.stanford.edu/~knuth/dt.html">very seriously</a>. In particular, the <a href="https://onlinelibrary.wiley.com/doi/abs/10.1002/spe.4380111102?">Knuth-Plass line-breaking algorithm</a> tends to produce better-looking justified text than whatever algorithm is used by browsers.</p>
       <p>There's two ways to make progress here. One is for browsers to provide more typography tools. Allegedly, <code>text-wrap: pretty</code> is <a href="https://developer.chrome.com/blog/css-text-wrap-pretty/">supposed to help</a>, but in my brief testing it doesn't seem to improve line-break quality. The other way is to <a href="https://mpetroff.net/2020/05/pre-calculated-line-breaks-for-html-css/">pre-calculate line breaks</a>, which would only work for fixed-layout renditions.</p>
