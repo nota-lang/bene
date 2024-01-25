@@ -180,22 +180,21 @@ function Nav(props: { navigateEvent: EventTarget }) {
         })
       );
 
-      let htmlEl = navDoc.documentElement;
-
-      let iframeObserver = new ResizeObserver(() => {
-        let height = htmlEl.getBoundingClientRect().height;
-        iframe.style.height = height + "px";
-      });
-      iframeObserver.observe(htmlEl);
+      let navEl = navDoc.querySelector<HTMLElement>("nav")!;
+      let navWidth = getComputedStyle(iframe).getPropertyValue("--nav-width");
+      // TODO: make this react to changes in nav-width
+      navEl.style.width = navWidth;
     });
   });
 
   return (
-    <div classList={{ nav: true, hidden: !state.showNav }}>
-      <div class="nav-frame">
-        <iframe ref={iframeRef} src={navUrl()} referrerPolicy="no-referrer" />
-      </div>
-    </div>
+    <iframe
+      class="nav"
+      classList={{ show: state.showNav }}
+      ref={iframeRef}
+      src={navUrl()}
+      referrerPolicy="no-referrer"
+    />
   );
 }
 
@@ -451,7 +450,7 @@ function EpubView(props: { data: /*Epub*/ any }) {
   );
 }
 
-const LOADING_THRESHOLD = 250;
+const LOADING_THRESHOLD = 500;
 
 function registerDropEvents() {
   document.addEventListener("dragover", event => {
@@ -498,11 +497,9 @@ function App() {
   return (
     <>
       {epub() === undefined ? (
-        stillWaiting() ? (
-          <div class="loader-container">
-            <div class="loader">Loading...</div>
-          </div>
-        ) : null
+        <div class="loader-container" classList={{ show: stillWaiting() }}>
+          <div class="loader">Loading...</div>
+        </div>
       ) : epub().status == "error" ? (
         <pre style="padding:5px">{epub().error.toString()}</pre>
       ) : (

@@ -6,11 +6,17 @@
   --treeitem-hover-color: rgba(0, 0, 0, 0.9);
 }
 
+body {
+  overflow: hidden;
+}
+
 nav {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-size: 14px;
   color: var(--treeitem-color);
   padding: 0 1em;
+  width: 300px;
+  box-sizing: border-box;
 
   ol {
     padding: 0;

@@ -15,7 +15,7 @@
   --separator-color: rgba(0, 0, 0, 0.3);
   --dropdown-btn-bg-color: rgb(215, 215, 219);
   --body-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --body-bg-color: rgb(212, 212, 215);
+  --body-bg-color: rgb(238, 238, 238);
   --field-border-color: rgb(187, 187, 188);
   --field-color: rgb(6, 6, 6);
   --field-bg-color: white;
@@ -32,6 +32,12 @@
   width: 10em;
   height: 10em;
   overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.25s;
+
+  &.show {
+    opacity: 1;
+  }
 
   .loader,
   .loader:after {
@@ -205,19 +211,19 @@
   .viewer {
     display: flex;
     height: calc(100dvh - 32px);
+    
+    @include mobile {
+      overflow-x: hidden;
+    }
 
     iframe {
       display: block;
       border: none;
-      width: 100%;
       height: calc(100dvh - 32px);
       box-sizing: border-box;
+      width: 100%;
+      position: relative;
     }
-
-    // > div {
-    //   overflow: auto;
-    //   overscroll-behavior-y: contain;
-    // }
 
     .nav {
       --nav-width: 300px;
@@ -225,22 +231,21 @@
         --nav-width: 200px;
       }
 
-      width: var(--nav-width);
+      width: 0;    
       transition: 0.25s width;
       box-shadow: inset -1px 0 0 rgb(0 0 0 / 0.25);
-      overflow-x: hidden;
 
-      .nav-frame {
+      &.show {
         width: var(--nav-width);
-      }
-
-      &.hidden {
-        width: 0;
-      }
+      } 
     }
 
     .content {
-      flex: 1;
+      z-index: 1; // hack to solve rendering issue w/ TOC on safari
+
+      @include mobile {
+        min-width: 100dvw;
+      }
     }
   }
 }

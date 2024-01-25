@@ -24,8 +24,9 @@ article {
   box-sizing: border-box;
   padding: 0.5in;
   background: white;
-  margin: 0 auto;
+  margin: 5px auto;
   position: relative;
+  box-shadow: 0px 1px 4px rgba(0,0,0,0.1);
 
   @include mobile {
     padding: 0.25in;
