@@ -1,6 +1,7 @@
 import "./block-links";
 import "./code-description";
 import "./dfn-links";
+import "./resize-handle";
 import "./syntax-highlight";
 
 function retryHash() {

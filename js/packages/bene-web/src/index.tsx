@@ -1,4 +1,4 @@
-import { For, createEffect, createResource, onMount } from "solid-js";
+import { createEffect, createResource, onMount } from "solid-js";
 import { render } from "solid-js/web";
 
 import workerUrl from "../worker.ts?worker&url";
@@ -45,75 +45,7 @@ async function registerServiceWorker(post: (data: any) => void) {
   return registration;
 }
 
-const ZIPS = [
-  {
-    file: "moby-dick.epub",
-    title: "Moby Dick (Herman Melville, 1851)",
-  },
-  {
-    file: "wasteland.epub",
-    title: "The Waste Land (T. S. Eliot, 1922)",
-  },
-  {
-    file: "PLAI-3-2-2.epub",
-    title:
-      "Programming Languages: Applications and Interpretation (Shriram Krishnamurthi, 2023)",
-  },
-];
-
-type NewEpubCallback = (data: Uint8Array) => void;
-
 declare var TEST_EPUB: string | undefined;
-
-function ProvidedEpubs(props: { fetchZip: (url: string) => void }) {
-  return (
-    <select
-      class="provided-epub"
-      onchange={event => props.fetchZip(event.target.value)}
-    >
-      <option>Select an epub...</option>
-      <For each={ZIPS}>
-        {zip => <option value={zip.file}>{zip.title}</option>}
-      </For>
-    </select>
-  );
-}
-
-function CustomEpub(props: { newEpub: NewEpubCallback }) {
-  let dropEl: HTMLDivElement | undefined;
-  onMount(() => {
-    dropEl!.addEventListener("dragover", event => {
-      event.stopPropagation();
-      event.preventDefault();
-      event.dataTransfer!.dropEffect = "copy";
-    });
-
-    dropEl!.addEventListener("drop", event => {
-      event.stopPropagation();
-      event.preventDefault();
-
-      const files = event.dataTransfer?.files;
-      if (files?.length && files.length > 0) {
-        const file = files[0];
-        const reader = new FileReader();
-
-        reader.onload = async e => {
-          if (!e.target) return;
-          const arrayBuffer = e.target.result as ArrayBuffer;
-          const byteArray = new Uint8Array(arrayBuffer);
-          props.newEpub(byteArray);
-        };
-
-        reader.readAsArrayBuffer(file);
-      }
-    });
-  });
-  return (
-    <div ref={dropEl} class="custom-epub">
-      Drop an EPUB here
-    </div>
-  );
-}
 
 function serializeUrl(url: URL) {
   let trimmedPath = url.pathname.slice("/bene-reader/".length);
@@ -187,7 +119,7 @@ function App() {
         let urlStr = message.data as string;
         let url = new URL(urlStr);
         let hash = serializeUrl(url);
-        window.history.pushState(undefined, "", "#" + hash);
+        window.history.replaceState(undefined, "", "#" + hash);
       }
     });
   });

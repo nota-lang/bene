@@ -40,7 +40,7 @@ interface PageInfo {
   currentPage: number;
   numPages: number;
   pageHeight: number;
-  container: HTMLDivElement;
+  container: Window;
 }
 
 interface State {
@@ -200,50 +200,6 @@ function Nav(props: { navigateEvent: EventTarget }) {
   );
 }
 
-function ResizeHandle() {
-  let [_state, setState] = useContext(StateContext)!;
-  let handleRef: HTMLDivElement | undefined;
-
-  function onMouseDown(event: MouseEvent) {
-    event.stopPropagation();
-    event.preventDefault();
-
-    let handleBounds = handleRef!.getBoundingClientRect();
-    let deltaX = handleBounds.right - event.x;
-
-    let iframes = document.querySelectorAll<HTMLIFrameElement>("iframe");
-    iframes.forEach(iframe => {
-      iframe.style.pointerEvents = "none";
-    });
-
-    function onMouseMove(event: MouseEvent) {
-      let width = Math.abs(event.x + deltaX - window.innerWidth / 2) * 2;
-      setState({ width });
-    }
-
-    function onMouseUp() {
-      iframes.forEach(iframe => {
-        iframe.style.pointerEvents = "auto";
-      });
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
-    }
-
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
-  }
-
-  return (
-    <div
-      class="resize-handle-container"
-      onMouseDown={onMouseDown}
-      ref={handleRef}
-    >
-      <div class="resize-handle" />
-    </div>
-  );
-}
-
 function Content(props: { navigateEvent: EventTarget }) {
   let [state, setState] = useContext(StateContext)!;
   let [styleEl, setStyleEl] = createSignal<HTMLStyleElement | undefined>(
@@ -271,11 +227,9 @@ function Content(props: { navigateEvent: EventTarget }) {
     return epubUrl(rend, href);
   };
 
-  let containerRef: HTMLDivElement | undefined;
   let iframeRef: HTMLIFrameElement | undefined;
 
   onMount(() => {
-    let container = containerRef!;
     let iframe = iframeRef!;
 
     const SCROLL_KEY = "bene-scroll-info";
@@ -292,13 +246,16 @@ function Content(props: { navigateEvent: EventTarget }) {
         : undefined;
 
     function updatePageInfo() {
-      let pageHeight = container.getBoundingClientRect().height;
-      let docHeight = iframe.getBoundingClientRect().height;
+      let container = iframe.contentWindow!;
+      let doc = iframe.contentDocument!.body;
+      let pageHeight = iframe.getBoundingClientRect().height;
+      let docHeight = doc.getBoundingClientRect().height;
       let numPages = Math.ceil(docHeight / pageHeight);
       let currentPage =
-        container.scrollTop + pageHeight >= docHeight
+        container.scrollY + pageHeight >= docHeight
           ? numPages
-          : 1 + Math.floor(container.scrollTop / pageHeight);
+          : 1 + Math.floor(container.scrollY / pageHeight);
+
       currentPage = _.clamp(currentPage, 1, numPages);
       let pages: PageInfo = {
         numPages,
@@ -318,7 +275,7 @@ function Content(props: { navigateEvent: EventTarget }) {
       }
 
       let scrollInfo: ScrollInfo = {
-        scrollTop: container.scrollTop,
+        scrollTop: container.scrollY,
         docHeight,
       };
       localStorage.setItem(SCROLL_KEY, JSON.stringify(scrollInfo));
@@ -336,31 +293,32 @@ function Content(props: { navigateEvent: EventTarget }) {
       insertJs(contentDoc, componentScriptUrl);
     }
 
-    function matchFrameHeightToDocHeight(contentDoc: Document) {
-      let htmlEl = contentDoc.documentElement;
-      let iframeObserver = new ResizeObserver(() => {
-        let height = htmlEl.getBoundingClientRect().height;
-        iframe.style.height = height + "px";
-      });
-      iframeObserver.observe(htmlEl);
-    }
-
     function registerPageInfoCallbacks(
-      container: HTMLDivElement,
-      iframe: HTMLIFrameElement
+      iframe: HTMLIFrameElement,
+      contentDoc: Document
     ) {
       let pageObserver = new ResizeObserver(() => updatePageInfo());
-      pageObserver.observe(container);
       pageObserver.observe(iframe);
+      pageObserver.observe(contentDoc.body);
 
       const SCROLL_CALLBACK_DELAY = 30;
-      container.addEventListener(
+      contentDoc.addEventListener(
         "scroll",
         throttle(() => updatePageInfo(), SCROLL_CALLBACK_DELAY)
       );
     }
 
     function updateAnchors(contentWindow: any, contentDoc: Document) {
+      contentWindow.addEventListener("popstate", () => {
+        window.parent.postMessage(
+          {
+            type: "navigate",
+            data: contentWindow.location.href,
+          },
+          "*"
+        );
+      });
+
       function updateAnchor(a: HTMLAnchorElement) {
         if (!a.href) return;
 
@@ -369,16 +327,6 @@ function Content(props: { navigateEvent: EventTarget }) {
           // Need to add target="blank" to all anchors, or else external navigation will
           // occur within the reader's iframe.
           a.setAttribute("target", "blank");
-        } else {
-          a.addEventListener("click", () => {
-            window.parent.postMessage(
-              {
-                type: "navigate",
-                data: a.href,
-              },
-              "*"
-            );
-          });
         }
       }
 
@@ -415,10 +363,13 @@ function Content(props: { navigateEvent: EventTarget }) {
       let contentDoc = iframe.contentDocument!;
 
       injectReaderStylesAndScripts(contentDoc);
-      matchFrameHeightToDocHeight(contentDoc);
-      registerPageInfoCallbacks(container, iframe);
+      registerPageInfoCallbacks(iframe, contentDoc);
       updateAnchors(contentWindow, contentDoc);
       handleTocNavigation(contentWindow);
+
+      let article = contentDoc.querySelector<HTMLElement>("article")!;
+      let handleRoot = contentDoc.createElement("resize-handle");
+      article.appendChild(handleRoot);
     });
   });
 
@@ -440,17 +391,16 @@ function Content(props: { navigateEvent: EventTarget }) {
   );
 
   return (
-    <div ref={containerRef} class="content">
-      <div class="content-frame" style={{ "max-width": `${state.width}px` }}>
-        <ResizeHandle />
-        <iframe
-          ref={iframeRef}
-          src={chapterUrl()}
-          referrerPolicy="no-referrer"
-        />
-      </div>
-    </div>
+    <iframe
+      class="content"
+      ref={iframeRef}
+      src={chapterUrl()}
+      referrerPolicy="no-referrer"
+    />
   );
+
+  // <div class="content-frame" style={{ "max-width": `${state.width}px` }}>
+  //       <ResizeHandle />
 }
 
 function Viewer() {
