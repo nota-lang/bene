@@ -15,31 +15,3 @@ iframe {
   border: 0;
   display: block;
 }
-
-/* h1 {
-  margin: 0 0 0.5rem 0;
-} */
-
-/* 
-.controls {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-}
-
-.provided-epub {
-  width: 300px;
-}
-
-.custom-epub {
-  display: inline-block;
-  width: 175px;
-  height: 50px;
-  background: #eee;
-  border: 1px dashed #aaa;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-} */

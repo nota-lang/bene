@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 pub use zip::{Archive, ArchiveFormat, FileZip, MemoryZip};
 
+mod xhtml;
 mod zip;
 
 #[derive(Serialize, Deserialize, Debug, specta::Type, Clone)]
@@ -154,7 +155,12 @@ impl Epub {
   }
 
   pub async fn load_asset(&self, archive: &mut Archive, path: &str) -> Result<Vec<u8>> {
-    archive.read_file(path).await
+    let contents = archive.read_file(path).await?;
+    if path.ends_with(".xhtml") {
+      xhtml::process_xhtml(path, &contents)
+    } else {
+      Ok(contents)
+    }
   }
 }
 

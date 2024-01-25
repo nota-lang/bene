@@ -19,8 +19,8 @@ impl EpubCtxt {
     let _guard = runtime.enter();
     runtime.block_on(async {
       let contents = self
-        .archive
-        .read_file(path)
+        .epub
+        .load_asset(&mut self.archive, path)
         .await
         .map_err(|err| JsError::new(&err.to_string()))?;
       Ok(Uint8Array::from(contents.as_slice()))

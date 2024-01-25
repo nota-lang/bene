@@ -13,7 +13,6 @@ import {
 import { SetStoreFunction, createStore } from "solid-js/store";
 import { render } from "solid-js/web";
 
-import contentCssUrl from "../styles/content.scss?worker&url";
 import navCssUrl from "../styles/nav.scss?worker&url";
 
 // import { Rendition, commands } from "./bindings";
@@ -282,7 +281,6 @@ function Content(props: { navigateEvent: EventTarget }) {
     }
 
     function injectReaderStylesAndScripts(contentDoc: Document) {
-      insertJs(contentDoc, contentCssUrl);
       insertCss(contentDoc, componentStyleUrl);
 
       let styleEl = contentDoc.createElement("style");
@@ -501,7 +499,9 @@ function App() {
     <>
       {epub() === undefined ? (
         stillWaiting() ? (
-          <pre style="padding:5px">(waiting for document to load...)</pre>
+          <div class="loader-container">
+            <div class="loader">Loading...</div>
+          </div>
         ) : null
       ) : epub().status == "error" ? (
         <pre style="padding:5px">{epub().error.toString()}</pre>

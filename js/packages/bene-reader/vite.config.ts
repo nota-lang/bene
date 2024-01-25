@@ -7,6 +7,17 @@ export default defineConfig(({ mode }) => ({
   define: {
     "process.env.NODE_ENV": JSON.stringify(mode),
   },
+  build: {
+    rollupOptions: {
+      input: ['./index.html', './styles/content.scss'],
+      output: {
+        assetFileNames: asset => {
+          if (asset.name == "content.css") return "content.css";
+          return "assets/[name]-[hash][extname]";
+        }
+      }
+    },
+  },
   test: {
     environment: "jsdom",
     deps: {
