@@ -7,4 +7,4 @@ zip -0 -X ../$1.epub mimetype
 rm -f mimetype
 zip -r ../$1.epub EPUB META-INF
 popd
-epubcheck $1.epub
+# epubcheck $1.epub

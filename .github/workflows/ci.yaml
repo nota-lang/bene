@@ -16,11 +16,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-        with:
-          lfs: true
-
-      - name: Pull LFS files
-        run: git lfs pull
 
       - name: Install wasm-pack
         uses: baptiste0928/cargo-install@v2
@@ -42,8 +37,10 @@ jobs:
         working-directory: rs
 
       - name: Build Wasm package
-        run: depot -p bene-web build --release
-        working-directory: js
+        run: |
+          cd epubs && ./make-epub.sh portable-epubs && cd ..
+          cd js && mkdir -p packages/bene-web/public/epubs/ && ln -s $PWD/../epubs/portable-epubs.epub packages/bene-web/public/epubs/
+          depot -p bene-web build --release
 
       - name: Deploy to Github Pages
         uses: peaceiris/actions-gh-pages@v3
