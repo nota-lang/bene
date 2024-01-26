@@ -75,7 +75,9 @@
 
 
 .epub {
+  width: 100vw;
   width: 100dvw;
+  height: 100vh;
   height: 100dvh;  
   position: absolute;
   left: 0;
@@ -210,6 +212,7 @@
     
   .viewer {
     display: flex;
+    height: calc(100vh - 32px);
     height: calc(100dvh - 32px);
     
     @include mobile {
@@ -219,6 +222,7 @@
     iframe {
       display: block;
       border: none;
+      height: calc(100vh - 32px);
       height: calc(100dvh - 32px);
       box-sizing: border-box;
       width: 100%;
@@ -244,6 +248,7 @@
       z-index: 1; // hack to solve rendering issue w/ TOC on safari
 
       @include mobile {
+        min-width: 100vw;
         min-width: 100dvw;
       }
     }
