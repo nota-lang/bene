@@ -473,8 +473,6 @@ function EpubView(props: { data: /*Epub*/ any }) {
   );
 }
 
-const LOADING_THRESHOLD = 500;
-
 function registerDropEvents() {
   document.addEventListener("dragover", event => {
     event.stopPropagation();
@@ -500,10 +498,15 @@ function registerDropEvents() {
   });
 }
 
+const LOADING_THRESHOLD = 500;
+const LOADING_LONG_THRESHOLD = 5000;
+
 function App() {
   let [epub, setEpub] = createSignal<any>(undefined);
   let [stillWaiting, setStillWaiting] = createSignal(false);
+  let [stillWaitingLong, setStillWaitingLong] = createSignal(false);
   setTimeout(() => setStillWaiting(true), LOADING_THRESHOLD);
+  setTimeout(() => setStillWaitingLong(true), LOADING_LONG_THRESHOLD);
 
   onMount(() => {
     window.addEventListener("message", event => {
@@ -520,9 +523,19 @@ function App() {
   return (
     <>
       {epub() === undefined ? (
-        <div class="loader-container" classList={{ show: stillWaiting() }}>
-          <div class="loader">Loading...</div>
-        </div>
+        <>
+          <div class="loader-container" classList={{ show: stillWaiting() }}>
+            <div class="loader">Loading...</div>
+          </div>
+          {stillWaitingLong() ? (
+            <div style="max-width:500px;margin:0 auto">
+              If the document is not loading, it's probably a bug in my Service
+              Worker that I'm still trying to fix (sorry!). To work around the
+              bug, you either need to close any other tabs of this document (in
+              Google Chrome), or try a different browser.
+            </div>
+          ) : null}
+        </>
       ) : epub().status == "error" ? (
         <pre style="padding:5px">{epub().error.toString()}</pre>
       ) : (

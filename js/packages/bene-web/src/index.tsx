@@ -5,7 +5,7 @@ import workerUrl from "../worker.ts?worker&url";
 
 async function registerServiceWorker(
   post: (data: any) => void
-): Promise<ServiceWorkerRegistration | null> {
+): Promise<ServiceWorkerRegistration> {
   let installChannel = new BroadcastChannel("install-channel");
   let logChannel = new BroadcastChannel("log-channel");
 
@@ -19,9 +19,9 @@ async function registerServiceWorker(
 
   let registrations = await navigator.serviceWorker.getRegistrations();
   let prevRegistration = registrations.find(
-    reg => reg.active && reg.active.scriptURL.endsWith("worker.js")
+    reg => reg.active && reg.active.scriptURL == workerUrl
   );
-  if (prevRegistration !== undefined) return null;
+  if (prevRegistration !== undefined) await prevRegistration.unregister();
 
   let registration = await navigator.serviceWorker.register(workerUrl);
   console.debug("Registered worker, waiting for it to activate.", registration);
@@ -129,21 +129,11 @@ function App() {
   });
 
   return (
-    <>
-      {registration() === null ? (
-        <div style="padding: 5px; max-width: 600px">
-          Sorry, you can only have this document open in one tab. It's a
-          technical issue with Service Workers that I'm still trying to figure out.
-          Please close this tab and read the document in the other tab.
-        </div>
-      ) : (
-        <iframe
-          ref={iframe}
-          src="bene-reader/index.html"
-          referrerPolicy="no-referrer"
-        />
-      )}
-    </>
+    <iframe
+      ref={iframe}
+      src="bene-reader/index.html"
+      referrerPolicy="no-referrer"
+    />
   );
 }
 
