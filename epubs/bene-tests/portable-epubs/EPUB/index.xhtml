@@ -24,7 +24,7 @@
       <doc-publication-date>January 25, 2024</doc-publication-date>
       <doc-abstract>
         Despite decades of advances in document rendering technology, most of the world's documents are stuck in the 1990s due to the limitations of PDF.
-        Yet, modern document formats like HTML have yet to provide a competitive alternative to PDF. This post explores what prevents HTML documents from being portable, and I propose a way forward based on the EPUB format. To demonstrate my ideas, this post is presented using a new prototype EPUB reading system.
+        Yet, modern document formats like HTML have yet to provide a competitive alternative to PDF. This post explores what prevents HTML documents from being portable, and I propose a way forward based on the EPUB format. To demonstrate my ideas, this post is presented using a prototype EPUB reading system.
       </doc-abstract>
     </header>
     <section>
@@ -451,12 +451,17 @@ Inline   ::= text | &#x3C;strong&#x3E; Inline* &#x3C;/strong&#x3E;</pre>
       <p>A brief postscript for a few things I haven't touched on.</p>
 
       <p>
-        <strong>...security?</strong> You might dislike the idea that document authors can run arbitrary Javascript on your personal computer. But then again, you presumably use both a PDF reader and a web browser on the daily, and those both run Javascript. What I'm proposing is not really any <em>less</em> secure than our current state of affairs. If anything, I'd hope that browsers are more battle-hardened than PDF viewers regarding code execution. Certainly the designers of EPUB reading systems should be careful to not give documents any <em>additional</em> capabilities beyond those already provided by the browser.</p>
+        <strong>...security?</strong> You might dislike the idea that document authors can run arbitrary Javascript on your personal computer. But then again, you presumably use both a PDF reader and a web browser on the daily, and those both run Javascript. What I'm proposing is not really any <em>less</em> secure than our current state of affairs. If anything, I'd hope that browsers are more battle-hardened than PDF viewers regarding code execution. Certainly the designers of EPUB reading systems should be careful to not give documents any <em>additional</em> capabilities beyond those already provided by the browser.
+      </p>
+
+      <p><strong>...privacy?</strong> Modern web sites use many kinds of telemetry and cookies to track user behavior. I strongly believe that EPUBs should not follow this trend. Telemetry must <em>at least</em> require the explicit consent of the user, and even that may be too generous. Companies will inevitably do things like offer discounts in exchange for requiring your consent to telemetry, similar to Amazon's <a href="https://www.amazon.com/gp/help/customer/display.html?nodeId=GFNWCZJAM3SBQQZD">Kindle ads policy</a>. Perhaps it is better to preempt this behavior by banning all tracking.</p>
 
       <p><strong>...aesthetics?</strong> People often intuit that LaTeX-generated PDFs look prettier than HTML documents, or even prettier than PDFs created by other software. This is because Donald Knuth took his job <a href="https://www-cs-faculty.stanford.edu/~knuth/dt.html">very seriously</a>. In particular, the <a href="https://onlinelibrary.wiley.com/doi/abs/10.1002/spe.4380111102?">Knuth-Plass line-breaking algorithm</a> tends to produce better-looking justified text than whatever algorithm is used by browsers.</p>
       <p>There's two ways to make progress here. One is for browsers to provide more typography tools. Allegedly, <code>text-wrap: pretty</code> is <a href="https://developer.chrome.com/blog/css-text-wrap-pretty/">supposed to help</a>, but in my brief testing it doesn't seem to improve line-break quality. The other way is to <a href="https://mpetroff.net/2020/05/pre-calculated-line-breaks-for-html-css/">pre-calculate line breaks</a>, which would only work for fixed-layout renditions.</p>
 
-      <p><strong>...page citations?</strong> I think we just have to give up on citing content by pages. Instead, we should mandate a consistent numbering scheme for block elements within a document, and have people cite using that scheme. For example, Bene will auto-number all blocks. If you're on a desktop, try hovering your mouse in the left column next to the top-right of any paragraph.</p>
+      <p><strong>...page citations?</strong> I think we just have to give up on citing content by pages. Instead, we should mandate a consistent numbering scheme for block elements within a document, and have people cite using that scheme. (Allison Morrell <a href="https://twitter.com/AllisonDMorrell/status/1750728545905823856">points out</a> this is already the standard in the Canadian legal system.) For example, Bene will auto-number all blocks. If you're on a desktop, try hovering your mouse in the left column next to the top-right of any paragraph.</p>
+
+      <p><strong>...annotations?</strong> Ideally it should be as easy to mark up an EPUB as a PDF. The <a href="https://www.w3.org/TR/annotation-model/#selectors">Web Annotations specification</a> seems to be a good starting point for annotating EPUBs. Web Annotations seem designed for annotations on "targetable" objects, like a labeled element or a range of text. It's not yet clear how to deal with free-hand annotations, especially on reflowable documents.</p>
     </section>
     </article>
   </body>
