@@ -3,9 +3,9 @@ import { render } from "solid-js/web";
 
 import workerUrl from "../worker.ts?worker&url";
 
-declare var process: { env: { NODE_ENV: "development" | "production" } };
-
-async function registerServiceWorker(post: (data: any) => void) {
+async function registerServiceWorker(
+  post: (data: any) => void
+): Promise<ServiceWorkerRegistration | null> {
   let installChannel = new BroadcastChannel("install-channel");
   let logChannel = new BroadcastChannel("log-channel");
 
@@ -18,32 +18,19 @@ async function registerServiceWorker(post: (data: any) => void) {
   });
 
   let registrations = await navigator.serviceWorker.getRegistrations();
-  let registration = registrations.find(
+  let prevRegistration = registrations.find(
     reg => reg.active && reg.active.scriptURL.endsWith("worker.js")
   );
+  if (prevRegistration !== undefined) return null;
 
-  if (process.env.NODE_ENV === "development") {
-    await Promise.all(registrations.map(reg => reg.unregister()));
-    registration = undefined;
-    console.debug("Unregistered service workers.");
+  let registration = await navigator.serviceWorker.register(workerUrl);
+  console.debug("Registered worker, waiting for it to activate.", registration);
 
-    window.addEventListener("beforeunload", () => registration!.unregister());
-  }
+  await installedPromise;
+  console.assert(registration.active !== null, "Service worker is not active?");
+  console.debug("Service worker activated.");
 
-  if (!registration) {
-    registration = await navigator.serviceWorker.register(workerUrl);
-    console.debug(
-      "Registered worker, waiting for it to activate.",
-      registration
-    );
-
-    await installedPromise;
-    console.assert(
-      registration.active !== null,
-      "Service worker is not active?"
-    );
-    console.debug("Service worker activated.");
-  }
+  window.addEventListener("beforeunload", () => registration!.unregister());
 
   navigator.serviceWorker.addEventListener("message", event => {
     let message = event.data;
@@ -142,11 +129,21 @@ function App() {
   });
 
   return (
-    <iframe
-      ref={iframe}
-      src="bene-reader/index.html"
-      referrerPolicy="no-referrer"
-    />
+    <>
+      {registration() === null ? (
+        <div style="padding: 5px; max-width: 600px">
+          Sorry, you can only have this document open in one tab. It's a
+          technical issue with Service Workers that I'm still trying to figure out.
+          Please close this tab and read the document in the other tab.
+        </div>
+      ) : (
+        <iframe
+          ref={iframe}
+          src="bene-reader/index.html"
+          referrerPolicy="no-referrer"
+        />
+      )}
+    </>
   );
 }
 

@@ -421,9 +421,6 @@ function Content(props: { navigateEvent: EventTarget }) {
       referrerPolicy="no-referrer"
     />
   );
-
-  // <div class="content-frame" style={{ "max-width": `${state.width}px` }}>
-  //       <ResizeHandle />
 }
 
 function Viewer() {
