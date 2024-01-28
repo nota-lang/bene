@@ -6,7 +6,7 @@ Bene is a reading system for documents written in the [EPUB](https://www.w3.org/
 
 ## Setup
 
-Currently, the only supported setup is installation from source. You will need at least [Rust](https://rustup.rs/) and [Depot](https://github.com/cognitive-engineering-lab/depot?tab=readme-ov-file#installation).
+Currently, the only supported setup is installation from source. You will need at least [Rust](https://rustup.rs/), [Depot](https://github.com/cognitive-engineering-lab/depot?tab=readme-ov-file#installation), and [pnpm](https://pnpm.io/installation).
 
 Bene is distributed as a web app and a desktop app. 
 
