@@ -346,9 +346,9 @@ function Content(props: { navigateEvent: EventTarget }) {
 
         let url = new URL(a.href);
         if (url.host != window.location.host) {
-          // Need to add target="blank" to all anchors, or else external navigation will
+          // Need to add target="_blank" to all anchors, or else external navigation will
           // occur within the reader's iframe.
-          a.setAttribute("target", "blank");
+          a.setAttribute("target", "_blank");
         }
       }
 
