@@ -21,5 +21,8 @@
     "overrides": {
       "rollup": "npm:@rollup/wasm-node"
     }
+  },
+  "depot": {
+    "depot-version": ""
   }
 }
