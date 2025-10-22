@@ -1,1 +1,346 @@
-(function(){"use strict";let o;const L=typeof TextDecoder<"u"?new TextDecoder("utf-8",{ignoreBOM:!0,fatal:!0}):{decode:()=>{throw Error("TextDecoder not available")}};typeof TextDecoder<"u"&&L.decode();let g=null;function p(){return(g===null||g.byteLength===0)&&(g=new Uint8Array(o.memory.buffer)),g}function y(e,t){return e=e>>>0,L.decode(p().subarray(e,e+t))}const l=new Array(128).fill(void 0);l.push(void 0,null,!0,!1);let h=l.length;function w(e){h===l.length&&l.push(l.length+1);const t=h;return h=l[t],l[t]=e,t}function m(e){return l[e]}function M(e){e<132||(l[e]=h,h=e)}function v(e){const t=m(e);return M(e),t}let A=null;function c(){return(A===null||A.byteLength===0)&&(A=new Int32Array(o.memory.buffer)),A}let d=0;const E=typeof TextEncoder<"u"?new TextEncoder("utf-8"):{encode:()=>{throw Error("TextEncoder not available")}},S=typeof E.encodeInto=="function"?function(e,t){return E.encodeInto(e,t)}:function(e,t){const n=E.encode(e);return t.set(n),{read:e.length,written:n.length}};function T(e,t,n){if(n===void 0){const _=E.encode(e),b=t(_.length,1)>>>0;return p().subarray(b,b+_.length).set(_),d=_.length,b}let r=e.length,a=t(r,1)>>>0;const i=p();let s=0;for(;s<r;s++){const _=e.charCodeAt(s);if(_>127)break;i[a+s]=_}if(s!==r){s!==0&&(e=e.slice(s)),a=n(a,r,r=s+e.length*3,1)>>>0;const _=p().subarray(a+s,a+r),b=S(e,_);s+=b.written}return d=s,a}function I(){try{const n=o.__wbindgen_add_to_stack_pointer(-16);o.init_rs(n);var e=c()[n/4+0],t=c()[n/4+1];if(t)throw v(e)}finally{o.__wbindgen_add_to_stack_pointer(16)}}function R(e,t){const n=t(e.length*1,1)>>>0;return p().set(e,n/1),d=e.length,n}function j(e){try{const a=o.__wbindgen_add_to_stack_pointer(-16),i=R(e,o.__wbindgen_malloc),s=d;o.load_epub(a,i,s);var t=c()[a/4+0],n=c()[a/4+1],r=c()[a/4+2];if(r)throw v(n);return W.__wrap(t)}finally{o.__wbindgen_add_to_stack_pointer(16)}}function C(e){let t,n;try{const i=o.__wbindgen_add_to_stack_pointer(-16),s=T(e,o.__wbindgen_malloc,o.__wbindgen_realloc),_=d;o.guess_mime_type(i,s,_);var r=c()[i/4+0],a=c()[i/4+1];return t=r,n=a,y(r,a)}finally{o.__wbindgen_add_to_stack_pointer(16),o.__wbindgen_free(t,n,1)}}class W{static __wrap(t){t=t>>>0;const n=Object.create(W.prototype);return n.__wbg_ptr=t,n}__destroy_into_raw(){const t=this.__wbg_ptr;return this.__wbg_ptr=0,t}free(){const t=this.__destroy_into_raw();o.__wbg_epubctxt_free(t)}metadata(){let t,n;try{const i=o.__wbindgen_add_to_stack_pointer(-16);o.epubctxt_metadata(i,this.__wbg_ptr);var r=c()[i/4+0],a=c()[i/4+1];return t=r,n=a,y(r,a)}finally{o.__wbindgen_add_to_stack_pointer(16),o.__wbindgen_free(t,n,1)}}read_file(t){try{const i=o.__wbindgen_add_to_stack_pointer(-16),s=T(t,o.__wbindgen_malloc,o.__wbindgen_realloc),_=d;o.epubctxt_read_file(i,this.__wbg_ptr,s,_);var n=c()[i/4+0],r=c()[i/4+1],a=c()[i/4+2];if(a)throw v(r);return v(n)}finally{o.__wbindgen_add_to_stack_pointer(16)}}}async function O(e,t){if(typeof Response=="function"&&e instanceof Response){if(typeof WebAssembly.instantiateStreaming=="function")try{return await WebAssembly.instantiateStreaming(e,t)}catch(r){if(e.headers.get("Content-Type")!="application/wasm")console.warn("`WebAssembly.instantiateStreaming` failed because your server does not serve wasm with `application/wasm` MIME type. Falling back to `WebAssembly.instantiate` which is slower. Original error:\n",r);else throw r}const n=await e.arrayBuffer();return await WebAssembly.instantiate(n,t)}else{const n=await WebAssembly.instantiate(e,t);return n instanceof WebAssembly.Instance?{instance:n,module:e}:n}}function q(){const e={};return e.wbg={},e.wbg.__wbindgen_error_new=function(t,n){const r=new Error(y(t,n));return w(r)},e.wbg.__wbindgen_object_drop_ref=function(t){v(t)},e.wbg.__wbg_new_abda76e883ba8a5f=function(){const t=new Error;return w(t)},e.wbg.__wbg_stack_658279fe44541cf6=function(t,n){const r=m(n).stack,a=T(r,o.__wbindgen_malloc,o.__wbindgen_realloc),i=d;c()[t/4+1]=i,c()[t/4+0]=a},e.wbg.__wbg_error_f851667af71bcfc6=function(t,n){let r,a;try{r=t,a=n,console.error(y(t,n))}finally{o.__wbindgen_free(r,a,1)}},e.wbg.__wbg_buffer_a448f833075b71ba=function(t){const n=m(t).buffer;return w(n)},e.wbg.__wbg_newwithbyteoffsetandlength_d0482f893617af71=function(t,n,r){const a=new Uint8Array(m(t),n>>>0,r>>>0);return w(a)},e.wbg.__wbg_new_8f67e318f15d7254=function(t){const n=new Uint8Array(m(t));return w(n)},e.wbg.__wbindgen_throw=function(t,n){throw new Error(y(t,n))},e.wbg.__wbindgen_memory=function(){const t=o.memory;return w(t)},e}function B(e,t){return o=e.exports,U.__wbindgen_wasm_module=t,A=null,g=null,o}async function U(e){if(o!==void 0)return o;typeof e>"u"&&(e=new URL(""+new URL("assets/rs_utils_bg-9lk-084j.wasm",self.location.href).href,self.location.href));const t=q();(typeof e=="string"||typeof Request=="function"&&e instanceof Request||typeof URL=="function"&&e instanceof URL)&&(e=fetch(e));const{instance:n,module:r}=await O(await e,t);return B(n,r)}let f=self,k,x,D=new BroadcastChannel("install-channel"),P=new BroadcastChannel("log-channel"),u=(...e)=>P.postMessage(e.map(t=>t.toString()).join("	"));f.addEventListener("install",async e=>{u("Installed"),await Promise.all([f.skipWaiting(),U()]),I(),u("Initialized"),D.postMessage("installed")}),f.addEventListener("activate",async e=>{u("Activated"),await f.clients.claim(),u("Claimed")}),f.addEventListener("fetch",e=>{if(!k||!x)return;let n=x+"bene-reader/epub-content/";if(e.request.url.startsWith(n)){let r=e.request.url.slice(n.length);r=r.split("#")[0];let a=k.read_file(r),i=C(r);e.respondWith(new Response(a,{status:200,headers:{"Content-Type":i}})),u("Handling request for",e.request.url,"with guessed type",i)}else u("Ignoring request for",e.request.url)}),f.addEventListener("message",async e=>{let t=e.data;if(t.type=="new-epub"){let{data:n,scope:r,url:a,path:i}=t.data;k=j(n),x=r;let s=JSON.parse(k.metadata()),_=await f.clients.matchAll();u("Loaded new epub, broadcasting to window");for(let b of _)b.postMessage({type:"loaded-epub",data:{metadata:s,url:a,path:i}})}})})();
+(function() {
+  "use strict";
+  let wasm;
+  let cachedUint8ArrayMemory0 = null;
+  function getUint8ArrayMemory0() {
+    if (cachedUint8ArrayMemory0 === null || cachedUint8ArrayMemory0.byteLength === 0) {
+      cachedUint8ArrayMemory0 = new Uint8Array(wasm.memory.buffer);
+    }
+    return cachedUint8ArrayMemory0;
+  }
+  let cachedTextDecoder = new TextDecoder("utf-8", { ignoreBOM: true, fatal: true });
+  cachedTextDecoder.decode();
+  const MAX_SAFARI_DECODE_BYTES = 2146435072;
+  let numBytesDecoded = 0;
+  function decodeText(ptr, len) {
+    numBytesDecoded += len;
+    if (numBytesDecoded >= MAX_SAFARI_DECODE_BYTES) {
+      cachedTextDecoder = new TextDecoder("utf-8", { ignoreBOM: true, fatal: true });
+      cachedTextDecoder.decode();
+      numBytesDecoded = len;
+    }
+    return cachedTextDecoder.decode(getUint8ArrayMemory0().subarray(ptr, ptr + len));
+  }
+  function getStringFromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    return decodeText(ptr, len);
+  }
+  function getArrayU8FromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    return getUint8ArrayMemory0().subarray(ptr / 1, ptr / 1 + len);
+  }
+  let WASM_VECTOR_LEN = 0;
+  const cachedTextEncoder = new TextEncoder();
+  if (!("encodeInto" in cachedTextEncoder)) {
+    cachedTextEncoder.encodeInto = function(arg, view) {
+      const buf = cachedTextEncoder.encode(arg);
+      view.set(buf);
+      return {
+        read: arg.length,
+        written: buf.length
+      };
+    };
+  }
+  function passStringToWasm0(arg, malloc, realloc) {
+    if (realloc === void 0) {
+      const buf = cachedTextEncoder.encode(arg);
+      const ptr2 = malloc(buf.length, 1) >>> 0;
+      getUint8ArrayMemory0().subarray(ptr2, ptr2 + buf.length).set(buf);
+      WASM_VECTOR_LEN = buf.length;
+      return ptr2;
+    }
+    let len = arg.length;
+    let ptr = malloc(len, 1) >>> 0;
+    const mem = getUint8ArrayMemory0();
+    let offset = 0;
+    for (; offset < len; offset++) {
+      const code = arg.charCodeAt(offset);
+      if (code > 127) break;
+      mem[ptr + offset] = code;
+    }
+    if (offset !== len) {
+      if (offset !== 0) {
+        arg = arg.slice(offset);
+      }
+      ptr = realloc(ptr, len, len = offset + arg.length * 3, 1) >>> 0;
+      const view = getUint8ArrayMemory0().subarray(ptr + offset, ptr + len);
+      const ret = cachedTextEncoder.encodeInto(arg, view);
+      offset += ret.written;
+      ptr = realloc(ptr, len, offset, 1) >>> 0;
+    }
+    WASM_VECTOR_LEN = offset;
+    return ptr;
+  }
+  let cachedDataViewMemory0 = null;
+  function getDataViewMemory0() {
+    if (cachedDataViewMemory0 === null || cachedDataViewMemory0.buffer.detached === true || cachedDataViewMemory0.buffer.detached === void 0 && cachedDataViewMemory0.buffer !== wasm.memory.buffer) {
+      cachedDataViewMemory0 = new DataView(wasm.memory.buffer);
+    }
+    return cachedDataViewMemory0;
+  }
+  function takeFromExternrefTable0(idx) {
+    const value = wasm.__wbindgen_export_3.get(idx);
+    wasm.__externref_table_dealloc(idx);
+    return value;
+  }
+  function init_rs() {
+    const ret = wasm.init_rs();
+    if (ret[1]) {
+      throw takeFromExternrefTable0(ret[0]);
+    }
+  }
+  function passArray8ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 1, 1) >>> 0;
+    getUint8ArrayMemory0().set(arg, ptr / 1);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+  }
+  function load_epub(data) {
+    const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.load_epub(ptr0, len0);
+    if (ret[2]) {
+      throw takeFromExternrefTable0(ret[1]);
+    }
+    return EpubCtxt.__wrap(ret[0]);
+  }
+  function guess_mime_type(url) {
+    let deferred2_0;
+    let deferred2_1;
+    try {
+      const ptr0 = passStringToWasm0(url, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+      const len0 = WASM_VECTOR_LEN;
+      const ret = wasm.guess_mime_type(ptr0, len0);
+      deferred2_0 = ret[0];
+      deferred2_1 = ret[1];
+      return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+      wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+    }
+  }
+  const EpubCtxtFinalization = typeof FinalizationRegistry === "undefined" ? { register: () => {
+  }, unregister: () => {
+  } } : new FinalizationRegistry((ptr) => wasm.__wbg_epubctxt_free(ptr >>> 0, 1));
+  class EpubCtxt {
+    static __wrap(ptr) {
+      ptr = ptr >>> 0;
+      const obj = Object.create(EpubCtxt.prototype);
+      obj.__wbg_ptr = ptr;
+      EpubCtxtFinalization.register(obj, obj.__wbg_ptr, obj);
+      return obj;
+    }
+    __destroy_into_raw() {
+      const ptr = this.__wbg_ptr;
+      this.__wbg_ptr = 0;
+      EpubCtxtFinalization.unregister(this);
+      return ptr;
+    }
+    free() {
+      const ptr = this.__destroy_into_raw();
+      wasm.__wbg_epubctxt_free(ptr, 0);
+    }
+    /**
+     * @returns {string}
+     */
+    metadata() {
+      let deferred1_0;
+      let deferred1_1;
+      try {
+        const ret = wasm.epubctxt_metadata(this.__wbg_ptr);
+        deferred1_0 = ret[0];
+        deferred1_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+      } finally {
+        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+      }
+    }
+    /**
+     * @param {string} path
+     * @returns {Uint8Array}
+     */
+    read_file(path) {
+      const ptr0 = passStringToWasm0(path, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+      const len0 = WASM_VECTOR_LEN;
+      const ret = wasm.epubctxt_read_file(this.__wbg_ptr, ptr0, len0);
+      if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+      }
+      return takeFromExternrefTable0(ret[0]);
+    }
+  }
+  if (Symbol.dispose) EpubCtxt.prototype[Symbol.dispose] = EpubCtxt.prototype.free;
+  const EXPECTED_RESPONSE_TYPES = /* @__PURE__ */ new Set(["basic", "cors", "default"]);
+  async function __wbg_load(module, imports) {
+    if (typeof Response === "function" && module instanceof Response) {
+      if (typeof WebAssembly.instantiateStreaming === "function") {
+        try {
+          return await WebAssembly.instantiateStreaming(module, imports);
+        } catch (e) {
+          const validResponse = module.ok && EXPECTED_RESPONSE_TYPES.has(module.type);
+          if (validResponse && module.headers.get("Content-Type") !== "application/wasm") {
+            console.warn("`WebAssembly.instantiateStreaming` failed because your server does not serve Wasm with `application/wasm` MIME type. Falling back to `WebAssembly.instantiate` which is slower. Original error:\n", e);
+          } else {
+            throw e;
+          }
+        }
+      }
+      const bytes = await module.arrayBuffer();
+      return await WebAssembly.instantiate(bytes, imports);
+    } else {
+      const instance = await WebAssembly.instantiate(module, imports);
+      if (instance instanceof WebAssembly.Instance) {
+        return { instance, module };
+      } else {
+        return instance;
+      }
+    }
+  }
+  function __wbg_get_imports() {
+    const imports = {};
+    imports.wbg = {};
+    imports.wbg.__wbg_Error_e17e777aac105295 = function(arg0, arg1) {
+      const ret = Error(getStringFromWasm0(arg0, arg1));
+      return ret;
+    };
+    imports.wbg.__wbg_error_7534b8e9a36f1ab4 = function(arg0, arg1) {
+      let deferred0_0;
+      let deferred0_1;
+      try {
+        deferred0_0 = arg0;
+        deferred0_1 = arg1;
+        console.error(getStringFromWasm0(arg0, arg1));
+      } finally {
+        wasm.__wbindgen_free(deferred0_0, deferred0_1, 1);
+      }
+    };
+    imports.wbg.__wbg_new_8a6f238a6ece86ea = function() {
+      const ret = new Error();
+      return ret;
+    };
+    imports.wbg.__wbg_newfromslice_074c56947bd43469 = function(arg0, arg1) {
+      const ret = new Uint8Array(getArrayU8FromWasm0(arg0, arg1));
+      return ret;
+    };
+    imports.wbg.__wbg_stack_0ed75d68575b0f3c = function(arg0, arg1) {
+      const ret = arg1.stack;
+      const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+      const len1 = WASM_VECTOR_LEN;
+      getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
+      getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
+    };
+    imports.wbg.__wbg_wbindgenthrow_451ec1a8469d7eb6 = function(arg0, arg1) {
+      throw new Error(getStringFromWasm0(arg0, arg1));
+    };
+    imports.wbg.__wbindgen_init_externref_table = function() {
+      const table = wasm.__wbindgen_export_3;
+      const offset = table.grow(4);
+      table.set(0, void 0);
+      table.set(offset + 0, void 0);
+      table.set(offset + 1, null);
+      table.set(offset + 2, true);
+      table.set(offset + 3, false);
+    };
+    return imports;
+  }
+  function __wbg_finalize_init(instance, module) {
+    wasm = instance.exports;
+    __wbg_init.__wbindgen_wasm_module = module;
+    cachedDataViewMemory0 = null;
+    cachedUint8ArrayMemory0 = null;
+    wasm.__wbindgen_start();
+    return wasm;
+  }
+  async function __wbg_init(module_or_path) {
+    if (wasm !== void 0) return wasm;
+    if (typeof module_or_path !== "undefined") {
+      if (Object.getPrototypeOf(module_or_path) === Object.prototype) {
+        ({ module_or_path } = module_or_path);
+      } else {
+        console.warn("using deprecated parameters for the initialization function; pass a single object instead");
+      }
+    }
+    if (typeof module_or_path === "undefined") {
+      module_or_path = new URL("" + new URL("assets/rs_utils_bg-DCMa-I7n.wasm", self.location.href).href, self.location.href);
+    }
+    const imports = __wbg_get_imports();
+    if (typeof module_or_path === "string" || typeof Request === "function" && module_or_path instanceof Request || typeof URL === "function" && module_or_path instanceof URL) {
+      module_or_path = fetch(module_or_path);
+    }
+    const { instance, module } = await __wbg_load(await module_or_path, imports);
+    return __wbg_finalize_init(instance, module);
+  }
+  let globalSelf = self;
+  let currentEpub;
+  let currentScope;
+  let installChannel = new BroadcastChannel("install-channel");
+  let logChannel = new BroadcastChannel("log-channel");
+  let log = (...args) => logChannel.postMessage(args.map((arg) => arg.toString()).join("	"));
+  globalSelf.addEventListener("install", async (_event) => {
+    log("Installed");
+    await Promise.all([globalSelf.skipWaiting(), __wbg_init()]);
+    init_rs();
+    log("Initialized");
+    installChannel.postMessage("installed");
+  });
+  globalSelf.addEventListener("activate", async (_event) => {
+    log("Activated");
+    await globalSelf.clients.claim();
+    log("Claimed");
+  });
+  globalSelf.addEventListener("fetch", (event) => {
+    if (!currentEpub) {
+      log("Ignoring request due to no loaded EPUB");
+      return;
+    }
+    if (!currentScope) {
+      log("Ignoring request due to no current scope");
+      return;
+    }
+    const EPUB_PATH = "bene-reader/epub-content/";
+    let epubBaseUrl = currentScope + EPUB_PATH;
+    if (event.request.url.startsWith(epubBaseUrl)) {
+      let path = event.request.url.slice(epubBaseUrl.length);
+      path = path.split("#")[0];
+      let contents = currentEpub.read_file(path);
+      let mimeType = guess_mime_type(path);
+      event.respondWith(
+        new Response(contents, {
+          status: 200,
+          headers: {
+            "Content-Type": mimeType
+          }
+        })
+      );
+      log(
+        "Handling request for",
+        event.request.url,
+        "with guessed type",
+        mimeType
+      );
+    } else {
+      log("Ignoring request for", event.request.url);
+    }
+  });
+  globalSelf.addEventListener("message", async (event) => {
+    let message = event.data;
+    if (message.type === "new-epub") {
+      let { data, scope, url, path } = message.data;
+      currentEpub = load_epub(data);
+      currentScope = scope;
+      let metadata = JSON.parse(currentEpub.metadata());
+      let clients = await globalSelf.clients.matchAll();
+      log("Loaded new epub, broadcasting to window");
+      for (let client of clients) {
+        client.postMessage({
+          type: "loaded-epub",
+          data: {
+            metadata,
+            url,
+            path
+          }
+        });
+      }
+    }
+  });
+})();
+//# sourceMappingURL=worker.js.map
