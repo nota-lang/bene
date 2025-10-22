@@ -17,6 +17,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      - uses: extractions/setup-just@v3
+
       - name: Install wasm-pack
         uses: baptiste0928/cargo-install@v2
         with:
@@ -24,23 +26,20 @@ jobs:
 
       - name: Install Depot
         uses: cognitive-engineering-lab/depot/actions/install@main
-        
+
       - name: Install system dependencies
-        run: sudo apt-get install -y libgtk-3-dev libjavascriptcoregtk-4.1-dev libsoup-3.0-dev libwebkit2gtk-4.1-dev
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libgtk-3-dev libjavascriptcoregtk-4.1-dev libsoup-3.0-dev libwebkit2gtk-4.1-dev
 
-      - name: Test frontend
-        run: depot test
-        working-directory: js
-
-      - name: Test backend
-        run: cargo test
-        working-directory: rs
+      - name: Tests
+        run: just test
 
       - name: Build Wasm package
         run: |
           cd epubs && ./make-epub.sh portable-epubs && cd ..
           cd js && mkdir -p packages/bene-web/public/epubs/ && ln -s $PWD/../epubs/portable-epubs.epub packages/bene-web/public/epubs/
-          depot -p bene-web build --release
+          cd .. && just build-wasm
 
       - name: Deploy to Github Pages
         uses: peaceiris/actions-gh-pages@v3
