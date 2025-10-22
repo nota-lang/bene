@@ -1,6 +1,6 @@
-import { LitElement, html, unsafeCSS } from "lit";
+import { html, LitElement, unsafeCSS } from "lit";
 import { customElement } from "lit/decorators.js";
-import { Ref, createRef, ref } from "lit/directives/ref.js";
+import { createRef, type Ref, ref } from "lit/directives/ref.js";
 
 import cssContent from "./resize-handle.scss?inline";
 
@@ -20,13 +20,13 @@ export class ResizeHandle extends LitElement {
     event.stopPropagation();
     event.preventDefault();
 
-    let handle = this.handleRef.value!;
-    let handleBounds = handle.getBoundingClientRect();
-    let deltaX = handleBounds.right - event.x;
+    const handle = this.handleRef.value!;
+    const handleBounds = handle.getBoundingClientRect();
+    const deltaX = handleBounds.right - event.x;
 
-    let self = this;
+    const self = this;
     function onMouseMove(event: MouseEvent) {
-      let width = Math.abs(event.x + deltaX - window.innerWidth / 2) * 2;
+      const width = Math.abs(event.x + deltaX - window.innerWidth / 2) * 2;
       self.article.style.maxWidth = `${width}px`;
     }
 

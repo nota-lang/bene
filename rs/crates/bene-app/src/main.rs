@@ -1,19 +1,20 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![warn(clippy::pedantic)]
+#![allow(clippy::single_match_else)]
 
 use std::{borrow::Cow, path::PathBuf, sync::Arc};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use bene_epub::{Archive, Epub, FileZip};
 use clap::Parser;
 use log::warn;
-use tauri::{http, App, AppHandle, Manager};
+use tauri::{App, AppHandle, Manager, http};
 use tokio::{runtime::Handle, sync::Mutex, task::JoinHandle};
 
 type EpubCell = Mutex<Option<JoinHandle<Result<Epub>>>>;
 
 #[tauri::command]
-// #[specta::specta]
 async fn epub(window: tauri::Window, handle: tauri::State<'_, EpubCell>) -> Result<Epub, String> {
   match window.try_state::<Epub>() {
     Some(epub) => Ok((*epub).clone()),
@@ -21,7 +22,7 @@ async fn epub(window: tauri::Window, handle: tauri::State<'_, EpubCell>) -> Resu
       let mut handle = handle.lock().await;
       let handle = handle
         .take()
-        .ok_or_else(|| "Cannot call epub while epub is loading!".to_string())?;
+        .ok_or_else(|| "Cannot call epub() while epub is loading!".to_string())?;
       let epub = handle
         .await
         .map_err(|e| format!("{e:?}"))?
@@ -39,7 +40,10 @@ struct CliArgs {
 }
 
 async fn load_reader_asset(app: &AppHandle, path: &str) -> Result<Vec<u8>> {
-  let path = format!("{}/bene-reader{path}", app.config().build.dist_dir);
+  let path = format!(
+    "{}/bene-reader{path}",
+    app.config().build.frontend_dist.as_ref().unwrap()
+  );
   Ok(tokio::fs::read(path).await?)
 }
 
@@ -66,11 +70,14 @@ async fn serve_asset(
     None => (load_reader_asset(app, path).await, path),
   };
   match result {
-    Ok(contents) => http::Response::builder()
-      .status(http::StatusCode::OK)
-      .header("Content-Type", bene_epub::guess_mime_type(path))
-      .body(Cow::Owned(contents))
-      .unwrap(),
+    Ok(contents) => {
+      let mut response = http::Response::builder().status(http::StatusCode::OK);
+      match bene_epub::guess_mime_type(path) {
+        Some(content_type) => response = response.header("Content-Type", content_type),
+        None => warn!("Unknown content type for path: {path}"),
+      }
+      response.body(Cow::Owned(contents)).unwrap()
+    }
     Err(e) => {
       warn!("Failed to read asset {path} with error {e}");
       http::Response::builder()
@@ -83,7 +90,6 @@ async fn serve_asset(
 
 #[tokio::main]
 async fn main() -> Result<()> {
-  env_logger::init();
   let args = CliArgs::parse();
 
   let archive = Archive::load(FileZip(args.path))
@@ -97,47 +103,34 @@ async fn main() -> Result<()> {
 
   #[allow(unused_variables)]
   let setup = |app: &mut App| {
-    #[cfg(debug_assertions)] // only include this code on debug builds
+    #[cfg(debug_assertions)]
     {
-      let window = app.get_window("main").unwrap();
+      let window = app.get_webview_window("main").unwrap();
       window.open_devtools();
     }
     Ok(())
   };
 
-  macro_rules! handlers {
-    ($macro:ident) => {
-      $macro![epub]
-    };
-  }
-
-  // let specta_plugin = {
-  //   use tauri_specta::collect_commands;
-  //   let specta_builder = tauri_specta::ts::builder().commands(handlers!(collect_commands));
-
-  //   #[cfg(debug_assertions)] // Only export on non-release builds
-  //   let specta_builder =
-  //     specta_builder.path("../../../js/packages/bene-desktop/src/bindings.ts");
-
-  //   specta_builder.into_plugin()
-  // };
-
   // Since we started Tokio ourselves, need to inform Tauri about the existing runtime.
   tauri::async_runtime::set(Handle::current());
 
   // Launch the Tauri app.
-  use tauri::generate_handler;
   let archive_clone = archive.try_clone().await?;
   let archive = Arc::new(Mutex::new(archive));
   tauri::Builder::default()
-    // .plugin(specta_plugin)
-    .invoke_handler(handlers!(generate_handler))
+    .plugin(
+      tauri_plugin_log::Builder::new()
+        .level(log::LevelFilter::Info)
+        .build(),
+    )
+    .plugin(tauri_plugin_shell::init())
+    .invoke_handler(tauri::generate_handler![epub])
     .manage(epub_handle)
     .manage(archive_clone)
     .setup(setup)
-    .register_asynchronous_uri_scheme_protocol("bene", move |app, request, responder| {
+    .register_asynchronous_uri_scheme_protocol("bene", move |ctx, request, responder| {
       let archive = Arc::clone(&archive);
-      let app = app.clone();
+      let app = ctx.app_handle().clone();
       tokio::spawn(async move {
         let response = serve_asset(&app, &archive, request).await;
         responder.respond(response);

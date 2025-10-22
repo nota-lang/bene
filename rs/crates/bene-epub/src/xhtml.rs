@@ -1,3 +1,7 @@
+//! Preprocessing of XHTML files to be rendered as HTML by the browser.
+//!
+//! TODO: Should this live in bene-app?
+
 use std::io::Cursor;
 
 use anyhow::Result;

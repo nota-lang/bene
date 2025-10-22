@@ -7,15 +7,13 @@
     "platform": "browser"
   },
   "devDependencies": {
-    "@codemirror/lang-html": "^6.4.7",
-    "@codemirror/lang-rust": "^6.0.1",
-    "@codemirror/state": "^6.4.0",
-    "@codemirror/view": "^6.23.0",
-    "@types/lodash": "^4.14.202",
-    "codemirror": "^6.0.1",
-    "jsdom": "^23.0.1",
-    "lit": "^3.1.0",
-    "lodash": "^4.17.21",
-    "tippy.js": "^6.3.7"
+    "@codemirror/lang-html": "^6.4.11",
+    "@codemirror/lang-rust": "^6.0.2",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.38.6",
+    "codemirror": "^6.0.2",
+    "lit": "^3.3.1",
+    "tippy.js": "^6.3.7",
+    "bene-common": "workspace:*"
   }
 }

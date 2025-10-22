@@ -51,5 +51,5 @@ pub fn load_epub(data: Vec<u8>) -> Result<EpubCtxt, JsError> {
 
 #[wasm_bindgen]
 pub fn guess_mime_type(url: &str) -> String {
-  bene_epub::guess_mime_type(url)
+  bene_epub::guess_mime_type(url).expect("No mime type!")
 }

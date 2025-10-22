@@ -1,17 +1,21 @@
-import { invoke } from "@tauri-apps/api/primitives";
+import { invoke } from "@tauri-apps/api/core";
+import { type Epub, type LoadedEpub, log, type Result } from "bene-common";
 
 window.addEventListener("message", async event => {
-  let readerIframe = document.getElementById("reader")! as HTMLIFrameElement;
-  let readerWindow = readerIframe.contentWindow!;
+  const readerIframe = document.getElementById("reader")! as HTMLIFrameElement;
+  const readerWindow = readerIframe.contentWindow!;
 
-  let message = event.data;
-  console.log("Parent received message", message);
+  const message = event.data;
+  log.info("Parent received message:", message);
 
-  if (message.type == "ready") {
-    let epubResult;
+  if (message.type === "ready") {
+    let epubResult: Result<LoadedEpub, string>;
     try {
-      let epub = await invoke("epub", {});
-      epubResult = { status: "ok", data: { metadata: epub, url: undefined } };
+      const epub = (await invoke("epub", {})) as Epub;
+      epubResult = {
+        status: "ok",
+        data: { metadata: epub, url: undefined, path: "" }
+      };
     } catch (e: any) {
       epubResult = { status: "error", error: e.toString() };
     }

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.2.6/schema.json",
+  "javascript": {
+    "formatter": {
+      "arrowParentheses": "asNeeded",
+      "trailingCommas": "none"
+    }
+  },
+  "formatter": {
+    "indentStyle": "space"
+  },
+  "linter": {
+    "rules": {
+      "recommended": true,
+      "correctness": {
+        "noUnusedImports": "warn"
+      },
+      "style": {
+        "noNonNullAssertion": "off",
+        "useConst": "off",
+        "noUselessElse": "off"
+      },
+      "complexity": {
+        "noBannedTypes": "off",
+        "noForEach": "off"
+      },      
+      "a11y": {
+        "useAriaPropsSupportedByRole": "off"
+      },
+      "suspicious": {
+        "useIterableCallbackReturn": "off",
+        "noExplicitAny": "off"
+      }
+    }
+  }
+}

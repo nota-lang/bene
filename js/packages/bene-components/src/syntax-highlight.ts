@@ -1,6 +1,7 @@
 import { html } from "@codemirror/lang-html";
 import { rust } from "@codemirror/lang-rust";
-import { EditorState, Extension } from "@codemirror/state";
+import { EditorState, type Extension } from "@codemirror/state";
+import { log } from "bene-common";
 import { EditorView, minimalSetup } from "codemirror";
 import { LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
@@ -18,23 +19,23 @@ export class SyntaxHighlight extends LitElement {
   connectedCallback() {
     super.connectedCallback();
 
-    let doc = this.children.item(0)!.querySelector("code")!.innerText;
-    let root = this.shadowRoot;
+    const doc = this.children.item(0)!.querySelector("code")!.innerText;
+    const root = this.shadowRoot;
     if (!root) throw new Error("Shadow root is null");
 
-    let extensions = [
+    const extensions = [
       minimalSetup,
       EditorState.readOnly.of(true),
       EditorView.baseTheme({
-        ".cm-content": { fontSize: "90%" },
-      }),
+        ".cm-content": { fontSize: "90%" }
+      })
     ];
 
     if (this.language) {
-      let languages: { [lang: string]: () => Extension } = { rust, html };
-      let langConstructor = languages[this.language];
+      const languages: { [lang: string]: () => Extension } = { rust, html };
+      const langConstructor = languages[this.language];
       if (langConstructor) extensions.push(langConstructor());
-      else console.warn(`Missing language package: ${langConstructor}`);
+      else log.warn(`Missing language package: ${langConstructor}`);
     }
 
     if (this.wordWrap) extensions.push(EditorView.lineWrapping);

@@ -7,14 +7,15 @@
     "no-server": true
   },
   "devDependencies": {
-    "@solid-primitives/scheduled": "^1.4.1",
-    "@types/lodash": "^4.14.202",
-    "jsdom": "^23.0.1",
+    "@solid-primitives/scheduled": "^1.5.2",
+    "@types/lodash": "^4.17.0",
+    "jsdom": "^27.0.1",
     "lodash": "^4.17.21",
     "normalize.css": "^8.0.1",
-    "solid-js": "^1.8.7"
+    "solid-js": "^1.9.9"
   },
   "dependencies": {
-    "bene-components": "workspace:*"
+    "bene-components": "workspace:*",
+    "bene-common": "workspace:*"
   }
 }

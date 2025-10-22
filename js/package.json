@@ -1,21 +1,22 @@
 {
   "private": true,
+  "depot": {
+    "depot-version": "0.3.0"
+  },
   "devDependencies": {
-    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
-    "@types/node": "^20.10.5",
-    "@typescript-eslint/eslint-plugin": "^6.14.0",
-    "@typescript-eslint/parser": "^6.14.0",
-    "eslint": "^8.56.0",
-    "eslint-plugin-prettier": "^4.2.1",
+    "@biomejs/biome": "^2.2.6",    
+    "@types/node": "^24.9.1",
+    "@types/lodash": "^4.17.0",
     "fast-glob": "^3.3.2",
     "fs-extra": "^11.2.0",
-    "prettier": "^2.8.8",
-    "sass": "^1.69.7",
-    "typedoc": "^0.25.4",
-    "typescript": "^5.3.3",
-    "vite": "^5.0.10",
-    "vite-plugin-solid": "^2.8.0",
-    "vitest": "^1.0.4"
+    "lodash": "^4.17.21",
+    "jsdom": "^27.0.1",
+    "sass": "^1.93.2",
+    "typedoc": "^0.28.14",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.11",
+    "vite-plugin-solid": "^2.11.10",
+    "vitest": "^3.2.4"
   },
   "pnpm": {
     "overrides": {

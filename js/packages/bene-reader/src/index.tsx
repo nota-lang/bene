@@ -1,6 +1,14 @@
-import { debounce, throttle } from "@solid-primitives/scheduled";
-import componentStyleUrl from "bene-components/dist/style.css?url";
 import componentScriptUrl from "bene-components?url";
+import { debounce, throttle } from "@solid-primitives/scheduled";
+import {
+  type Epub,
+  type Item,
+  type LoadedEpub,
+  log,
+  type Rendition,
+  type Result
+} from "bene-common";
+import componentStyleUrl from "bene-components/dist/bene-components.css?url";
 import _ from "lodash";
 import {
   createContext,
@@ -8,27 +16,21 @@ import {
   createSignal,
   on,
   onMount,
-  useContext,
+  useContext
 } from "solid-js";
-import { SetStoreFunction, createStore } from "solid-js/store";
+import { createStore, type SetStoreFunction } from "solid-js/store";
 import { render } from "solid-js/web";
-
-import navCssUrl from "../styles/nav.scss?worker&url";
-
-// import { Rendition, commands } from "./bindings";
-
-// type Result<T, E> = { status: "ok"; data: T } | { status: "error"; error: E };
-// type Epub = { renditions: Rendition[] };
+import navCssUrl from "../styles/nav.scss?url";
 
 function insertJs(doc: Document, url: string) {
-  let script = doc.createElement("script");
+  const script = doc.createElement("script");
   script.setAttribute("type", "text/javascript");
   script.setAttribute("src", url);
   doc.body.appendChild(script);
 }
 
 function insertCss(doc: Document, url: string) {
-  let link = doc.createElement("link");
+  const link = doc.createElement("link");
   link.setAttribute("rel", "stylesheet");
   link.setAttribute("type", "text/css");
   link.setAttribute("href", url);
@@ -42,61 +44,73 @@ interface PageInfo {
   container: Window;
 }
 
-interface State {
+interface DocState {
   renditionIndex: number;
   chapterIndex: number;
   fontSize: number;
   showNav: boolean;
   width: number;
   pageInfo?: PageInfo;
-  epub: any;
+  epub: Epub;
   url?: URL;
   initialPath?: string;
 
-  rendition(): any;
+  rendition(): Rendition;
   chapterId(): string;
 }
 
-let epubUrl = (rendition: any, href: string) =>
-  `epub-content/${rendition.root ? rendition.root + "/" : ""}${href}`;
+type State =
+  | { type: "ready"; state: DocState }
+  | { type: "error"; error: string }
+  | { type: "waiting" };
 
-let StateContext = createContext<[State, SetStoreFunction<State>] | undefined>(
-  undefined
-);
+const epubUrl = (rendition: Rendition, href: string) =>
+  `epub-content/${rendition.root ? `${rendition.root}/` : ""}${href}`;
+
+const StateContext = createContext<
+  [State, SetStoreFunction<State>] | undefined
+>(undefined);
+
+function useDocState(): [DocState, (state: Partial<DocState>) => void] {
+  let [state, setState] = useContext(StateContext)!;
+  return [
+    (state as any).state,
+    (arg: Partial<DocState>) => (setState as any)("state", arg)
+  ];
+}
 
 const DEBOUNCE_TIME = 250;
 
-function Toolbar() {
-  let [state, setState] = useContext(StateContext)!;
-
+function ToolbarInner() {
+  let [state, setState] = useDocState();
   function setFont(delta: number) {
-    let fontSize = Math.max(state.fontSize + delta, 1);
+    const fontSize = Math.max(state.fontSize + delta, 1);
     setState({ fontSize });
   }
 
   function setPage(delta: number) {
-    let pageInfo = state.pageInfo;
+    const pageInfo = state.pageInfo;
     if (!pageInfo) return;
-    let currentPage = _.clamp(
+    const currentPage = _.clamp(
       pageInfo.currentPage + delta,
       1,
       pageInfo.numPages
     );
 
     pageInfo.container.scrollTo({
-      top: pageInfo.pageHeight * (currentPage - 1),
+      top: pageInfo.pageHeight * (currentPage - 1)
     });
 
     setState({
       pageInfo: {
         ...pageInfo,
-        currentPage,
-      },
+        currentPage
+      }
     });
   }
 
   function downloadEpub(url: URL) {
-    let a = document.createElement("a");
+    const a = document.createElement("a");
     a.href = url.toString();
     a.download = _.last(url.pathname.split("/"))!;
     document.body.appendChild(a);
@@ -105,21 +119,28 @@ function Toolbar() {
   }
 
   return (
-    <div class="toolbar">
+    <>
       <div class="toolbar-left">
+        {findNavItem(state) && (
+          <>
+            <button
+              type="button"
+              class="toolbar-button sidebar-toggle"
+              aria-label="Show navigation"
+              onClick={() => setState({ showNav: !state.showNav })}
+            />
+            <div class="toolbar-button-spacer" />
+          </>
+        )}
         <button
-          class="toolbar-button sidebar-toggle"
-          aria-label="Show navigation"
-          onClick={() => setState({ showNav: !state.showNav })}
-        />
-        <div class="toolbar-button-spacer" />
-        <button
+          type="button"
           class="toolbar-button page-up"
           aria-label="Previous page"
           onClick={() => setPage(-1)}
         />
         <div class="split-toolbar-button-separator" />
         <button
+          type="button"
           class="toolbar-button page-down"
           aria-label="Next page"
           onClick={() => setPage(1)}
@@ -136,12 +157,14 @@ function Toolbar() {
       </div>
       <div class="toolbar-middle">
         <button
+          type="button"
           class="toolbar-button zoom-out"
           aria-label="Reduce font size"
           onClick={() => setFont(-1)}
         />
         <div class="split-toolbar-button-separator" />
         <button
+          type="button"
           class="toolbar-button zoom-in"
           aria-label="Increase font size"
           onClick={() => setFont(1)}
@@ -152,8 +175,8 @@ function Toolbar() {
           aria-label="Set font size"
           value={state.fontSize}
           onInput={debounce(e => {
-            let fontSize = parseInt(e.target.value);
-            if (!isNaN(fontSize)) setState({ fontSize });
+            const fontSize = parseInt(e.target.value, 10);
+            if (!Number.isNaN(fontSize)) setState({ fontSize });
           }, DEBOUNCE_TIME)}
         />
         <span class="label" aria-label="Font size unit">
@@ -163,49 +186,64 @@ function Toolbar() {
       <div class="toolbar-right">
         {state.url ? (
           <button
+            type="button"
             class="toolbar-button download"
             aria-label="Download EPUB"
             onClick={() => downloadEpub(state.url!)}
           />
         ) : null}
       </div>
-    </div>
+    </>
   );
 }
 
-function Nav(props: { navigateEvent: EventTarget }) {
+function Toolbar() {
   let [state] = useContext(StateContext)!;
-  let navUrl = () => {
-    let rend = state.rendition();
-    let items = rend.package.manifest.item!;
-    let href = items.find((item: any) =>
-      item["@properties"]
-        ? item["@properties"].split(" ").includes("nav")
-        : false
-    )!["@href"];
-    return epubUrl(rend, href);
+  return (
+    <div class="toolbar">{state.type === "ready" && <ToolbarInner />}</div>
+  );
+}
+
+let findNavItem = (state: DocState): Item | undefined => {
+  const rend = state.rendition();
+  const items = rend.package.manifest.item;
+  return items.find((item: Item) =>
+    item["@properties"] ? item["@properties"].split(" ").includes("nav") : false
+  );
+};
+
+function Nav(props: { navigateEvent: EventTarget; navItem: Item }) {
+  let [state] = useDocState();
+  const navUrl = () => {
+    let navItem = findNavItem(state)!;
+    return epubUrl(state.rendition(), navItem["@href"]);
   };
 
   let iframeRef: HTMLIFrameElement | undefined;
   onMount(() => {
-    let iframe = iframeRef!;
+    const iframe = iframeRef!;
 
     iframe.addEventListener("load", () => {
-      let navDoc = iframe.contentDocument!;
-      insertJs(navDoc, navCssUrl);
+      const navDoc = iframe.contentDocument!;
+      const contentWindow = iframe.contentWindow as any;
+      insertCss(navDoc, navCssUrl);
 
-      navDoc.querySelectorAll("nav a").forEach(node =>
+      navDoc.querySelectorAll("nav a").forEach(node => {
         node.addEventListener("click", event => {
           event.preventDefault();
-          let href = (event.target as any).href;
+          if (!(event.target instanceof contentWindow.HTMLAnchorElement))
+            return;
           props.navigateEvent.dispatchEvent(
-            new CustomEvent("navigate", { detail: href })
+            new CustomEvent("navigate", { detail: (event.target as any).href })
           );
-        })
-      );
+        });
+      });
 
-      let navEl = navDoc.querySelector<HTMLElement>("nav")!;
-      let navWidth = getComputedStyle(iframe).getPropertyValue("--nav-width");
+      const navEl = navDoc.querySelector<HTMLElement>("nav");
+      if (!navEl)
+        throw new Error("<nav> element is missing from navigation document");
+
+      const navWidth = getComputedStyle(iframe).getPropertyValue("--nav-width");
       // TODO: make this react to changes in nav-width
       navEl.style.width = navWidth;
     });
@@ -215,6 +253,7 @@ function Nav(props: { navigateEvent: EventTarget }) {
     <iframe
       class="nav"
       classList={{ show: state.showNav }}
+      title="Document navigation"
       aria-label="Document navigation"
       ref={iframeRef}
       src={navUrl()}
@@ -224,8 +263,8 @@ function Nav(props: { navigateEvent: EventTarget }) {
 }
 
 function Content(props: { navigateEvent: EventTarget }) {
-  let [state, setState] = useContext(StateContext)!;
-  let [styleEl, setStyleEl] = createSignal<HTMLStyleElement | undefined>(
+  const [state, setState] = useDocState();
+  const [styleEl, setStyleEl] = createSignal<HTMLStyleElement | undefined>(
     undefined
   );
 
@@ -241,19 +280,19 @@ function Content(props: { navigateEvent: EventTarget }) {
       `;
   }
 
-  let chapterUrl = () => {
+  const chapterUrl = () => {
     if (state.initialPath) return state.initialPath;
-    let id = state.chapterId();
-    let rend = state.rendition();
-    let items = rend.package.manifest.item!;
-    let href = items.find((item: any) => item["@id"] == id)!["@href"];
+    const id = state.chapterId();
+    const rend = state.rendition();
+    const items = rend.package.manifest.item!;
+    const href = items.find((item: Item) => item["@id"] === id)!["@href"];
     return epubUrl(rend, href);
   };
 
   let iframeRef: HTMLIFrameElement | undefined;
 
   onMount(() => {
-    let iframe = iframeRef!;
+    const iframe = iframeRef!;
 
     const SCROLL_KEY = "bene-scroll-info";
     interface ScrollInfo {
@@ -262,44 +301,44 @@ function Content(props: { navigateEvent: EventTarget }) {
     }
 
     let initializedScroll = chapterUrl().includes("#");
-    let savedScrollStr = localStorage.getItem(SCROLL_KEY);
-    let savedScroll =
+    const savedScrollStr = localStorage.getItem(SCROLL_KEY);
+    const savedScroll =
       savedScrollStr !== null
         ? (JSON.parse(savedScrollStr) as ScrollInfo)
         : undefined;
 
     function updatePageInfo() {
-      let container = iframe.contentWindow!;
-      let doc = iframe.contentDocument!.body;
-      let pageHeight = iframe.getBoundingClientRect().height;
-      let docHeight = doc.getBoundingClientRect().height;
-      let numPages = Math.ceil(docHeight / pageHeight);
+      const container = iframe.contentWindow!;
+      const doc = iframe.contentDocument!.body;
+      const pageHeight = iframe.getBoundingClientRect().height;
+      const docHeight = doc.getBoundingClientRect().height;
+      const numPages = Math.ceil(docHeight / pageHeight);
       let currentPage =
         container.scrollY + pageHeight >= docHeight
           ? numPages
           : 1 + Math.floor(container.scrollY / pageHeight);
 
       currentPage = _.clamp(currentPage, 1, numPages);
-      let pages: PageInfo = {
+      const pages: PageInfo = {
         numPages,
         pageHeight,
         currentPage,
-        container,
+        container
       };
       if (!_.isEqual(pages, state.pageInfo)) setState({ pageInfo: pages });
 
       if (
         savedScroll &&
         !initializedScroll &&
-        savedScroll.docHeight == docHeight
+        savedScroll.docHeight === docHeight
       ) {
         container.scrollTo({ top: savedScroll.scrollTop });
         initializedScroll = true;
       }
 
-      let scrollInfo: ScrollInfo = {
+      const scrollInfo: ScrollInfo = {
         scrollTop: container.scrollY,
-        docHeight,
+        docHeight
       };
       localStorage.setItem(SCROLL_KEY, JSON.stringify(scrollInfo));
     }
@@ -307,7 +346,7 @@ function Content(props: { navigateEvent: EventTarget }) {
     function injectReaderStylesAndScripts(contentDoc: Document) {
       insertCss(contentDoc, componentStyleUrl);
 
-      let styleEl = contentDoc.createElement("style");
+      const styleEl = contentDoc.createElement("style");
       updateStyleEl(styleEl);
       contentDoc.head.appendChild(styleEl);
       setStyleEl(styleEl);
@@ -319,7 +358,7 @@ function Content(props: { navigateEvent: EventTarget }) {
       iframe: HTMLIFrameElement,
       contentDoc: Document
     ) {
-      let pageObserver = new ResizeObserver(() => updatePageInfo());
+      const pageObserver = new ResizeObserver(() => updatePageInfo());
       pageObserver.observe(iframe);
       pageObserver.observe(contentDoc.body);
 
@@ -330,12 +369,12 @@ function Content(props: { navigateEvent: EventTarget }) {
       );
     }
 
-    function updateAnchors(contentWindow: any, contentDoc: Document) {
+    function updateAnchors(contentWindow: Window, contentDoc: Document) {
       contentWindow.addEventListener("popstate", () => {
         window.parent.postMessage(
           {
             type: "navigate",
-            data: contentWindow.location.href,
+            data: contentWindow.location.href
           },
           "*"
         );
@@ -344,59 +383,65 @@ function Content(props: { navigateEvent: EventTarget }) {
       function updateAnchor(a: HTMLAnchorElement) {
         if (!a.href) return;
 
-        let url = new URL(a.href);
-        if (url.host != window.location.host) {
-          // Need to add target="blank" to all anchors, or else external navigation will
+        const url = new URL(a.href);
+        if (url.host !== window.location.host) {
+          // Need to add target="_blank" to all anchors, or else external navigation will
           // occur within the reader's iframe.
-          a.setAttribute("target", "blank");
+          a.setAttribute("target", "_blank");
         }
       }
 
       function updateAll(container: HTMLElement) {
-        let anchors = container.querySelectorAll<HTMLAnchorElement>("a[href]");
+        const anchors =
+          container.querySelectorAll<HTMLAnchorElement>("a[href]");
         anchors.forEach(updateAnchor);
       }
 
       updateAll(contentDoc.documentElement);
 
-      let observer = new MutationObserver(records =>
+      const observer = new MutationObserver(records =>
         records.forEach(record =>
           record.addedNodes.forEach(added => {
-            if (added instanceof contentWindow.HTMLElement)
+            if (added instanceof (contentWindow as any).HTMLElement)
               updateAll(added as any);
           })
         )
       );
       observer.observe(contentDoc.documentElement, {
         subtree: true,
-        childList: true,
+        childList: true
       });
     }
 
     function handleTocNavigation(contentWindow: Window) {
       props.navigateEvent.addEventListener("navigate", e => {
-        let url = (e as CustomEvent<string>).detail;
+        const url = (e as CustomEvent<string>).detail;
         contentWindow.location.href = url;
       });
     }
 
     iframe.addEventListener("load", () => {
-      let contentWindow = iframe.contentWindow!;
-      let contentDoc = iframe.contentDocument!;
+      const contentWindow = iframe.contentWindow!;
+      const contentDoc = iframe.contentDocument!;
 
       injectReaderStylesAndScripts(contentDoc);
       registerPageInfoCallbacks(iframe, contentDoc);
       updateAnchors(contentWindow, contentDoc);
       handleTocNavigation(contentWindow);
 
-      let article = contentDoc.querySelector<HTMLElement>("article")!;
-      let handleRoot = contentDoc.createElement("resize-handle");
+      const article = contentDoc.querySelector<HTMLElement>("article");
+      if (!article) {
+        log.warn("Missing <article> element, not a valid portable EPUB");
+        return;
+      }
+
+      const handleRoot = contentDoc.createElement("resize-handle");
       article.appendChild(handleRoot);
     });
   });
 
   createEffect(() => {
-    let el = styleEl();
+    const el = styleEl();
     if (!el) return;
     updateStyleEl(el);
   });
@@ -415,6 +460,7 @@ function Content(props: { navigateEvent: EventTarget }) {
   return (
     <iframe
       class="content"
+      title="Document content"
       aria-label="Document content"
       ref={iframeRef}
       src={chapterUrl()}
@@ -423,53 +469,47 @@ function Content(props: { navigateEvent: EventTarget }) {
   );
 }
 
-function Viewer() {
-  let navigateEvent = new EventTarget();
+function ViewerInner() {
+  const navigateEvent = new EventTarget();
+  const [state] = useDocState();
   return (
-    <div class="viewer">
-      <Nav navigateEvent={navigateEvent} />
+    <>
+      {findNavItem(state) && (
+        <Nav navigateEvent={navigateEvent} navItem={findNavItem(state)!} />
+      )}
       <Content navigateEvent={navigateEvent} />
+    </>
+  );
+}
+
+// const LOADING_THRESHOLD = 500;
+// const LOADING_LONG_THRESHOLD = 5000;
+
+function Loader() {
+  const [state] = useContext(StateContext)!;
+
+  // const [stillWaiting, setStillWaiting] = createSignal(false);
+  // const [stillWaitingLong, setStillWaitingLong] = createSignal(false);
+  // setTimeout(() => setStillWaiting(true), LOADING_THRESHOLD);
+  // setTimeout(() => setStillWaitingLong(true), LOADING_LONG_THRESHOLD);
+
+  return (
+    <div class="loader-container">
+      {state.type === "error" ? (
+        <pre>{state.error}</pre>
+      ) : (
+        <>Drag an EPUB file into the window.</>
+      )}
     </div>
   );
 }
 
-function EpubView(props: { data: /*Epub*/ any }) {
-  let [state, setState] = createStore<State>({
-    renditionIndex: 0,
-    chapterIndex: 0,
-    fontSize: 16,
-    showNav: false,
-    width: 800,
-    epub: props.data.metadata,
-    url: props.data.url ? new URL(props.data.url) : undefined,
-    initialPath: props.data.path,
-
-    rendition() {
-      return props.data.metadata.renditions[this.renditionIndex];
-    },
-
-    chapterId() {
-      return this.rendition().package.spine.itemref![this.chapterIndex][
-        "@idref"
-      ];
-    },
-  });
-
-  createEffect(() => {
-    setState({
-      epub: props.data.metadata,
-      url: props.data.url ? new URL(props.data.url) : undefined,
-      initialPath: props.data.path,
-    });
-  });
-
+function Viewer() {
+  const [state] = useContext(StateContext)!;
   return (
-    <StateContext.Provider value={[state, setState]}>
-      <div class="epub">
-        <Toolbar />
-        <Viewer />
-      </div>
-    </StateContext.Provider>
+    <div class="viewer">
+      {state.type === "ready" ? <ViewerInner /> : <Loader />}
+    </div>
   );
 }
 
@@ -487,10 +527,11 @@ function registerDropEvents() {
     const files = event.dataTransfer?.files;
     if (files?.length && files.length > 0) {
       const file = files[0];
+      log.info("Uploaded user file:", file.name);
       window.parent.postMessage(
         {
           type: "user-upload",
-          data: file,
+          data: file
         },
         "*"
       );
@@ -498,22 +539,45 @@ function registerDropEvents() {
   });
 }
 
-const LOADING_THRESHOLD = 500;
-const LOADING_LONG_THRESHOLD = 5000;
-
 function App() {
-  let [epub, setEpub] = createSignal<any>(undefined);
-  let [stillWaiting, setStillWaiting] = createSignal(false);
-  let [stillWaitingLong, setStillWaitingLong] = createSignal(false);
-  setTimeout(() => setStillWaiting(true), LOADING_THRESHOLD);
-  setTimeout(() => setStillWaitingLong(true), LOADING_LONG_THRESHOLD);
+  const [state, setState] = createStore<State>({
+    type: "waiting"
+  });
 
   onMount(() => {
     window.addEventListener("message", event => {
-      let message = event.data;
-      console.debug("Received message from window:", message);
-      if (message.type == "loaded-epub") {
-        setEpub(message.data);
+      const message = event.data;
+      log.debug("Received message from window:", message);
+      if (message.type === "loaded-epub") {
+        let result = message.data as Result<LoadedEpub, string>;
+        if (result.status === "error") {
+          setState({ type: "error", error: result.error });
+        } else {
+          let data = result.data;
+          setState({
+            type: "ready",
+            state: {
+              renditionIndex: 0,
+              chapterIndex: 0,
+              fontSize: 16,
+              showNav: false,
+              width: 800,
+              epub: data.metadata,
+              url: data.url ? new URL(data.url) : undefined,
+              initialPath: data.path,
+
+              rendition() {
+                return data.metadata.renditions[this.renditionIndex];
+              },
+
+              chapterId() {
+                return this.rendition().package.spine.itemref![
+                  this.chapterIndex
+                ]["@idref"];
+              }
+            }
+          });
+        }
       }
     });
     window.parent.postMessage({ type: "ready" }, "*");
@@ -521,27 +585,12 @@ function App() {
   });
 
   return (
-    <>
-      {epub() === undefined ? (
-        <>
-          <div class="loader-container" classList={{ show: stillWaiting() }}>
-            <div class="loader">Loading...</div>
-          </div>
-          {stillWaitingLong() ? (
-            <div style="max-width:500px;margin:0 auto">
-              If the document is not loading, it's probably a bug in my Service
-              Worker that I'm still trying to fix (sorry!). To work around the
-              bug, you either need to close any other tabs of this document (in
-              Google Chrome), or try a different browser.
-            </div>
-          ) : null}
-        </>
-      ) : epub().status == "error" ? (
-        <pre style="padding:5px">{epub().error.toString()}</pre>
-      ) : (
-        <EpubView data={epub().data} />
-      )}
-    </>
+    <StateContext.Provider value={[state, setState]}>
+      <div class="epub">
+        <Toolbar />
+        <Viewer />
+      </div>
+    </StateContext.Provider>
   );
 }
 

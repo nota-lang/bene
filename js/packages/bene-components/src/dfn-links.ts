@@ -1,29 +1,30 @@
 import tippy, { roundArrow } from "tippy.js";
 
 import "./dfn-links.scss";
+import { log } from "bene-common";
 
 const TIPPY_THEME = "light-border";
 
 function initDefinitionLinks() {
-  let definitionEls = document.querySelectorAll("dfn");
-  let definitions: { [id: string]: string } = {};
+  const definitionEls = document.querySelectorAll("dfn");
+  const definitions: { [id: string]: string } = {};
   definitionEls.forEach(el => {
-    let parent = el.closest<HTMLElement>("dfn-container, p");
+    const parent = el.closest<HTMLElement>("dfn-container, p");
     if (parent === null) {
-      console.warn("Missing parent for definition", el);
+      log.warn("Missing parent for definition", el);
       return;
     }
     definitions[el.id] = parent.innerText;
   });
 
-  let links = document.querySelectorAll<HTMLAnchorElement>(
+  const links = document.querySelectorAll<HTMLAnchorElement>(
     'a[data-target="dfn"]'
   );
   links.forEach(link => {
-    let id = link.href.split("#")[1];
-    let content = definitions[id];
+    const id = link.href.split("#")[1];
+    const content = definitions[id];
     if (content === undefined) {
-      console.warn("Missing definition for reference", id);
+      log.warn("Missing definition for reference", id);
       return;
     }
     tippy(link, {
@@ -33,7 +34,7 @@ function initDefinitionLinks() {
       placement: "auto",
       interactive: true,
       delay: [200, 0],
-      touch: ["hold", 500],
+      touch: ["hold", 500]
     });
   });
 }

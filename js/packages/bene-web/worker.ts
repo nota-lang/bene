@@ -1,5 +1,10 @@
 /// <reference lib="WebWorker" />
-import init, { EpubCtxt, guess_mime_type, init_rs, load_epub } from "rs-utils";
+import init, {
+  type EpubCtxt,
+  guess_mime_type,
+  init_rs,
+  load_epub
+} from "rs-utils";
 
 let globalSelf = self as any as ServiceWorkerGlobalScope;
 let currentEpub: EpubCtxt | undefined;
@@ -25,7 +30,14 @@ globalSelf.addEventListener("activate", async _event => {
 });
 
 globalSelf.addEventListener("fetch", event => {
-  if (!currentEpub || !currentScope) return;
+  if (!currentEpub) {
+    log("Ignoring request due to no loaded EPUB");
+    return;
+  }
+  if (!currentScope) {
+    log("Ignoring request due to no current scope");
+    return;
+  }
 
   const EPUB_PATH = "bene-reader/epub-content/";
   let epubBaseUrl = currentScope + EPUB_PATH;
@@ -38,8 +50,8 @@ globalSelf.addEventListener("fetch", event => {
       new Response(contents, {
         status: 200,
         headers: {
-          "Content-Type": mimeType,
-        },
+          "Content-Type": mimeType
+        }
       })
     );
     log(
@@ -55,7 +67,7 @@ globalSelf.addEventListener("fetch", event => {
 
 globalSelf.addEventListener("message", async event => {
   let message = event.data;
-  if (message.type == "new-epub") {
+  if (message.type === "new-epub") {
     let { data, scope, url, path } = message.data;
     currentEpub = load_epub(data);
     currentScope = scope;
@@ -68,8 +80,8 @@ globalSelf.addEventListener("message", async event => {
         data: {
           metadata,
           url,
-          path,
-        },
+          path
+        }
       });
     }
   }

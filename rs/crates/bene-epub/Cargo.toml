@@ -8,15 +8,15 @@ default = ["async_zip/full"]
 wasm = ["async_zip/full-wasm"]
 
 [dependencies]
+async_zip = { version = "0.0.18", features = ["tokio"] }
+itertools = "0.14.0"
+tokio-util = "0.7.16"
+async-trait = "0.1.89"
+mime_guess = "2.0.5"
+ts-rs = { version = "11.1.0", features = ["no-serde-warnings"] }
 anyhow = { workspace = true }
-async_zip = { version = "0.0.15", features = ["tokio"] }
-itertools = "0.12.0"
 log = { workspace = true }
 serde = { workspace = true }
 tokio = { workspace = true, features = ["sync", "rt"] }
-tokio-util = "0.7.10"
 quick-xml = { workspace = true, features = ["async-tokio", "serialize"] }
-async-trait = "0.1.74"
-specta = { workspace = true }
 futures = { workspace = true }
-mime_guess = "2.0.4"

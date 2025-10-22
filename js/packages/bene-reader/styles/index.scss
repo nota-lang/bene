@@ -28,17 +28,9 @@
 }
 
 .loader-container {
-  margin: 5px auto;
-  width: 10em;
-  height: 10em;
-  overflow: hidden;
-  opacity: 0;
-  transition: opacity 0.25s;
-
-  &.show {
-    opacity: 1;
-  }
-
+  margin: 48vh auto 0;
+  color: var(--separator-color);
+  
   .loader,
   .loader:after {
     border-radius: 50%;

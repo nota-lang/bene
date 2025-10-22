@@ -16,7 +16,7 @@ You will need [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/). Then
 
 ```
 cd bene/js
-depot -p bene-web build
+depot -p bene-web build --release
 ```
 
 Then you can serve the web app by running:

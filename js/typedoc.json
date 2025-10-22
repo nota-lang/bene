@@ -5,5 +5,7 @@
     "notExported": true
   },
   "entryPointStrategy": "packages",
-  "entryPoints": []
+  "entryPoints": [
+    "packages/bene-common"
+  ]
 }
