@@ -78,16 +78,24 @@
     }
     return cachedDataViewMemory0;
   }
+  function guess_mime_type(url) {
+    let deferred2_0;
+    let deferred2_1;
+    try {
+      const ptr0 = passStringToWasm0(url, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+      const len0 = WASM_VECTOR_LEN;
+      const ret = wasm.guess_mime_type(ptr0, len0);
+      deferred2_0 = ret[0];
+      deferred2_1 = ret[1];
+      return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+      wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
+    }
+  }
   function takeFromExternrefTable0(idx) {
     const value = wasm.__wbindgen_export_3.get(idx);
     wasm.__externref_table_dealloc(idx);
     return value;
-  }
-  function init_rs() {
-    const ret = wasm.init_rs();
-    if (ret[1]) {
-      throw takeFromExternrefTable0(ret[0]);
-    }
   }
   function passArray8ToWasm0(arg, malloc) {
     const ptr = malloc(arg.length * 1, 1) >>> 0;
@@ -103,20 +111,6 @@
       throw takeFromExternrefTable0(ret[1]);
     }
     return EpubCtxt.__wrap(ret[0]);
-  }
-  function guess_mime_type(url) {
-    let deferred2_0;
-    let deferred2_1;
-    try {
-      const ptr0 = passStringToWasm0(url, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-      const len0 = WASM_VECTOR_LEN;
-      const ret = wasm.guess_mime_type(ptr0, len0);
-      deferred2_0 = ret[0];
-      deferred2_1 = ret[1];
-      return getStringFromWasm0(ret[0], ret[1]);
-    } finally {
-      wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
-    }
   }
   const EpubCtxtFinalization = typeof FinalizationRegistry === "undefined" ? { register: () => {
   }, unregister: () => {
@@ -260,7 +254,7 @@
       }
     }
     if (typeof module_or_path === "undefined") {
-      module_or_path = new URL("" + new URL("assets/rs_utils_bg-DCMa-I7n.wasm", self.location.href).href, self.location.href);
+      module_or_path = new URL("" + new URL("assets/rs_utils_bg-CEMc3iP5.wasm", self.location.href).href, self.location.href);
     }
     const imports = __wbg_get_imports();
     if (typeof module_or_path === "string" || typeof Request === "function" && module_or_path instanceof Request || typeof URL === "function" && module_or_path instanceof URL) {
@@ -272,19 +266,17 @@
   let globalSelf = self;
   let currentEpub;
   let currentScope;
-  let installChannel = new BroadcastChannel("install-channel");
   let logChannel = new BroadcastChannel("log-channel");
   let log = (...args) => logChannel.postMessage(args.map((arg) => arg.toString()).join("	"));
-  globalSelf.addEventListener("install", async (_event) => {
+  globalSelf.addEventListener("install", (event) => {
     log("Installed");
-    await Promise.all([globalSelf.skipWaiting(), __wbg_init()]);
-    init_rs();
+    globalSelf.skipWaiting();
+    event.waitUntil(__wbg_init());
     log("Initialized");
-    installChannel.postMessage("installed");
   });
-  globalSelf.addEventListener("activate", async (_event) => {
+  globalSelf.addEventListener("activate", (event) => {
     log("Activated");
-    await globalSelf.clients.claim();
+    event.waitUntil(globalSelf.clients.claim());
     log("Claimed");
   });
   globalSelf.addEventListener("fetch", (event) => {
@@ -325,7 +317,12 @@
     let message = event.data;
     if (message.type === "new-epub") {
       let { data, scope, url, path } = message.data;
-      currentEpub = load_epub(data);
+      try {
+        currentEpub = load_epub(data);
+      } catch (e) {
+        log("Failed to load EPUB with error: ", e);
+        return;
+      }
       currentScope = scope;
       let metadata = JSON.parse(currentEpub.metadata());
       let clients = await globalSelf.clients.matchAll();
