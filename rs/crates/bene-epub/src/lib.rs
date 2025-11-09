@@ -48,7 +48,18 @@ pub enum MetaField {
   Creator(String),
   #[serde(rename = "date")]
   Date(String),
+  #[serde(rename = "meta")]
+  Meta {
+    // This is required in EPUB 3.3, but some epubs seem to not have it for
+    // attrs like <meta content="cover-image" name="cover"/>
+    // so we make it optional for now.
+    #[serde(rename = "@property")]
+    property: Option<String>,
+    #[serde(rename = "$text")]
+    contents: Option<String>,
+  },
   #[serde(other)]
+  #[ts(skip)]
   Unknown,
 }
 

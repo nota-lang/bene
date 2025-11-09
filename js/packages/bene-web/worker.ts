@@ -1,8 +1,9 @@
 /// <reference lib="WebWorker" />
+
 import init, {
   type EpubCtxt,
   guess_mime_type,
-  init_rs,
+  // init_rs,
   load_epub
 } from "rs-utils";
 
@@ -10,22 +11,21 @@ let globalSelf = self as any as ServiceWorkerGlobalScope;
 let currentEpub: EpubCtxt | undefined;
 let currentScope: string | undefined;
 
-let installChannel = new BroadcastChannel("install-channel");
 let logChannel = new BroadcastChannel("log-channel");
 let log = (...args: any[]) =>
   logChannel.postMessage(args.map(arg => arg.toString()).join("\t"));
 
-globalSelf.addEventListener("install", async _event => {
+globalSelf.addEventListener("install", event => {
   log("Installed");
-  await Promise.all([globalSelf.skipWaiting(), init()]);
-  init_rs();
+  globalSelf.skipWaiting();
+  event.waitUntil(init());
+  // init_rs();
   log("Initialized");
-  installChannel.postMessage("installed");
 });
 
-globalSelf.addEventListener("activate", async _event => {
+globalSelf.addEventListener("activate", event => {
   log("Activated");
-  await globalSelf.clients.claim();
+  event.waitUntil(globalSelf.clients.claim());
   log("Claimed");
 });
 
@@ -69,7 +69,14 @@ globalSelf.addEventListener("message", async event => {
   let message = event.data;
   if (message.type === "new-epub") {
     let { data, scope, url, path } = message.data;
-    currentEpub = load_epub(data);
+    
+    try {
+      currentEpub = load_epub(data);
+    } catch (e: any) {
+      log("Failed to load EPUB with error: ", e);
+      return;
+    }
+
     currentScope = scope;
     let metadata = JSON.parse(currentEpub.metadata());
     let clients = await globalSelf.clients.matchAll();

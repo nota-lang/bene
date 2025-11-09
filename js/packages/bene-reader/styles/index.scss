@@ -9,6 +9,7 @@
   --toolbar-page-up-icon: url("../img/toolbarButton-pageUp.svg");
   --toolbar-zoom-in-icon: url("../img/toolbarButton-zoomIn.svg");
   --toolbar-zoom-out-icon: url("../img/toolbarButton-zoomOut.svg");
+  --toolbar-open-file-icon: url("../img/toolbarButton-openFile.svg");
   --toolbar-icon-bg-color: rgb(0, 0, 0);
   --toolbar-box-shadow: 0 1px 0 var(--toolbar-border-color);
   --button-hover-color: rgb(221, 222, 223);
@@ -63,9 +64,6 @@
   }
 }
 
-
-
-
 .epub {
   width: 100vw;
   width: 100dvw;
@@ -77,6 +75,60 @@
   font-family: var(--body-font);
   font-size: 14px;
   background-color: var(--body-bg-color);
+
+  .icon-button {
+    min-width: 16px;
+    min-height: 16px;
+    position: relative;
+    box-sizing: border-box;
+    background: none;
+    border: none;
+    cursor: pointer;
+        
+    &:hover {
+      background-color: var(--button-hover-color);
+    }
+
+    &::before {
+      position: absolute;
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      content: "";
+      mask-size: cover;
+      background-color: var(--toolbar-icon-bg-color);
+      top: 0;
+      left: 0;      
+    }
+
+    &.sidebar-toggle::before {        
+      mask-image: var(--toolbar-sidebar-toggle-icon);      
+    }
+
+    &.zoom-out::before {
+      mask-image: var(--toolbar-zoom-out-icon);
+    }
+
+    &.zoom-in::before {
+      mask-image: var(--toolbar-zoom-in-icon);
+    }
+
+    &.page-down::before {
+      mask-image: var(--toolbar-page-down-icon);
+    }
+
+    &.page-up::before {
+      mask-image: var(--toolbar-page-up-icon);
+    }
+
+    &.download::before {
+      mask-image: var(--toolbar-download-icon);
+    }
+
+    &.open-file::before {
+      mask-image: var(--toolbar-open-file-icon);
+    }
+  }
 
   .toolbar {
     background-color: var(--toolbar-bg-color);
@@ -94,66 +146,27 @@
       padding: 0 3px;
     }
 
-    .toolbar-left {
-      padding-left: 2px;
-    }
-
-    .toolbar-right {
-      padding-right: 2px;
-    }
-
-    .toolbar-button {
-      min-width: 16px;
+    .icon-button {
       width: 28px;
       height: 28px;
       padding: 2px 6px 0;
       border: none;
       border-radius: 2px;
       user-select: none;
-      cursor: default;
-      box-sizing: border-box;
-      background: none;
       position: relative;
-
-      &:hover {
-        background-color: var(--button-hover-color);
-      }
-
+      
       &::before {
-        position: absolute;
-        display: inline-block;
-        width: 16px;
-        height: 16px;
-        content: "";
-        mask-size: cover;
         top: 6px;
         left: 6px;
-        background-color: var(--toolbar-icon-bg-color);
       }
+    }
 
-      &.sidebar-toggle::before {        
-        mask-image: var(--toolbar-sidebar-toggle-icon);      
-      }
+    .toolbar-left {
+      padding-left: 2px;
+    }
 
-      &.zoom-out::before {
-        mask-image: var(--toolbar-zoom-out-icon);
-      }
-
-      &.zoom-in::before {
-        mask-image: var(--toolbar-zoom-in-icon);
-      }
-
-      &.page-down::before {
-        mask-image: var(--toolbar-page-down-icon);
-      }
-
-      &.page-up::before {
-        mask-image: var(--toolbar-page-up-icon);
-      }
-
-      &.download::before {
-        mask-image: var(--toolbar-download-icon);
-      }
+    .toolbar-right {
+      padding-right: 2px;
     }
 
     .toolbar-button-spacer {

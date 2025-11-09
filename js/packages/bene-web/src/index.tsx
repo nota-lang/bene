@@ -10,37 +10,42 @@ async function registerServiceWorker(
     data: Result<LoadedEpub, string>;
   }) => void
 ): Promise<ServiceWorkerRegistration> {
-  const installChannel = new BroadcastChannel("install-channel");
   const logChannel = new BroadcastChannel("log-channel");
-
   logChannel.addEventListener("message", event =>
     log.debug("Service worker:", event.data)
   );
 
-  const installedPromise = new Promise(resolve => {
-    installChannel.addEventListener("message", () => resolve(undefined));
-  });
-
   const registrations = await navigator.serviceWorker.getRegistrations();
-  const prevRegistration = registrations.find(
+  const existingRegistration = registrations.find(
     reg => reg.active && reg.active.scriptURL === workerUrl
   );
-  if (prevRegistration !== undefined) await prevRegistration.unregister();
+  let registration: ServiceWorkerRegistration;
+  if (existingRegistration) {
+    registration = existingRegistration;
+  } else {
+    const workerReady = new Promise(resolve =>
+      navigator.serviceWorker.addEventListener("controllerchange", _event => {
+        resolve(undefined);
+      })
+    );
 
-  const registration = await navigator.serviceWorker.register(workerUrl);
-  log.debug(
-    `Registered worker at scope ${registration.scope}, waiting for it to activate.`,
-    registration
-  );
+    registration = await navigator.serviceWorker.register(workerUrl);
+    log.debug(
+      `Registered worker at scope ${registration.scope}, waiting for it to activate.`,
+      registration
+    );
 
-  await installedPromise;
-  console.assert(registration.active !== null, "Service worker is not active?");
-  log.debug("Successfully activated service worker.");
-
-  window.addEventListener("beforeunload", () => registration!.unregister());
+    await workerReady;
+    console.assert(
+      registration.active !== null,
+      "Service worker is not active?"
+    );
+    log.debug("Successfully activated service worker.");
+  }
 
   navigator.serviceWorker.addEventListener("message", event => {
     const message = event.data;
+
     if (message.type === "loaded-epub") {
       const metadata = message.data;
       post({

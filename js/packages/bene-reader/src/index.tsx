@@ -57,6 +57,7 @@ interface DocState {
 
   rendition(): Rendition;
   chapterId(): string;
+  isPpub(): boolean;
 }
 
 type State =
@@ -125,23 +126,23 @@ function ToolbarInner() {
           <>
             <button
               type="button"
-              class="toolbar-button sidebar-toggle"
+              class="icon-button sidebar-toggle"
               aria-label="Show navigation"
               onClick={() => setState({ showNav: !state.showNav })}
             />
-            <div class="toolbar-button-spacer" />
+            <div class="icon-button-spacer" />
           </>
         )}
         <button
           type="button"
-          class="toolbar-button page-up"
+          class="icon-button page-up"
           aria-label="Previous page"
           onClick={() => setPage(-1)}
         />
-        <div class="split-toolbar-button-separator" />
+        <div class="split-icon-button-separator" />
         <button
           type="button"
-          class="toolbar-button page-down"
+          class="icon-button page-down"
           aria-label="Next page"
           onClick={() => setPage(1)}
         />
@@ -158,14 +159,14 @@ function ToolbarInner() {
       <div class="toolbar-middle">
         <button
           type="button"
-          class="toolbar-button zoom-out"
+          class="icon-button zoom-out"
           aria-label="Reduce font size"
           onClick={() => setFont(-1)}
         />
-        <div class="split-toolbar-button-separator" />
+        <div class="split-icon-button-separator" />
         <button
           type="button"
-          class="toolbar-button zoom-in"
+          class="icon-button zoom-in"
           aria-label="Increase font size"
           onClick={() => setFont(1)}
         />
@@ -187,7 +188,7 @@ function ToolbarInner() {
         {state.url ? (
           <button
             type="button"
-            class="toolbar-button download"
+            class="icon-button download"
             aria-label="Download EPUB"
             onClick={() => downloadEpub(state.url!)}
           />
@@ -225,17 +226,18 @@ function Nav(props: { navigateEvent: EventTarget; navItem: Item }) {
 
     iframe.addEventListener("load", () => {
       const navDoc = iframe.contentDocument!;
-      const contentWindow = iframe.contentWindow as any;
       insertCss(navDoc, navCssUrl);
 
       navDoc.querySelectorAll("nav a").forEach(node => {
         node.addEventListener("click", event => {
           event.preventDefault();
-          if (!(event.target instanceof contentWindow.HTMLAnchorElement))
-            return;
-          props.navigateEvent.dispatchEvent(
-            new CustomEvent("navigate", { detail: (event.target as any).href })
-          );
+          event.stopPropagation();
+          let parentA = (event.target as HTMLElement).closest("a");
+          if (!parentA) console.warn("Clicked on link but no parent anchor");
+          else
+            props.navigateEvent.dispatchEvent(
+              new CustomEvent("navigate", { detail: parentA.href })
+            );
         });
       });
 
@@ -271,7 +273,7 @@ function Content(props: { navigateEvent: EventTarget }) {
   function updateStyleEl(el: HTMLStyleElement) {
     el.innerText = `
       html {
-        font-size: ${state.fontSize}px;        
+        font-size: ${state.fontSize}px;
       }
 
       article {
@@ -416,8 +418,36 @@ function Content(props: { navigateEvent: EventTarget }) {
     function handleTocNavigation(contentWindow: Window) {
       props.navigateEvent.addEventListener("navigate", e => {
         const url = (e as CustomEvent<string>).detail;
+        console.debug("Navigating to", url);
         contentWindow.location.href = url;
       });
+    }
+
+    function makePortable(contentDoc: Document) {
+      let article = contentDoc.createElement("article");
+      article.append(...contentDoc.body.children);
+      contentDoc.body.appendChild(article);
+
+      console.log("WE R FUCKIN DOING IT");
+      contentDoc.querySelectorAll("figcaption").forEach(el => {
+        if (el.children.length > 1) {
+          let container = contentDoc.createElement("div");
+          container.append(...el.children);
+          el.appendChild(container);
+        }
+      });
+    }
+
+    function addHandle(contentDoc: Document) {
+      const article = contentDoc.querySelector<HTMLElement>("article");
+
+      if (!article) {
+        log.warn("Missing <article> element!");
+        return;
+      }
+
+      const handleRoot = contentDoc.createElement("resize-handle");
+      article.appendChild(handleRoot);
     }
 
     iframe.addEventListener("load", () => {
@@ -428,15 +458,8 @@ function Content(props: { navigateEvent: EventTarget }) {
       registerPageInfoCallbacks(iframe, contentDoc);
       updateAnchors(contentWindow, contentDoc);
       handleTocNavigation(contentWindow);
-
-      const article = contentDoc.querySelector<HTMLElement>("article");
-      if (!article) {
-        log.warn("Missing <article> element, not a valid portable EPUB");
-        return;
-      }
-
-      const handleRoot = contentDoc.createElement("resize-handle");
-      article.appendChild(handleRoot);
+      if (!state.isPpub()) makePortable(contentDoc);
+      addHandle(contentDoc);
     });
   });
 
@@ -487,6 +510,7 @@ function ViewerInner() {
 
 function Loader() {
   const [state] = useContext(StateContext)!;
+  let ref: HTMLInputElement | undefined;
 
   // const [stillWaiting, setStillWaiting] = createSignal(false);
   // const [stillWaitingLong, setStillWaitingLong] = createSignal(false);
@@ -495,11 +519,42 @@ function Loader() {
 
   return (
     <div class="loader-container">
-      {state.type === "error" ? (
+      {state.type === "waiting" ? (
+        <>
+          Drag an EPUB file into the window, or click here to upload:{" "}
+          <button
+            type="button"
+            class="icon-button open-file"
+            aria-label="Upload EPUB"
+            onClick={e => {
+              e.preventDefault();
+              ref!.click();
+            }}
+            style={{ opacity: 0.4, top: "2px", left: "3px" }}
+          />
+          <input
+            ref={ref}
+            type="file"
+            style={{ display: "none" }}
+            onChange={event => {
+              let files = event.target.files;
+              if (files?.length && files.length > 0) {
+                const file = files[0];
+                log.info("Uploaded user file:", file.name);
+                window.parent.postMessage(
+                  {
+                    type: "user-upload",
+                    data: file
+                  },
+                  "*"
+                );
+              }
+            }}
+          />
+        </>
+      ) : state.type === "error" ? (
         <pre>{state.error}</pre>
-      ) : (
-        <>Drag an EPUB file into the window.</>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -574,6 +629,17 @@ function App() {
                 return this.rendition().package.spine.itemref![
                   this.chapterIndex
                 ]["@idref"];
+              },
+
+              isPpub() {
+                let metadata = this.rendition().package.metadata.$value;
+                let tag = metadata.find(
+                  field =>
+                    typeof field !== "string" &&
+                    "meta" in field &&
+                    field.meta["@property"] === "ppub:valid"
+                );
+                return tag !== undefined;
               }
             }
           });

@@ -7,6 +7,7 @@
         <dc:language>en-US</dc:language>
         <dc:date>2024-01-24</dc:date>
         <meta property="dcterms:modified">2023-01-24T00:00:00Z</meta>
+        <meta property="ppub:valid"></meta>
     </metadata>
     <manifest>
         <item id="page" href="index.xhtml" media-type="application/xhtml+xml" />
