@@ -43,4 +43,4 @@ cd rs
 cargo tauri build
 ```
 
-This will generate a binary you can use on your system. I have only tested this on MacOS and it only kind of works, so I would just use the web app for now.
+This will generate a binary you can use on your system.

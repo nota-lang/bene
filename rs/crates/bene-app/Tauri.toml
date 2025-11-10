@@ -10,7 +10,7 @@ beforeBuildCommand = "cd ../../js && depot -p bene-desktop build --release"
 [[app.windows]]
 title = "Bene Reader"
 width = 1200
-height = 800
+height = 900
 resizable = true
 fullscreen = false
 titleBarStyle = "Transparent"
