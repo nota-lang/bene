@@ -178,7 +178,8 @@ impl Epub {
   pub async fn load(archive: &mut Archive) -> Result<Self> {
     let container = archive
       .read_xml::<Container>("META-INF/container.xml")
-      .await?;
+      .await
+      .context("Failed to read EPUB metadata")?;
     debug!("Container: {container:#?}");
 
     let rendition_futures = container.rootfiles.rootfiles.iter().map(async |rootfile| {

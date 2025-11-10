@@ -428,7 +428,6 @@ function Content(props: { navigateEvent: EventTarget }) {
       article.append(...contentDoc.body.children);
       contentDoc.body.appendChild(article);
 
-      console.log("WE R FUCKIN DOING IT");
       contentDoc.querySelectorAll("figcaption").forEach(el => {
         if (el.children.length > 1) {
           let container = contentDoc.createElement("div");

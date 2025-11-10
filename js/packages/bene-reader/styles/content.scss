@@ -152,7 +152,7 @@ div.callout {
 a {
   text-decoration: none;
 
-  &:hover {
+  &[href]:hover {
     text-decoration: underline;
   }
 }

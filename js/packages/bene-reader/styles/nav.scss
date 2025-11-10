@@ -31,16 +31,22 @@ nav {
         padding: 0.25em;
         text-decoration: none;
         color: var(--treeitem-color);
-      }
 
-      &:has(a:hover) {
-        background-color: var(--treeitem-bg-color);
-        border-radius: 4px;
-        
-        a {
+        &:hover {
           color: var(--treeitem-hover-color);
+          background-color: var(--treeitem-bg-color);
+          border-radius: 4px;
         }
       }
+
+      // &:has(a:hover) {
+      //   background-color: var(--treeitem-bg-color);
+      //   border-radius: 4px;
+        
+      //   a {
+      //     color: var(--treeitem-hover-color);
+      //   }
+      // }
     }
   }
 }

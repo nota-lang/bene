@@ -9,15 +9,21 @@ window.addEventListener("message", async event => {
   log.info("Parent received message:", message);
 
   if (message.type === "ready") {
+    let state = await invoke<any>("state", {});
     let epubResult: Result<LoadedEpub, string>;
-    try {
-      const epub = (await invoke("epub", {})) as Epub;
+    if (state.type === "Ready") {
+      const epub = state.value as Epub;
       epubResult = {
         status: "ok",
         data: { metadata: epub, url: undefined, path: "" }
       };
-    } catch (e: any) {
-      epubResult = { status: "error", error: e.toString() };
+    } else if (state.type === "Error") {
+      epubResult = {
+        status: "error",
+        error: state.value
+      };
+    } else {
+      throw Error("TODO");
     }
     readerWindow.postMessage({ type: "loaded-epub", data: epubResult }, "*");
   }

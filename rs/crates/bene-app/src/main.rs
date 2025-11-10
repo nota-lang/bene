@@ -3,69 +3,75 @@
 #![warn(clippy::pedantic)]
 #![allow(clippy::single_match_else)]
 
-use std::{borrow::Cow, path::PathBuf, sync::Arc};
+use std::{borrow::Cow, fmt::Write, path::PathBuf};
 
 use anyhow::{Context, Result, anyhow};
 use bene_epub::{Archive, Epub, FileZip};
 use clap::Parser;
+use futures::future::try_join_all;
 use log::warn;
-use tauri::{App, AppHandle, Manager, http};
-use tokio::{runtime::Handle, sync::Mutex, task::JoinHandle};
+use tauri::{App, AppHandle, Manager, State, http, utils::config::FrontendDist};
+use tokio::{
+  runtime::Handle,
+  sync::{Mutex, MutexGuard},
+};
 
-type EpubCell = Mutex<Option<JoinHandle<Result<Epub>>>>;
+#[derive(serde::Serialize, Clone)]
+#[serde(tag = "type", content = "value")]
+enum AppState {
+  Waiting,
+  Loading,
+  Error(String),
+  Ready(Epub),
+}
 
 #[tauri::command]
-async fn epub(window: tauri::Window, handle: tauri::State<'_, EpubCell>) -> Result<Epub, String> {
-  match window.try_state::<Epub>() {
-    Some(epub) => Ok((*epub).clone()),
-    None => {
-      let mut handle = handle.lock().await;
-      let handle = handle
-        .take()
-        .ok_or_else(|| "Cannot call epub() while epub is loading!".to_string())?;
-      let epub = handle
-        .await
-        .map_err(|e| format!("{e:?}"))?
-        .map_err(|e| format!("{e:?}"))?;
-      window.manage(epub.clone());
-      Ok(epub)
-    }
-  }
+async fn state(state: State<'_, Mutex<AppState>>) -> Result<AppState, String> {
+  Ok(state.lock().await.clone())
 }
 
 #[derive(Parser)]
 struct CliArgs {
   /// Path to .epub file
-  path: PathBuf,
+  path: Option<PathBuf>,
 }
 
-async fn load_reader_asset(app: &AppHandle, path: &str) -> Result<Vec<u8>> {
-  let path = format!(
-    "{}/bene-reader{path}",
-    app.config().build.frontend_dist.as_ref().unwrap()
-  );
-  Ok(tokio::fs::read(path).await?)
-}
+async fn load_reader_asset(app: &AppHandle, local_path: &str) -> Result<Vec<u8>> {
+  let mut full_path = String::new();
+  if cfg!(dev) {
+    let FrontendDist::Directory(dir) = app.config().build.frontend_dist.as_ref().unwrap() else {
+      unreachable!()
+    };
+    write!(full_path, "{}/../../bene-reader/dist", dir.display())?;
+  } else {
+    write!(
+      full_path,
+      "{}/bene-reader",
+      app.path().resource_dir().unwrap().display()
+    )?;
+  }
+  full_path.push_str(local_path);
 
-async fn load_epub_asset(
-  epub: &Epub,
-  archive: &Arc<Mutex<Archive>>,
-  path: &str,
-) -> Result<Vec<u8>> {
-  let mut archive = archive.lock().await;
-  epub.load_asset(&mut archive, path).await
+  tokio::fs::read(&full_path)
+    .await
+    .with_context(|| format!("Failed to read: {full_path}"))
 }
 
 async fn serve_asset(
   app: &AppHandle,
-  archive: &Arc<Mutex<Archive>>,
   request: http::Request<Vec<u8>>,
 ) -> http::Response<Cow<'static, [u8]>> {
   let path = request.uri().path();
   let (result, path) = match path.strip_prefix("/epub-content/") {
-    Some(epub_path) => match app.try_state::<Epub>() {
-      Some(epub) => (load_epub_asset(&epub, archive, epub_path).await, epub_path),
-      None => (Err(anyhow!("Epub not loaded yet")), epub_path),
+    Some(epub_path) => match (
+      &*app.state::<Mutex<AppState>>().inner().lock().await,
+      app.try_state::<ArchivePool>(),
+    ) {
+      (AppState::Ready(epub), Some(pool)) => {
+        let mut archive = pool.lock_one().await;
+        (epub.load_asset(&mut archive, epub_path).await, epub_path)
+      }
+      _ => (Err(anyhow!("Epub not loaded yet")), epub_path),
     },
     None => (load_reader_asset(app, path).await, path),
   };
@@ -88,18 +94,54 @@ async fn serve_asset(
   }
 }
 
+const POOL_SIZE: usize = 8;
+
+struct ArchivePool {
+  pool: Vec<Mutex<Archive>>,
+}
+
+impl ArchivePool {
+  async fn new(archive: Archive) -> Result<Self> {
+    let pool = try_join_all(
+      (0..POOL_SIZE).map(async |_| Ok::<_, anyhow::Error>(Mutex::new(archive.try_clone().await?))),
+    )
+    .await?;
+    Ok(ArchivePool { pool })
+  }
+
+  async fn lock_one(&self) -> MutexGuard<'_, Archive> {
+    for archive in &self.pool {
+      if let Ok(archive) = archive.try_lock() {
+        return archive;
+      }
+    }
+
+    self.pool[0].lock().await
+  }
+}
+
+async fn load_epub(app: AppHandle, path: PathBuf) {
+  let app = &app;
+  *app.state::<Mutex<AppState>>().lock().await = AppState::Loading;
+  let state = async {
+    let mut archive = Archive::load(FileZip(path))
+      .await
+      .context("Failed to parse epub as zip")?;
+    let epub = Epub::load(&mut archive).await?;
+    let archive = ArchivePool::new(archive).await?;
+    app.manage(archive);
+    Ok(AppState::Ready(epub))
+  }
+  .await
+  .unwrap_or_else(|err: anyhow::Error| AppState::Error(err.to_string()));
+  *app.state::<Mutex<AppState>>().lock().await = state;
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
   let args = CliArgs::parse();
 
-  let archive = Archive::load(FileZip(args.path))
-    .await
-    .context("Failed to parse epub as zip")?;
-
-  let mut archive_clone = archive.try_clone().await?;
-  let epub_handle: EpubCell = Mutex::new(Some(tokio::spawn(async move {
-    Epub::load(&mut archive_clone).await
-  })));
+  tauri::async_runtime::set(Handle::current());
 
   #[allow(unused_variables)]
   let setup = |app: &mut App| {
@@ -108,35 +150,43 @@ async fn main() -> Result<()> {
       let window = app.get_webview_window("main").unwrap();
       window.open_devtools();
     }
+
+    if let Some(path) = args.path {
+      let handle = app.handle().clone();
+      tokio::spawn(load_epub(handle, path));
+    }
+
     Ok(())
   };
 
-  // Since we started Tokio ourselves, need to inform Tauri about the existing runtime.
-  tauri::async_runtime::set(Handle::current());
-
-  // Launch the Tauri app.
-  let archive_clone = archive.try_clone().await?;
-  let archive = Arc::new(Mutex::new(archive));
-  tauri::Builder::default()
+  let builder = tauri::Builder::default()
     .plugin(
       tauri_plugin_log::Builder::new()
         .level(log::LevelFilter::Info)
         .build(),
     )
-    .plugin(tauri_plugin_shell::init())
-    .invoke_handler(tauri::generate_handler![epub])
-    .manage(epub_handle)
-    .manage(archive_clone)
     .setup(setup)
+    .manage(Mutex::new(AppState::Waiting))
+    .plugin(tauri_plugin_shell::init())
+    .invoke_handler(tauri::generate_handler![state])
     .register_asynchronous_uri_scheme_protocol("bene", move |ctx, request, responder| {
-      let archive = Arc::clone(&archive);
       let app = ctx.app_handle().clone();
       tokio::spawn(async move {
-        let response = serve_asset(&app, &archive, request).await;
+        let response = serve_asset(&app, request).await;
         responder.respond(response);
       });
-    })
-    .run(tauri::generate_context!())?;
+    });
+
+  let app = builder.build(tauri::generate_context!())?;
+
+  #[cfg(any(target_os = "macos", target_os = "ios"))]
+  app.run(|app, event| {
+    if let tauri::RunEvent::Opened { urls } = event {
+      let path = PathBuf::from(urls[0].path());
+      let handle = app.clone();
+      tokio::spawn(load_epub(handle, path));
+    }
+  });
 
   Ok(())
 }

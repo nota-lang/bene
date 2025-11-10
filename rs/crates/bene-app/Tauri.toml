@@ -9,8 +9,8 @@ beforeBuildCommand = "cd ../../js && depot -p bene-desktop build --release"
 
 [[app.windows]]
 title = "Bene Reader"
-width = 800
-height = 600
+width = 1200
+height = 800
 resizable = true
 fullscreen = false
 titleBarStyle = "Transparent"
@@ -26,3 +26,9 @@ icon = [
   "icons/icon.icns",
   "icons/icon.ico"
 ]
+resources = {"../../../js/packages/bene-reader/dist/" = "bene-reader"}
+
+[[bundle.fileAssociations]]
+ext = ["epub"]
+mimeType = "application/epub+zip"
+rank = "Default"
