@@ -16,6 +16,7 @@ tauri-plugin-log = "2"
 clap = { version = "4.5.50", features = ["derive"] }
 bene-epub = { path = "../bene-epub" }
 tauri-plugin-shell = "2.3.1"
+cfg-if = "1"
 
 serde = { workspace = true }
 anyhow = { workspace = true }

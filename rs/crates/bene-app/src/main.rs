@@ -7,6 +7,7 @@ use std::{borrow::Cow, fmt::Write, path::PathBuf};
 
 use anyhow::{Context, Result, anyhow};
 use bene_epub::{Archive, Epub, FileZip};
+use cfg_if::cfg_if;
 use clap::Parser;
 use futures::future::try_join_all;
 use log::warn;
@@ -179,14 +180,21 @@ async fn main() -> Result<()> {
 
   let app = builder.build(tauri::generate_context!())?;
 
-  #[cfg(any(target_os = "macos", target_os = "ios"))]
-  app.run(|app, event| {
-    if let tauri::RunEvent::Opened { urls } = event {
-      let path = PathBuf::from(urls[0].path());
-      let handle = app.clone();
-      tokio::spawn(load_epub(handle, path));
+  // On MacOS only, the "open file with" interaction is translated into
+  // a `RunEvent::Opened` event. On all other platforms, it is a CLI argument.
+  cfg_if! {
+    if #[cfg(any(target_os = "macos", target_os = "ios"))] {
+      app.run(|app, event| {
+        if let tauri::RunEvent::Opened { urls } = event {
+          let path = PathBuf::from(urls[0].path());
+          let handle = app.clone();
+          tokio::spawn(load_epub(handle, path));
+        }
+      });
+    } else {
+      app.run(|_, _| {});
     }
-  });
+  }
 
   Ok(())
 }

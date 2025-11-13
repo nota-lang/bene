@@ -5,7 +5,7 @@
 
 use std::path::Path;
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, ensure, Context, Result};
 use futures::future::try_join_all;
 use log::debug;
 use serde::{Deserialize, Serialize};
@@ -198,6 +198,13 @@ impl Epub {
     let renditions = try_join_all(rendition_futures)
       .await
       .context("Failed to load rendition")?;
+
+    ensure!(
+      renditions
+        .iter()
+        .all(|rendition| rendition.package.version == "3.0"),
+      "File is not in the EPUB 3 format"
+    );
 
     Ok(Epub { renditions })
   }

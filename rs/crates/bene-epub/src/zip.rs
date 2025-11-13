@@ -69,7 +69,7 @@ impl<F: ZipFormat> Archive<F> {
 
     let mut files = HashMap::new();
     for (index, entry) in zip.file().entries().iter().enumerate() {
-      let filename = entry.filename().clone().into_string()?;      
+      let filename = entry.filename().clone().into_string()?;
       files.insert(filename, index);
     }
 

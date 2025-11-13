@@ -1,5 +1,5 @@
 import componentScriptUrl from "bene-components?url";
-import { debounce, throttle } from "@solid-primitives/scheduled";
+import { throttle } from "@solid-primitives/scheduled";
 import {
   type Epub,
   type Item,
@@ -44,10 +44,17 @@ interface PageInfo {
   container: Window;
 }
 
+const clamp = (a: number, b: number) => (x: number) =>
+  Math.min(Math.max(x, a), b);
+const ZOOM_LEVELS = [
+  30, 50, 67, 80, 90, 100, 110, 120, 133, 150, 170, 200, 240, 300, 400, 500
+];
+const clampZoom = clamp(0, ZOOM_LEVELS.length - 1);
+
 interface DocState {
   renditionIndex: number;
   chapterIndex: number;
-  fontSize: number;
+  zoomLevel: number;
   showNav: boolean;
   width: number;
   pageInfo?: PageInfo;
@@ -80,14 +87,8 @@ function useDocState(): [DocState, (state: Partial<DocState>) => void] {
   ];
 }
 
-const DEBOUNCE_TIME = 250;
-
 function ToolbarInner() {
   let [state, setState] = useDocState();
-  function setFont(delta: number) {
-    const fontSize = Math.max(state.fontSize + delta, 1);
-    setState({ fontSize });
-  }
 
   function setPage(delta: number) {
     const pageInfo = state.pageInfo;
@@ -161,28 +162,31 @@ function ToolbarInner() {
           type="button"
           class="icon-button zoom-out"
           aria-label="Reduce font size"
-          onClick={() => setFont(-1)}
+          onClick={() =>
+            setState({ zoomLevel: clampZoom(state.zoomLevel - 1) })
+          }
         />
         <div class="split-icon-button-separator" />
         <button
           type="button"
           class="icon-button zoom-in"
           aria-label="Increase font size"
-          onClick={() => setFont(1)}
+          onClick={() =>
+            setState({ zoomLevel: clampZoom(state.zoomLevel + 1) })
+          }
         />
-        <input
-          type="number"
-          class="scale-input"
-          aria-label="Set font size"
-          value={state.fontSize}
-          onInput={debounce(e => {
-            const fontSize = parseInt(e.target.value, 10);
-            if (!Number.isNaN(fontSize)) setState({ fontSize });
-          }, DEBOUNCE_TIME)}
-        />
-        <span class="label" aria-label="Font size unit">
-          px
-        </span>
+        <select
+          aria-label="Set zoom level"
+          value={state.zoomLevel}
+          onInput={e => {
+            const zoomLevel = parseInt(e.target.value, 10);
+            setState({ zoomLevel });
+          }}
+        >
+          {ZOOM_LEVELS.map((n, i) => (
+            <option value={i.toString()}>{n}%</option>
+          ))}
+        </select>
       </div>
       <div class="toolbar-right">
         {state.url ? (
@@ -264,6 +268,17 @@ function Nav(props: { navigateEvent: EventTarget; navItem: Item }) {
   );
 }
 
+let handleKeydown =
+  (state: DocState, setState: (state: Partial<DocState>) => void) =>
+  (event: KeyboardEvent) => {
+    let meta = event.getModifierState("Meta");
+    let key = event.key;
+    if (meta && key === "=")
+      setState({ zoomLevel: clampZoom(state.zoomLevel + 1) });
+    else if (meta && key === "-")
+      setState({ zoomLevel: clampZoom(state.zoomLevel - 1) });
+  };
+
 function Content(props: { navigateEvent: EventTarget }) {
   const [state, setState] = useDocState();
   const [styleEl, setStyleEl] = createSignal<HTMLStyleElement | undefined>(
@@ -271,15 +286,26 @@ function Content(props: { navigateEvent: EventTarget }) {
   );
 
   function updateStyleEl(el: HTMLStyleElement) {
-    el.innerText = `
+    const zoomPercent = ZOOM_LEVELS[state.zoomLevel];
+    let css = `
       html {
-        font-size: ${state.fontSize}px;
+        font-size: ${zoomPercent}%;
       }
 
       article {
         max-width: ${state.width}px;
       }
       `;
+
+    if (zoomPercent >= 200) {
+      css += `
+      html, p {
+        text-align: left;
+      }
+      `;
+    }
+
+    el.innerText = css;
   }
 
   const chapterUrl = () => {
@@ -453,6 +479,8 @@ function Content(props: { navigateEvent: EventTarget }) {
       const contentWindow = iframe.contentWindow!;
       const contentDoc = iframe.contentDocument!;
 
+      contentDoc.addEventListener("keydown", handleKeydown(state, setState));
+
       injectReaderStylesAndScripts(contentDoc);
       registerPageInfoCallbacks(iframe, contentDoc);
       updateAnchors(contentWindow, contentDoc);
@@ -552,7 +580,7 @@ function Loader() {
           />
         </>
       ) : state.type === "error" ? (
-        <pre>{state.error}</pre>
+        <pre>Error: {state.error}</pre>
       ) : null}
     </div>
   );
@@ -613,7 +641,7 @@ function App() {
             state: {
               renditionIndex: 0,
               chapterIndex: 0,
-              fontSize: 16,
+              zoomLevel: ZOOM_LEVELS.indexOf(100),
               showNav: false,
               width: 800,
               epub: data.metadata,
@@ -660,5 +688,8 @@ function App() {
 }
 
 window.addEventListener("load", () => {
+  console.log("hm");
+  document.addEventListener("keyup", e => console.log(e));
+
   render(() => <App />, document.getElementById("root")!);
 });

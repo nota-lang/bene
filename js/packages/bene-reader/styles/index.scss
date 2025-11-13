@@ -31,14 +31,14 @@
 .loader-container {
   margin: 48vh auto 0;
   color: var(--separator-color);
-  
+
   .loader,
   .loader:after {
     border-radius: 50%;
     width: 10em;
     height: 10em;
   }
-  .loader {    
+  .loader {
     font-size: 10px;
     position: relative;
     text-indent: -9999em;
@@ -68,7 +68,7 @@
   width: 100vw;
   width: 100dvw;
   height: 100vh;
-  height: 100dvh;  
+  height: 100dvh;
   position: absolute;
   left: 0;
   top: 0;
@@ -84,7 +84,7 @@
     background: none;
     border: none;
     cursor: pointer;
-        
+
     &:hover {
       background-color: var(--button-hover-color);
     }
@@ -98,11 +98,11 @@
       mask-size: cover;
       background-color: var(--toolbar-icon-bg-color);
       top: 0;
-      left: 0;      
+      left: 0;
     }
 
-    &.sidebar-toggle::before {        
-      mask-image: var(--toolbar-sidebar-toggle-icon);      
+    &.sidebar-toggle::before {
+      mask-image: var(--toolbar-sidebar-toggle-icon);
     }
 
     &.zoom-out::before {
@@ -136,12 +136,13 @@
     box-sizing: border-box;
     display: flex;
     justify-content: space-between;
-    box-shadow: var(--toolbar-box-shadow);    
+    box-shadow: var(--toolbar-box-shadow);
     position: relative;
     z-index: 1000;
 
     > div {
       display: flex;
+      flex: 1;
       align-items: center;
       padding: 0 3px;
     }
@@ -154,7 +155,7 @@
       border-radius: 2px;
       user-select: none;
       position: relative;
-      
+
       &::before {
         top: 6px;
         left: 6px;
@@ -163,6 +164,10 @@
 
     .toolbar-left {
       padding-left: 2px;
+    }
+
+    .toolbar-middle {
+      flex: 0 0 auto;
     }
 
     .toolbar-right {
@@ -181,7 +186,7 @@
       width: 1px;
       height: 20px;
       background-color: var(--separator-color);
-      margin: 6px 0;      
+      margin: 6px 0;
     }
 
     input[type=number] {
@@ -192,6 +197,14 @@
         appearance: none;
         margin: 0;
       }
+    }
+
+    select {
+      background-color: var(--dropdown-btn-bg-color);
+      padding: 4px 6px;
+      appearance: none;
+      border: 0;
+      border-radius: 0;
     }
 
     .page-input {
@@ -206,20 +219,13 @@
     .label {
       margin-left: 5px;
     }
-
-    .scale-input {
-      background-color: var(--dropdown-btn-bg-color);
-      border: 0;      
-      padding: 3px 5px;
-      width: 25px;
-    }
   }
-    
+
   .viewer {
     display: flex;
     height: calc(100vh - 32px);
     height: calc(100dvh - 32px);
-    
+
     @include mobile {
       overflow-x: hidden;
     }
@@ -240,13 +246,13 @@
         --nav-width: 200px;
       }
 
-      width: 0;    
+      width: 0;
       transition: 0.25s width;
       box-shadow: inset -1px 0 0 rgb(0 0 0 / 0.25);
 
       &.show {
         width: var(--nav-width);
-      } 
+      }
     }
 
     .content {

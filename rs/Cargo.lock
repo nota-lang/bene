@@ -251,6 +251,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bene-epub",
+ "cfg-if",
  "clap",
  "futures",
  "log",
