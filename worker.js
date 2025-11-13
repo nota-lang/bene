@@ -254,7 +254,7 @@
       }
     }
     if (typeof module_or_path === "undefined") {
-      module_or_path = new URL("" + new URL("assets/rs_utils_bg-CvgVrmbs.wasm", self.location.href).href, self.location.href);
+      module_or_path = new URL("" + new URL("assets/rs_utils_bg-CR2vF9_X.wasm", self.location.href).href, self.location.href);
     }
     const imports = __wbg_get_imports();
     if (typeof module_or_path === "string" || typeof Request === "function" && module_or_path instanceof Request || typeof URL === "function" && module_or_path instanceof URL) {
