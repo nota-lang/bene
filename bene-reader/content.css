@@ -497,3 +497,7 @@ a {
 a[href]:hover {
   text-decoration: underline;
 }
+
+mark, ::highlight(bene) {
+  background-color: yellow;
+}
