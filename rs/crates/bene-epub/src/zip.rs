@@ -2,9 +2,10 @@
 
 use std::{collections::HashMap, io::Cursor, path::PathBuf, sync::Arc};
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use async_zip::tokio::read::seek::ZipFileReader;
-use log::debug;
+use format_serde_error::SerdeError;
+use log::{debug, warn};
 use serde::de::DeserializeOwned;
 use tokio::io::{AsyncBufRead, AsyncReadExt, AsyncSeek};
 use tokio_util::compat::FuturesAsyncReadCompatExt;
@@ -107,7 +108,7 @@ impl<F: ZipFormat> Archive<F> {
   /// - If the file cannot be read as bytes.
   /// - If the bytes are not a UTF-8 string.
   /// - If the string is not an XML file deserializable from type `T`.
-  pub async fn read_xml<T: DeserializeOwned>(&mut self, file: &str) -> Result<T> {
+  pub async fn read_xml<T: DeserializeOwned>(&mut self, file: &str) -> Result<(T, String)> {
     let bytes = self
       .read_file(file)
       .await
@@ -116,7 +117,27 @@ impl<F: ZipFormat> Archive<F> {
       String::from_utf8(bytes).with_context(|| format!("Failed to read file as UTF-8: {file}"))?;
     let xml = quick_xml::de::from_str(&string)
       .with_context(|| format!("Failed to interpret file as XML: {file}"))?;
-    Ok(xml)
+    Ok((xml, string))
+  }
+
+  /// Asynchronously reads a file as JSON from the archive.
+  ///
+  /// # Errors
+  /// - If the file cannot be read as bytes.
+  /// - If the bytes are not a UTF-8 string.
+  /// - If the string is not a JSON file deserializable from type `T`.
+  pub async fn read_json<T: DeserializeOwned>(&mut self, file: &str) -> Result<T> {
+    let bytes = self
+      .read_file(file)
+      .await
+      .with_context(|| format!("Failed to read bytes of file: {file}"))?;
+    let string =
+      String::from_utf8(bytes).with_context(|| format!("Failed to read file as UTF-8: {file}"))?;
+    serde_json::from_str(&string).map_err(|err| {
+      let err_str = anyhow!("{err}");
+      warn!("{}", SerdeError::new(string, err));
+      err_str.context(format!("Failed to interpret file as JSON: {file}"))
+    })
   }
 
   /// Asynchronously loads a clone of the current archive.

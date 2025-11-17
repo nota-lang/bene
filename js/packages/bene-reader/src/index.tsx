@@ -21,6 +21,7 @@ import {
 import { createStore, type SetStoreFunction } from "solid-js/store";
 import { render } from "solid-js/web";
 import navCssUrl from "../styles/nav.scss?url";
+import { addAnnotations } from "./annotation";
 
 function insertJs(doc: Document, url: string) {
   const script = doc.createElement("script");
@@ -51,7 +52,7 @@ const ZOOM_LEVELS = [
 ];
 const clampZoom = clamp(0, ZOOM_LEVELS.length - 1);
 
-interface DocState {
+export interface DocState {
   renditionIndex: number;
   chapterIndex: number;
   zoomLevel: number;
@@ -308,12 +309,18 @@ function Content(props: { navigateEvent: EventTarget }) {
     el.innerText = css;
   }
 
-  const chapterUrl = () => {
+  const chapterHref = () => {
     if (state.initialPath) return state.initialPath;
     const id = state.chapterId();
     const rend = state.rendition();
     const items = rend.package.manifest.item!;
-    const href = items.find((item: Item) => item["@id"] === id)!["@href"];
+    return items.find((item: Item) => item["@id"] === id)!["@href"];
+  };
+
+  const chapterUrl = () => {
+    if (state.initialPath) return state.initialPath;
+    const rend = state.rendition();
+    const href = chapterHref();
     return epubUrl(rend, href);
   };
 
@@ -463,7 +470,7 @@ function Content(props: { navigateEvent: EventTarget }) {
       });
     }
 
-    function addHandle(contentDoc: Document) {
+    function addResizeHandle(contentDoc: Document) {
       const article = contentDoc.querySelector<HTMLElement>("article");
 
       if (!article) {
@@ -486,7 +493,8 @@ function Content(props: { navigateEvent: EventTarget }) {
       updateAnchors(contentWindow, contentDoc);
       handleTocNavigation(contentWindow);
       if (!state.isPpub()) makePortable(contentDoc);
-      addHandle(contentDoc);
+      addResizeHandle(contentDoc);
+      addAnnotations(contentDoc, state, chapterHref());
     });
   });
 

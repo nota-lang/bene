@@ -116,6 +116,9 @@ importers:
       bene-components:
         specifier: workspace:*
         version: link:../bene-components
+      epub-cfi-resolver:
+        specifier: ^1.0.2
+        version: 1.0.2
     devDependencies:
       '@solid-primitives/scheduled':
         specifier: ^1.5.2
@@ -712,13 +715,13 @@ packages:
     resolution: {integrity: sha512-10monEYsBp3scM4/ND4LNH5Rxvh3e/cVeL3jWTgZ2SrQ+BmUoQcopVQvnaMcOnykb1VkxUFuDAN+0FnpTFRy2A==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
-      rollup: npm:@rollup/wasm-node
+      rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
     peerDependenciesMeta:
       rollup:
         optional: true
 
-  '@rollup/wasm-node@4.52.5':
-    resolution: {integrity: sha512-ldY4tEzSMBHNwB8TfRpi7RRRjjyfKlwjdebw5pS1lu0xaY3g4RDc6ople2wEYulVOKVeH7ZJwRx0iw4pGtjMHg==}
+  '@rollup/wasm-node@4.53.2':
+    resolution: {integrity: sha512-oPSy4fH0C66muvPr/HU13K8X9QFO74Em+JUegHUpEwD61M3lihIlfrLpilhrEiiReFOfG00Qyhf7NGFuwkX2yA==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
 
@@ -1127,6 +1130,9 @@ packages:
   entities@6.0.1:
     resolution: {integrity: sha512-aN97NXWF6AWBTahfVOIrB/NShkzi5H7F9r1s9mD3cDj4Ko5f2qhhVoYMibXF7GlLveb/D2ioWay8lxI97Ven3g==}
     engines: {node: '>=0.12'}
+
+  epub-cfi-resolver@1.0.2:
+    resolution: {integrity: sha512-br7af3O6lRjNoE0r3RVgCLwmuhwsdjfOfjWyhDjxTWm5sqSa3HWWib+Hr5/Grt6jUloH/F33fACxCR0+0WA8kg==}
 
   es-module-lexer@1.7.0:
     resolution: {integrity: sha512-jEQoCwk8hyb2AZziIOLhDqpm5+2ww5uIE6lkO/6jcOCusfk6LhMHpXXfBLXTZ7Ydyt0j4VoUQv6uGNYbdW+kBA==}
@@ -2314,7 +2320,7 @@ snapshots:
 
   '@rollup/plugin-virtual@3.0.2': {}
 
-  '@rollup/wasm-node@4.52.5':
+  '@rollup/wasm-node@4.53.2':
     dependencies:
       '@types/estree': 1.0.8
     optionalDependencies:
@@ -2695,6 +2701,8 @@ snapshots:
   entities@4.5.0: {}
 
   entities@6.0.1: {}
+
+  epub-cfi-resolver@1.0.2: {}
 
   es-module-lexer@1.7.0: {}
 
@@ -3239,7 +3247,7 @@ snapshots:
       fdir: 6.5.0(picomatch@4.0.3)
       picomatch: 4.0.3
       postcss: 8.5.6
-      rollup: '@rollup/wasm-node@4.52.5'
+      rollup: '@rollup/wasm-node@4.53.2'
       tinyglobby: 0.2.15
     optionalDependencies:
       '@types/node': 24.9.1

@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/*"]
 
 [workspace.dependencies]
-anyhow = { version = "1.0.100", features = ["backtrace"] }
+anyhow = "1.0.100"
 tokio = { version = "1.48.0", default-features = false }
 serde = { version = "1.0.228", features = ["derive"] }
 log = "0.4.20"

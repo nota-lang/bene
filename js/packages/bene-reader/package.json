@@ -15,7 +15,8 @@
     "solid-js": "^1.9.9"
   },
   "dependencies": {
+    "bene-common": "workspace:*",
     "bene-components": "workspace:*",
-    "bene-common": "workspace:*"
+    "epub-cfi-resolver": "^1.0.2"
   }
 }

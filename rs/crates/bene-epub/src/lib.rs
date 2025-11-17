@@ -9,10 +9,13 @@ use anyhow::{anyhow, ensure, Context, Result};
 use futures::future::try_join_all;
 use log::debug;
 use serde::{Deserialize, Serialize};
-
 use ts_rs::TS;
-pub use zip::{Archive, ArchiveFormat, FileZip, MemoryZip};
 
+use crate::annotation::{Annotation, RawAnnotation};
+
+pub use self::zip::{Archive, ArchiveFormat, FileZip, MemoryZip};
+
+mod annotation;
 mod xhtml;
 mod zip;
 
@@ -101,7 +104,9 @@ pub struct ItemRef {
 #[ts(export)]
 pub struct Rendition {
   pub package: Package,
+  pub package_string: String,
   pub root: String,
+  pub annotations: Vec<Annotation>,
 }
 
 impl Rendition {
@@ -118,10 +123,38 @@ impl Rendition {
       .ok_or_else(|| anyhow!("Rootfile path is not a file: {}", rootfile.full_path))?
       .display()
       .to_string();
-    let package = archive.read_xml::<Package>(&rootfile.full_path).await?;
+    let (package, package_string) = archive.read_xml::<Package>(&rootfile.full_path).await?;
     debug!("Package: {package:#?}");
 
-    Ok(Rendition { package, root })
+    let annotation_item = package
+      .manifest
+      .items
+      .iter()
+      .find(|item| matches!(item.properties.as_deref(), Some("ppub:annotations")));
+    let annotations = match annotation_item {
+      Some(item) => {
+        // TODO: need to figure out if this will work on Windows. Conflating ZIP paths and native FS paths here.
+        #[expect(
+          clippy::missing_panics_doc,
+          reason = "Rootfile::full_path should not be `/`"
+        )]
+        let rootfile_dir = Path::new(&rootfile.full_path).parent().unwrap();
+        let annotations_path = format!("{}/{}", rootfile_dir.display(), item.href);
+        let raw_annotations = archive
+          .read_json::<Vec<RawAnnotation>>(&annotations_path)
+          .await
+          .context("Error while parsing annotations file")?;
+        annotation::process(raw_annotations).context("Error while processing raw annotations")?
+      }
+      None => Vec::new(),
+    };
+
+    Ok(Rendition {
+      package,
+      package_string,
+      root,
+      annotations,
+    })
   }
 
   /// Gets an [`Item`] by its [`Item::id`] from the rendition.
@@ -176,7 +209,7 @@ impl Epub {
   /// - If the [`Archive`] cannot be cloned with [`Archive::try_clone`].
   /// - If any [`Rendition`] fails to load with [`Rendition::load`].
   pub async fn load(archive: &mut Archive) -> Result<Self> {
-    let container = archive
+    let (container, _) = archive
       .read_xml::<Container>("META-INF/container.xml")
       .await
       .context("Failed to read EPUB metadata")?;

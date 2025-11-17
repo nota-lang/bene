@@ -156,3 +156,7 @@ a {
     text-decoration: underline;
   }
 }
+
+mark, ::highlight(bene) {
+  background-color: yellow;
+}

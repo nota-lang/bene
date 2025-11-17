@@ -1,0 +1,15 @@
+[
+  {
+    "@context": "http://www.w3.org/ns/anno.jsonld",
+    "id": "anno0",
+    "type": "Annotation",
+    "target": {
+      "source": ".",
+      "selector": {
+        "type": "FragmentSelector",
+        "conformsTo": "http://www.idpf.org/epub/linking/cfi/epub-cfi.html",
+        "value": "epubcfi(/6/2[pageref]!/4/2/2/8,/1:0,/1:15)"
+      }
+    }
+  }
+]

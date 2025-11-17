@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid" xml:lang="en-US">
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="uid" xml:lang="en-US"
+    prefix="ppub: http://example.com/ppub">
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
         <dc:identifier id="uid">code.google.com.epub-samples.wasteland-basic</dc:identifier>
         <dc:title>Portable EPUBs</dc:title>
@@ -7,11 +8,12 @@
         <dc:language>en-US</dc:language>
         <dc:date>2024-01-24</dc:date>
         <meta property="dcterms:modified">2023-01-24T00:00:00Z</meta>
-        <meta property="ppub:valid"></meta>
+        <meta property="ppub:valid">.</meta>
     </metadata>
     <manifest>
         <item id="page" href="index.xhtml" media-type="application/xhtml+xml" />
         <item id="nav" href="nav.xhtml" properties="nav" media-type="application/xhtml+xml" />
+        <item id="annotations" href="annotations.json" properties="ppub:annotations" media-type="application/json" />
         <item id="img-tags" href="img/tags.jpg" media-type="image/jpeg" />
         <item id="img-before-resize" href="img/after-resize.jpg" media-type="image/jpeg" />
         <item id="img-after-resize" href="img/before-resize.jpg" media-type="image/jpeg" />
@@ -23,6 +25,6 @@
         <item id="img-history-of-writing-pdf" href="img/history-of-writing-pdf.jpg" media-type="image/jpeg" />
     </manifest>
     <spine>
-        <itemref idref="page" />
+        <itemref id="pagref" idref="page" />
     </spine>
 </package>
