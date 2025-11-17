@@ -20,6 +20,6 @@
     "depot-version": "0.3.0"
   },
   "dependencies": {
-    "@tauri-apps/plugin-log": "^2.7.0"
+    "@tauri-apps/plugin-log": "^2.7.1"
   }
 }

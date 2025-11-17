@@ -10,10 +10,10 @@
     "@codemirror/lang-html": "^6.4.11",
     "@codemirror/lang-rust": "^6.0.2",
     "@codemirror/state": "^6.5.2",
-    "@codemirror/view": "^6.38.6",
+    "@codemirror/view": "^6.38.7",
+    "bene-common": "workspace:*",
     "codemirror": "^6.0.2",
     "lit": "^3.3.1",
-    "tippy.js": "^6.3.7",
-    "bene-common": "workspace:*"
+    "tippy.js": "^6.3.7"
   }
 }
