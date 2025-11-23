@@ -10,6 +10,7 @@
   --toolbar-zoom-in-icon: url("../img/toolbarButton-zoomIn.svg");
   --toolbar-zoom-out-icon: url("../img/toolbarButton-zoomOut.svg");
   --toolbar-open-file-icon: url("../img/toolbarButton-openFile.svg");
+  --toolbar-highlight-icon: url("../img/toolbarButton-editorHighlight.svg");
   --toolbar-icon-bg-color: rgb(0, 0, 0);
   --toolbar-box-shadow: 0 1px 0 var(--toolbar-border-color);
   --button-hover-color: rgb(221, 222, 223);
@@ -128,6 +129,10 @@
     &.open-file::before {
       mask-image: var(--toolbar-open-file-icon);
     }
+
+    &.highlight::before {
+      mask-image: var(--toolbar-highlight-icon);
+    }
   }
 
   .toolbar {
@@ -172,6 +177,8 @@
 
     .toolbar-right {
       padding-right: 2px;
+      display: flex;
+      justify-content: flex-end;
     }
 
     .toolbar-button-spacer {

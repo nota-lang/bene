@@ -1,4 +1,4 @@
-use anyhow::{bail, ensure, Result};
+use anyhow::{bail, ensure, Context, Result};
 use iref::IriRefBuf;
 use serde::Serialize;
 use ts_rs::TS;
@@ -10,12 +10,12 @@ mod raw_tests;
 
 pub use raw::Annotation as RawAnnotation;
 
-use crate::annotation::raw::IntoVec;
+use crate::{annotation::raw::IntoVec, cfi};
 
 #[derive(Serialize, TS, Clone)]
 #[ts(export)]
 pub struct Annotation {
-  pub selector: String,
+  pub selector: cfi::Fragment,
   pub body: Option<String>,
 }
 
@@ -30,6 +30,11 @@ pub fn process(annotations: Vec<RawAnnotation>) -> Result<Vec<Annotation>> {
       );
       let raw_target = raw_targets.remove(0);
       let selector = match raw_target {
+        raw::Target::Iri(iri) => match iri.fragment() {
+          Some(fragment) => fragment.to_string(),
+          None => bail!("expected epub fragment on IRI"),
+        },
+
         raw::Target::SpecificResource(resource) => {
           let mut raw_selectors = resource.selector.into_vec();
           ensure!(
@@ -51,7 +56,8 @@ pub fn process(annotations: Vec<RawAnnotation>) -> Result<Vec<Annotation>> {
             selector => bail!("cannot handle annotation selector: {selector:#?}"),
           }
         }
-        raw::Target::Iri(_) | raw::Target::ExternalWebResource(_) => todo!(),
+
+        raw::Target::ExternalWebResource(_) => todo!(),
       };
 
       let body = if let Some(body_value) = raw_annot.body_value {
@@ -70,6 +76,9 @@ pub fn process(annotations: Vec<RawAnnotation>) -> Result<Vec<Annotation>> {
       } else {
         None
       };
+
+      let selector = cfi::Fragment::parse(&selector)
+        .with_context(|| format!("Failed to parse EPUB CFI fragment in annotation:\n{selector}"))?;
 
       Ok(Annotation { selector, body })
     })

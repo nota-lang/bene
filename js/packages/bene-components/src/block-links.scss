@@ -8,6 +8,8 @@ a.block-link {
   position: relative;
   display: block;
   height: 0;
+  user-select: none;
+  -webkit-user-select: none;
 
   > a {
     display: block;

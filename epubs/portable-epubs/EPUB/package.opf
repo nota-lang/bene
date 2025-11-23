@@ -25,6 +25,6 @@
         <item id="img-history-of-writing-pdf" href="img/history-of-writing-pdf.jpg" media-type="image/jpeg" />
     </manifest>
     <spine>
-        <itemref id="pagref" idref="page" />
+        <itemref id="pageref" idref="page" />
     </spine>
 </package>

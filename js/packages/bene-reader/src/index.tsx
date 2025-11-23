@@ -21,7 +21,7 @@ import {
 import { createStore, type SetStoreFunction } from "solid-js/store";
 import { render } from "solid-js/web";
 import navCssUrl from "../styles/nav.scss?url";
-import { addAnnotations } from "./annotation";
+import { addAnnotations, annotateSelection } from "./annotation";
 
 function insertJs(doc: Document, url: string) {
   const script = doc.createElement("script");
@@ -62,10 +62,13 @@ export interface DocState {
   epub: Epub;
   url?: URL;
   initialPath?: string;
+  iframe?: HTMLIFrameElement;
 
   rendition(): Rendition;
   chapterId(): string;
   isPpub(): boolean;
+  chapterHref(): string;
+  chapterUrl(): string;
 }
 
 type State =
@@ -119,6 +122,19 @@ function ToolbarInner() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+  }
+
+  function highlightSelection() {
+    let selection = state.iframe!.contentWindow!.getSelection();
+    if (!selection) return;
+
+    annotateSelection(
+      state.iframe!.contentDocument!,
+      state.iframe!.contentWindow! as Window & typeof globalThis,
+      state,
+      state.chapterHref(),
+      selection
+    );
   }
 
   return (
@@ -190,6 +206,12 @@ function ToolbarInner() {
         </select>
       </div>
       <div class="toolbar-right">
+        <button
+          type="button"
+          class="icon-button highlight"
+          aria-label="Highlight text"
+          onClick={highlightSelection}
+        />
         {state.url ? (
           <button
             type="button"
@@ -309,25 +331,11 @@ function Content(props: { navigateEvent: EventTarget }) {
     el.innerText = css;
   }
 
-  const chapterHref = () => {
-    if (state.initialPath) return state.initialPath;
-    const id = state.chapterId();
-    const rend = state.rendition();
-    const items = rend.package.manifest.item!;
-    return items.find((item: Item) => item["@id"] === id)!["@href"];
-  };
-
-  const chapterUrl = () => {
-    if (state.initialPath) return state.initialPath;
-    const rend = state.rendition();
-    const href = chapterHref();
-    return epubUrl(rend, href);
-  };
-
   let iframeRef: HTMLIFrameElement | undefined;
 
   onMount(() => {
     const iframe = iframeRef!;
+    setState({ iframe });
 
     const SCROLL_KEY = "bene-scroll-info";
     interface ScrollInfo {
@@ -335,7 +343,7 @@ function Content(props: { navigateEvent: EventTarget }) {
       docHeight: number;
     }
 
-    let initializedScroll = chapterUrl().includes("#");
+    let initializedScroll = state.chapterUrl().includes("#");
     const savedScrollStr = localStorage.getItem(SCROLL_KEY);
     const savedScroll =
       savedScrollStr !== null
@@ -483,7 +491,10 @@ function Content(props: { navigateEvent: EventTarget }) {
     }
 
     iframe.addEventListener("load", () => {
-      const contentWindow = iframe.contentWindow!;
+      // TODO: all this logic should be pushed into a script that doesn't have to distinguish
+      // between two types of windows.
+      const contentWindow = iframe.contentWindow! as Window &
+        typeof globalThis /* ?? */;
       const contentDoc = iframe.contentDocument!;
 
       contentDoc.addEventListener("keydown", handleKeydown(state, setState));
@@ -494,7 +505,7 @@ function Content(props: { navigateEvent: EventTarget }) {
       handleTocNavigation(contentWindow);
       if (!state.isPpub()) makePortable(contentDoc);
       addResizeHandle(contentDoc);
-      addAnnotations(contentDoc, state, chapterHref());
+      addAnnotations(contentDoc, contentWindow, state, state.chapterHref());
     });
   });
 
@@ -521,7 +532,7 @@ function Content(props: { navigateEvent: EventTarget }) {
       title="Document content"
       aria-label="Document content"
       ref={iframeRef}
-      src={chapterUrl()}
+      src={state.chapterUrl()}
       referrerPolicy="no-referrer"
     />
   );
@@ -675,6 +686,21 @@ function App() {
                     field.meta["@property"] === "ppub:valid"
                 );
                 return tag !== undefined;
+              },
+
+              chapterHref() {
+                if (this.initialPath) return this.initialPath;
+                const id = this.chapterId();
+                const rend = this.rendition();
+                const items = rend.package.manifest.item!;
+                return items.find((item: Item) => item["@id"] === id)!["@href"];
+              },
+
+              chapterUrl() {
+                if (this.initialPath) return this.initialPath;
+                const rend = this.rendition();
+                const href = this.chapterHref();
+                return epubUrl(rend, href);
               }
             }
           });
@@ -696,8 +722,5 @@ function App() {
 }
 
 window.addEventListener("load", () => {
-  console.log("hm");
-  document.addEventListener("keyup", e => console.log(e));
-
   render(() => <App />, document.getElementById("root")!);
 });

@@ -3,6 +3,7 @@ import type { Epub } from "./bindings/Epub";
 
 export type { Epub } from "./bindings/Epub";
 export type { Item } from "./bindings/Item";
+export type { Path } from "./bindings/Path";
 export type { Rendition } from "./bindings/Rendition";
 
 export type Result<T, E> = Ok<T> | Err<E>;

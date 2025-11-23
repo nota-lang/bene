@@ -9,9 +9,6 @@
   "devDependencies": {
     "bene-common": "workspace:*",
     "bene-reader": "workspace:*",
-    "jsdom": "^27.2.0",
-    "normalize.css": "^8.0.1",
-    "solid-js": "^1.9.10",
     "vite-plugin-top-level-await": "^1.6.0",
     "vite-plugin-wasm": "^3.5.0"
   }

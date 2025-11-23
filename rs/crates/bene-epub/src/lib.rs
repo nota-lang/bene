@@ -16,6 +16,7 @@ use crate::annotation::{Annotation, RawAnnotation};
 pub use self::zip::{Archive, ArchiveFormat, FileZip, MemoryZip};
 
 mod annotation;
+mod cfi;
 mod xhtml;
 mod zip;
 
@@ -89,13 +90,15 @@ pub struct Item {
 #[derive(Serialize, Deserialize, Debug, TS, Clone)]
 #[ts(export)]
 pub struct Spine {
-  #[serde(rename = "itemref", default)]
-  pub itemrefs: Vec<ItemRef>,
+  #[serde(default)]
+  pub itemref: Vec<ItemRef>,
 }
 
 #[derive(Serialize, Deserialize, Debug, TS, Clone)]
 #[ts(export)]
 pub struct ItemRef {
+  #[serde(rename = "@id")]
+  pub id: Option<String>,
   #[serde(rename = "@idref")]
   pub idref: String,
 }
@@ -123,7 +126,10 @@ impl Rendition {
       .ok_or_else(|| anyhow!("Rootfile path is not a file: {}", rootfile.full_path))?
       .display()
       .to_string();
-    let (package, package_string) = archive.read_xml::<Package>(&rootfile.full_path).await?;
+    let (package, package_string) = archive
+      .read_xml::<Package>(&rootfile.full_path)
+      .await
+      .context("Failed while reading EPUB package file")?;
     debug!("Package: {package:#?}");
 
     let annotation_item = package

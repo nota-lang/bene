@@ -134,7 +134,7 @@ async fn load_epub(app: AppHandle, path: PathBuf) {
     Ok(AppState::Ready(epub))
   }
   .await
-  .unwrap_or_else(|err: anyhow::Error| AppState::Error(err.to_string()));
+  .unwrap_or_else(|err: anyhow::Error| AppState::Error(format!("{err:?}")));
   *app.state::<Mutex<AppState>>().lock().await = state;
 }
 
