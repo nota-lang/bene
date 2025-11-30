@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { open } from "@tauri-apps/plugin-dialog";
 import { type Epub, type LoadedEpub, log, type Result } from "bene-common";
 
@@ -26,12 +27,22 @@ async function poll(): Promise<boolean> {
   return true;
 }
 
+async function upload(path: string) {
+  await invoke("upload", { path });
+
+  let intvl: number;
+  intvl = setInterval(async () => {
+    let finished = await poll();
+    if (finished) clearInterval(intvl);
+  }, 100);
+}
+
 window.addEventListener("message", async event => {
   const message = event.data;
   log.info("Parent received message:", message);
 
   if (message.type === "ready") {
-    console.assert((await poll()) === true);
+    await poll();
   } else if (message.type === "user-upload") {
     let path = await open({
       multiple: false,
@@ -44,11 +55,18 @@ window.addEventListener("message", async event => {
       ]
     });
     if (!path) return;
-    await invoke("upload", { path });
+    upload(path);
+  }
+});
 
-    let intvl = setInterval(async () => {
-      let finished = await poll();
-      if (finished) clearInterval(intvl);
-    }, 100);
+getCurrentWebview().onDragDropEvent(event => {
+  if (event.payload.type === "drop") {
+    let paths = event.payload.paths;
+    if (paths.length !== 1) return;
+
+    let path = paths[0];
+    if (!path.endsWith("epub")) return;
+
+    upload(path);
   }
 });
