@@ -1,4 +1,4 @@
-import { type Rendition, log } from "bene-common";
+import { log, type Rendition } from "bene-common";
 import type { Annotation } from "bene-common/bindings/Annotation";
 import type { Path } from "bene-common/bindings/Path";
 import type { DocState } from "./index";
@@ -134,7 +134,7 @@ class Resolver {
               throw Error("missing offset");
             let offset = path.offset.value;
             while (i < textNodes.length) {
-              let nodeLen = textNodes[i].textContent?.length || 0;              
+              let nodeLen = textNodes[i].textContent?.length || 0;
               if (len + nodeLen >= offset) break;
               ++i;
               len += nodeLen;
