@@ -556,7 +556,6 @@ function ViewerInner() {
 
 function Loader() {
   const [state] = useContext(StateContext)!;
-  let ref: HTMLInputElement | undefined;
 
   // const [stillWaiting, setStillWaiting] = createSignal(false);
   // const [stillWaitingLong, setStillWaitingLong] = createSignal(false);
@@ -572,30 +571,10 @@ function Loader() {
             type="button"
             class="icon-button open-file"
             aria-label="Upload EPUB"
-            onClick={e => {
-              e.preventDefault();
-              ref!.click();
+            onClick={() => {
+              window.parent.postMessage({ type: "user-upload" }, "*");
             }}
             style={{ opacity: 0.4, top: "2px", left: "3px" }}
-          />
-          <input
-            ref={ref}
-            type="file"
-            style={{ display: "none" }}
-            onChange={event => {
-              let files = event.target.files;
-              if (files?.length && files.length > 0) {
-                const file = files[0];
-                log.info("Uploaded user file:", file.name);
-                window.parent.postMessage(
-                  {
-                    type: "user-upload",
-                    data: file
-                  },
-                  "*"
-                );
-              }
-            }}
           />
         </>
       ) : state.type === "error" ? (

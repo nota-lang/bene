@@ -31,6 +31,11 @@ async fn state(state: State<'_, Mutex<AppState>>) -> Result<AppState, String> {
   Ok(state.lock().await.clone())
 }
 
+#[tauri::command]
+fn upload(handle: AppHandle, path: PathBuf) {
+  tokio::spawn(load_epub(handle, path));
+}
+
 #[derive(Parser)]
 struct CliArgs {
   /// Path to .epub file
@@ -161,6 +166,8 @@ async fn main() -> Result<()> {
   };
 
   let builder = tauri::Builder::default()
+    .plugin(tauri_plugin_dialog::init())
+    .plugin(tauri_plugin_shell::init())
     .plugin(
       tauri_plugin_log::Builder::new()
         .level(log::LevelFilter::Info)
@@ -168,8 +175,7 @@ async fn main() -> Result<()> {
     )
     .setup(setup)
     .manage(Mutex::new(AppState::Waiting))
-    .plugin(tauri_plugin_shell::init())
-    .invoke_handler(tauri::generate_handler![state])
+    .invoke_handler(tauri::generate_handler![state, upload])
     .register_asynchronous_uri_scheme_protocol("bene", move |ctx, request, responder| {
       let app = ctx.app_handle().clone();
       tokio::spawn(async move {

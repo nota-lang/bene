@@ -79,6 +79,7 @@ function deserializeUrl(location: Location): string | undefined {
 
 function App() {
   let iframe: HTMLIFrameElement | undefined;
+  let fileInput: HTMLInputElement | undefined;
 
   const [registration] = createResource(
     async () =>
@@ -119,18 +120,7 @@ function App() {
 
       const message = event.data;
       if (message.type === "user-upload") {
-        const file = message.data;
-
-        const reader = new FileReader();
-
-        reader.onload = async e => {
-          if (!e.target) return;
-          const arrayBuffer = e.target.result as ArrayBuffer;
-          const byteArray = new Uint8Array(arrayBuffer);
-          setNewEpub(byteArray);
-        };
-
-        reader.readAsArrayBuffer(file);
+        fileInput!.click();
       } else if (message.type === "navigate") {
         const urlStr = message.data as string;
         const url = new URL(urlStr);
@@ -141,12 +131,33 @@ function App() {
   });
 
   return (
-    <iframe
-      ref={iframe}
-      title="Bene Reader"
-      src="bene-reader/index.html"
-      referrerPolicy="no-referrer"
-    />
+    <>
+      <iframe
+        ref={iframe}
+        title="Bene Reader"
+        src="bene-reader/index.html"
+        referrerPolicy="no-referrer"
+      />
+      <input
+        ref={fileInput}
+        type="file"
+        style={{ display: "none" }}
+        onChange={event => {
+          let files = event.target.files;
+          if (files?.length && files.length > 0) {
+            const file = files[0];
+            const reader = new FileReader();
+            reader.onload = async e => {
+              if (!e.target) return;
+              const arrayBuffer = e.target.result as ArrayBuffer;
+              const byteArray = new Uint8Array(arrayBuffer);
+              setNewEpub(byteArray);
+            };
+            reader.readAsArrayBuffer(file);
+          }
+        }}
+      />
+    </>
   );
 }
 

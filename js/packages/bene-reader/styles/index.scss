@@ -85,6 +85,7 @@
     background: none;
     border: none;
     cursor: pointer;
+    vertical-align: text-top;
 
     &:hover {
       background-color: var(--button-hover-color);

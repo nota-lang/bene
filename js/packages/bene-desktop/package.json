@@ -9,6 +9,7 @@
   "devDependencies": {
     "@tauri-apps/api": "^2.9.0",
     "@tauri-apps/cli": "^2.9.4",
+    "@tauri-apps/plugin-dialog": "^2.4.2",
     "bene-common": "workspace:*",
     "bene-reader": "workspace:*"
   }
