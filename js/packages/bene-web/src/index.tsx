@@ -114,13 +114,28 @@ function App() {
     if (reg && TEST_EPUB) fetchZip(TEST_EPUB);
   });
 
+  function loadFile(file: File) {
+    const reader = new FileReader();
+    reader.onload = async e => {
+      if (!e.target) return;
+      const arrayBuffer = e.target.result as ArrayBuffer;
+      const byteArray = new Uint8Array(arrayBuffer);
+      setNewEpub(byteArray);
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
   onMount(() => {
     window.addEventListener("message", event => {
       if (event.source !== iframe!.contentWindow) return;
 
       const message = event.data;
-      if (message.type === "user-upload") {
+      log.info("Parent window received message", message);
+      if (message.type === "request-upload") {
         fileInput!.click();
+      } else if (message.type === "finished-upload") {
+        const file: File = message.data;
+        loadFile(file);
       } else if (message.type === "navigate") {
         const urlStr = message.data as string;
         const url = new URL(urlStr);
@@ -146,14 +161,7 @@ function App() {
           let files = event.target.files;
           if (files?.length && files.length > 0) {
             const file = files[0];
-            const reader = new FileReader();
-            reader.onload = async e => {
-              if (!e.target) return;
-              const arrayBuffer = e.target.result as ArrayBuffer;
-              const byteArray = new Uint8Array(arrayBuffer);
-              setNewEpub(byteArray);
-            };
-            reader.readAsArrayBuffer(file);
+            loadFile(file);
           }
         }}
       />

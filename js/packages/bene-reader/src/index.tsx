@@ -572,7 +572,7 @@ function Loader() {
             class="icon-button open-file"
             aria-label="Upload EPUB"
             onClick={() => {
-              window.parent.postMessage({ type: "user-upload" }, "*");
+              window.parent.postMessage({ type: "request-upload" }, "*");
             }}
             style={{ opacity: 0.4, top: "2px", left: "3px" }}
           />
@@ -610,7 +610,7 @@ function registerDropEvents() {
       log.info("Uploaded user file:", file.name);
       window.parent.postMessage(
         {
-          type: "user-upload",
+          type: "finished-upload",
           data: file
         },
         "*"

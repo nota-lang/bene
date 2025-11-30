@@ -43,7 +43,7 @@ window.addEventListener("message", async event => {
 
   if (message.type === "ready") {
     await poll();
-  } else if (message.type === "user-upload") {
+  } else if (message.type === "request-upload") {
     let path = await open({
       multiple: false,
       directory: false,
