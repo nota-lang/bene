@@ -83,6 +83,12 @@
     wasm.__externref_table_dealloc(idx);
     return value;
   }
+  function init_rs() {
+    const ret = wasm.init_rs();
+    if (ret[1]) {
+      throw takeFromExternrefTable0(ret[0]);
+    }
+  }
   function guess_mime_type(url) {
     let deferred2_0;
     let deferred2_1;
@@ -272,6 +278,7 @@
     log("Installed");
     globalSelf.skipWaiting();
     event.waitUntil(__wbg_init());
+    init_rs();
     log("Initialized");
   });
   globalSelf.addEventListener("activate", (event) => {
@@ -288,6 +295,7 @@
       log("Ignoring request due to no current scope");
       return;
     }
+    event.waitUntil(__wbg_init());
     const EPUB_PATH = "bene-reader/epub-content/";
     let epubBaseUrl = currentScope + EPUB_PATH;
     if (event.request.url.startsWith(epubBaseUrl)) {
@@ -317,6 +325,7 @@
     let message = event.data;
     if (message.type === "new-epub") {
       let { data, scope, url, path } = message.data;
+      log("Attempting to load new epub");
       try {
         currentEpub = load_epub(data);
       } catch (e) {
