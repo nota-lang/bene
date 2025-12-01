@@ -277,3 +277,37 @@ pub fn guess_mime_type(path: &str) -> Option<String> {
     _ => "application/octet-stream".to_string(),
   })
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn export_bindings() {
+    // Export all TypeScript bindings for types marked with #[ts(export)]
+    // ts-rs will automatically write to bindings/ directory relative to the crate root
+    Package::export().unwrap();
+    Metadata::export().unwrap();
+    MetaField::export().unwrap();
+    Manifest::export().unwrap();
+    Item::export().unwrap();
+    Spine::export().unwrap();
+    ItemRef::export().unwrap();
+    Rendition::export().unwrap();
+    Container::export().unwrap();
+    Rootfiles::export().unwrap();
+    Rootfile::export().unwrap();
+    Epub::export().unwrap();
+
+    // Export annotation types
+    crate::annotation::Annotation::export().unwrap();
+
+    // Export CFI types
+    crate::cfi::Fragment::export().unwrap();
+    crate::cfi::Range::export().unwrap();
+    crate::cfi::Path::export().unwrap();
+    crate::cfi::PathComponent::export().unwrap();
+    crate::cfi::Assertion::export().unwrap();
+    crate::cfi::Offset::export().unwrap();
+  }
+}

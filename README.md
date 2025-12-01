@@ -8,9 +8,28 @@ Bene is a reading system for documents written in the [EPUB](https://www.w3.org/
 
 Currently, the only supported setup is installation from source. You will need at least [Rust](https://rustup.rs/) and [Depot](https://github.com/cognitive-engineering-lab/depot?tab=readme-ov-file#installation).
 
-Bene is distributed as a web app and a desktop app. 
+Bene is distributed as a web app and a desktop app.
 
-### Web App
+### Using Justfile Commands
+
+If you have [just](https://github.com/casey/just) installed, you can use the provided Justfile commands:
+
+```bash
+# Build the web app
+just build-wasm
+
+# Build the desktop app
+just build-native
+
+# Run the desktop app in development mode
+just dev-native
+```
+
+### Manual Setup
+
+If you prefer not to use `just`, follow the instructions below.
+
+#### Web App
 
 You will need [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/). Then run:
 
@@ -28,7 +47,7 @@ python -m http.server
 
 And visit <http://localhost:8000/>. You can replace the `python` command with however you like to serve static files.
 
-### Desktop App
+#### Desktop App
 
 You will need the [Tauri](https://tauri.app/) CLI, which you can install by running:
 
@@ -36,11 +55,20 @@ You will need the [Tauri](https://tauri.app/) CLI, which you can install by runn
 cargo install tauri-cli
 ```
 
-Then run:
+The desktop app requires both the `bene-reader` and `bene-desktop` JavaScript packages to be built. Run:
 
-```
+```bash
+# Generate Rust/TypeScript bindings
 cd rs
-cargo tauri build
-```
+cargo test -p bene-epub export_bindings
+cp -r crates/bene-epub/bindings ../js/packages/bene-common/src/
 
-This will generate a binary you can use on your system.
+# Build the JavaScript packages
+cd ../js
+depot -p bene-reader build --release
+depot -p bene-desktop build --release
+
+# Build or run the desktop app
+cd ../rs
+cargo tauri build  # or cargo tauri dev for development
+```
