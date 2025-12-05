@@ -269,15 +269,21 @@
   let logChannel = new BroadcastChannel("log-channel");
   let log = (...args) => logChannel.postMessage(args.map((arg) => arg.toString()).join("	"));
   globalSelf.addEventListener("install", (event) => {
-    log("Installed");
-    globalSelf.skipWaiting();
-    event.waitUntil(__wbg_init());
-    log("Initialized");
+    async function handler() {
+      log("Installed");
+      globalSelf.skipWaiting();
+      await __wbg_init();
+      log("Initialized");
+    }
+    event.waitUntil(handler());
   });
   globalSelf.addEventListener("activate", (event) => {
-    log("Activated");
-    event.waitUntil(globalSelf.clients.claim());
-    log("Claimed");
+    async function handler() {
+      log("Activated");
+      await globalSelf.clients.claim();
+      log("Claimed");
+    }
+    event.waitUntil(handler());
   });
   globalSelf.addEventListener("fetch", (event) => {
     if (!currentEpub) {
@@ -313,33 +319,36 @@
       log("Ignoring request for", event.request.url);
     }
   });
-  globalSelf.addEventListener("message", async (event) => {
-    let message = event.data;
-    if (message.type === "new-epub") {
-      let { data, scope, url, path } = message.data;
-      log("Attempting to load new epub");
-      event.waitUntil(__wbg_init());
-      try {
-        currentEpub = load_epub(data);
-      } catch (e) {
-        log("Failed to load EPUB with error: ", e);
-        return;
-      }
-      currentScope = scope;
-      let metadata = JSON.parse(currentEpub.metadata());
-      let clients = await globalSelf.clients.matchAll();
-      log("Loaded new epub, broadcasting to window");
-      for (let client of clients) {
-        client.postMessage({
-          type: "loaded-epub",
-          data: {
-            metadata,
-            url,
-            path
-          }
-        });
+  globalSelf.addEventListener("message", (event) => {
+    async function handler() {
+      let message = event.data;
+      if (message.type === "new-epub") {
+        let { data, scope, url, path } = message.data;
+        log("Attempting to load new epub");
+        await __wbg_init();
+        try {
+          currentEpub = load_epub(data);
+        } catch (e) {
+          log("Failed to load EPUB with error: ", e);
+          return;
+        }
+        currentScope = scope;
+        let metadata = JSON.parse(currentEpub.metadata());
+        let clients = await globalSelf.clients.matchAll();
+        log("Loaded new epub, broadcasting to window");
+        for (let client of clients) {
+          client.postMessage({
+            type: "loaded-epub",
+            data: {
+              metadata,
+              url,
+              path
+            }
+          });
+        }
       }
     }
+    event.waitUntil(handler());
   });
 })();
 //# sourceMappingURL=worker.js.map
