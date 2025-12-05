@@ -3,8 +3,7 @@
 import init, {
   type EpubCtxt,
   guess_mime_type,
-  init_rs,
-  load_epub
+  load_epub,
 } from "rs-utils";
 
 let globalSelf = self as any as ServiceWorkerGlobalScope;
@@ -19,7 +18,6 @@ globalSelf.addEventListener("install", event => {
   log("Installed");
   globalSelf.skipWaiting();
   event.waitUntil(init());
-  init_rs();
   log("Initialized");
 });
 
@@ -38,10 +36,6 @@ globalSelf.addEventListener("fetch", event => {
     log("Ignoring request due to no current scope");
     return;
   }
-
-  // TODO: seems to be flaky behavior where sometimes `__wbindgen_malloc` is undefined,
-  // which I think is b/c wasm hasn't been initialized via the `init()` function.
-  event.waitUntil(init()); 
 
   const EPUB_PATH = "bene-reader/epub-content/";
   let epubBaseUrl = currentScope + EPUB_PATH;
@@ -74,6 +68,10 @@ globalSelf.addEventListener("message", async event => {
   if (message.type === "new-epub") {
     let { data, scope, url, path } = message.data;
     log("Attempting to load new epub");
+
+    // TODO: seems to be flaky behavior where sometimes `__wbindgen_malloc` is undefined,
+    // which I think is b/c wasm hasn't been initialized via the `init()` function.
+    event.waitUntil(init());    
 
     try {
       currentEpub = load_epub(data);
