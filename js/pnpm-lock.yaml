@@ -101,6 +101,9 @@ importers:
       '@tauri-apps/plugin-dialog':
         specifier: ^2.4.2
         version: 2.4.2
+      '@tauri-apps/plugin-shell':
+        specifier: ^2.3.3
+        version: 2.3.3
       bene-common:
         specifier: workspace:*
         version: link:../bene-common
@@ -844,6 +847,9 @@ packages:
 
   '@tauri-apps/plugin-log@2.7.1':
     resolution: {integrity: sha512-jdb+o0wxQc8PjnLktgGpOs9Dh1YupaOGDXzO+Y8peA1UZ1ep3eXv4E1oiJ7nIQVN0XUFDDhnn3aBszl8ijhR+A==}
+
+  '@tauri-apps/plugin-shell@2.3.3':
+    resolution: {integrity: sha512-Xod+pRcFxmOWFWEnqH5yZcA7qwAMuaaDkMR1Sply+F8VfBj++CGnj2xf5UoialmjZ2Cvd8qrvSCbU+7GgNVsKQ==}
 
   '@types/babel__core@7.20.5':
     resolution: {integrity: sha512-qoQprZvz5wQFJwMDqeseRXWv3rqMvhgpbXFfVyWhbx9X47POIA6i/+dXefEmZKoAgOaTdaIgNSMqMIU61yRyzA==}
@@ -2179,6 +2185,10 @@ snapshots:
       '@tauri-apps/api': 2.9.0
 
   '@tauri-apps/plugin-log@2.7.1':
+    dependencies:
+      '@tauri-apps/api': 2.9.0
+
+  '@tauri-apps/plugin-shell@2.3.3':
     dependencies:
       '@tauri-apps/api': 2.9.0
 

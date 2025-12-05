@@ -428,9 +428,20 @@ function Content(props: { navigateEvent: EventTarget }) {
 
         const url = new URL(a.href);
         if (url.host !== window.location.host) {
-          // Need to add target="_blank" to all anchors, or else external navigation will
-          // occur within the reader's iframe.
-          a.setAttribute("target", "_blank");
+          // HACK: Tauri doesn't currently support opening external URLs via _blank anchors
+          // when specifically nested inside an iframe. As a workaround, we post a message
+          // to the parent and handle with the shell plugin. This should be removed when the
+          // upstream bug is fixed. See: https://github.com/tauri-apps/tauri/issues/9912
+          a.addEventListener("click", event => {
+            event.preventDefault();
+            window.parent.postMessage(
+              {
+                type: "open-url",
+                data: url.toString()
+              },
+              "*"
+            );
+          });
         }
       }
 

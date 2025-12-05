@@ -152,6 +152,10 @@ function App() {
         const url = new URL(urlStr);
         const hash = serializeUrl(url);
         window.history.replaceState(undefined, "", `#${hash}`);
+      } else if (message.type === "open-url") {
+        const urlStr = message.data as string;
+        const url = new URL(urlStr);
+        window.open(url, "_blank");
       }
     });
   });

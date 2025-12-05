@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
-import { open } from "@tauri-apps/plugin-dialog";
+import { open as openDialog } from "@tauri-apps/plugin-dialog";
+import { open as openShell } from "@tauri-apps/plugin-shell";
 import { type Epub, type LoadedEpub, log, type Result } from "bene-common";
 
 async function poll(): Promise<boolean> {
@@ -44,7 +45,7 @@ window.addEventListener("message", async event => {
   if (message.type === "ready") {
     await poll();
   } else if (message.type === "request-upload") {
-    let path = await open({
+    let path = await openDialog({
       multiple: false,
       directory: false,
       filters: [
@@ -56,6 +57,9 @@ window.addEventListener("message", async event => {
     });
     if (!path) return;
     upload(path);
+  } else if (message.type === "open-url") {
+    const urlStr = message.data as string;
+    openShell(urlStr);
   }
 });
 

@@ -5,23 +5,23 @@ export default defineConfig(({ mode }) => ({
   plugins: [solidPlugin()],
   base: "./",
   define: {
-    "process.env.NODE_ENV": JSON.stringify(mode),
+    "process.env.NODE_ENV": JSON.stringify(mode)
   },
   build: {
     rollupOptions: {
-      input: ['./index.html', './styles/content.scss'],
+      input: ["./index.html", "./styles/content.scss"],
       output: {
         assetFileNames: asset => {
-          if (asset.name == "content.css") return "content.css";
+          if (asset.names.includes("content.css")) return "content.css";
           return "assets/[name]-[hash][extname]";
         }
       }
-    },
+    }
   },
   test: {
     environment: "jsdom",
     deps: {
-      inline: [/^(?!.*vitest).*$/],
-    },
-  },
+      inline: [/^(?!.*vitest).*$/]
+    }
+  }
 }));
