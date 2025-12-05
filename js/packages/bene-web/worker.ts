@@ -1,10 +1,6 @@
 /// <reference lib="WebWorker" />
 
-import init, {
-  type EpubCtxt,
-  guess_mime_type,
-  load_epub,
-} from "rs-utils";
+import init, { type EpubCtxt, guess_mime_type, load_epub } from "rs-utils";
 
 let globalSelf = self as any as ServiceWorkerGlobalScope;
 let currentEpub: EpubCtxt | undefined;
@@ -15,19 +11,25 @@ let log = (...args: any[]) =>
   logChannel.postMessage(args.map(arg => arg.toString()).join("\t"));
 
 globalSelf.addEventListener("install", event => {
-  log("Installed");
-  globalSelf.skipWaiting();
-  event.waitUntil(init());
-  log("Initialized");
+  async function handler() {
+    log("Installed");
+    globalSelf.skipWaiting();
+    await init();
+    log("Initialized");
+  }
+  event.waitUntil(handler());
 });
 
 globalSelf.addEventListener("activate", event => {
-  log("Activated");
-  event.waitUntil(globalSelf.clients.claim());
-  log("Claimed");
+  async function handler() {
+    log("Activated");
+    await globalSelf.clients.claim();
+    log("Claimed");
+  }
+  event.waitUntil(handler());
 });
 
-globalSelf.addEventListener("fetch", event => {
+globalSelf.addEventListener("fetch", event => {  
   if (!currentEpub) {
     log("Ignoring request due to no loaded EPUB");
     return;
@@ -63,36 +65,41 @@ globalSelf.addEventListener("fetch", event => {
   }
 });
 
-globalSelf.addEventListener("message", async event => {
-  let message = event.data;
-  if (message.type === "new-epub") {
-    let { data, scope, url, path } = message.data;
-    log("Attempting to load new epub");
+globalSelf.addEventListener("message", event => {
+  async function handler() {
+    let message = event.data;
+    if (message.type === "new-epub") {
+      let { data, scope, url, path } = message.data;
+      log("Attempting to load new epub");
 
-    // TODO: seems to be flaky behavior where sometimes `__wbindgen_malloc` is undefined,
-    // which I think is b/c wasm hasn't been initialized via the `init()` function.
-    event.waitUntil(init());    
+      // HACK: I think this is necessary if someone revisits
+      // the page after closing the browser (window? process?)
+      // and the worker state is gone, and needs to be reinitialized.
+      // Unsure if this should happen somewhere else.
+      await init();
 
-    try {
-      currentEpub = load_epub(data);
-    } catch (e: any) {
-      log("Failed to load EPUB with error: ", e);
-      return;
-    }
+      try {
+        currentEpub = load_epub(data);
+      } catch (e: any) {
+        log("Failed to load EPUB with error: ", e);
+        return;
+      }
 
-    currentScope = scope;
-    let metadata = JSON.parse(currentEpub.metadata());
-    let clients = await globalSelf.clients.matchAll();
-    log("Loaded new epub, broadcasting to window");
-    for (let client of clients) {
-      client.postMessage({
-        type: "loaded-epub",
-        data: {
-          metadata,
-          url,
-          path
-        }
-      });
+      currentScope = scope;
+      let metadata = JSON.parse(currentEpub.metadata());
+      let clients = await globalSelf.clients.matchAll();
+      log("Loaded new epub, broadcasting to window");
+      for (let client of clients!) {
+        client.postMessage({
+          type: "loaded-epub",
+          data: {
+            metadata,
+            url,
+            path
+          }
+        });
+      }
     }
   }
+  event.waitUntil(handler());
 });

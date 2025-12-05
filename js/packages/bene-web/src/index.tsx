@@ -19,17 +19,43 @@ async function registerServiceWorker(
   const existingRegistration = registrations.find(
     reg => reg.active && reg.active.scriptURL === workerUrl
   );
-  let registration: ServiceWorkerRegistration;
+
   if (existingRegistration) {
-    registration = existingRegistration;
+    log.debug("Found existing worker registration", existingRegistration);
+
+    // HACK: have to soft reload after a hard reload. See:
+    // https://stackoverflow.com/questions/51597231/register-service-worker-after-hard-refresh
+    if (
+      existingRegistration.active &&
+      navigator.serviceWorker.controller === null
+    )
+      window.location.reload();
+
+    navigator.serviceWorker.addEventListener("message", event => {
+      const message = event.data;
+
+      if (message.type === "loaded-epub") {
+        const metadata = message.data;
+        post({
+          type: "loaded-epub",
+          data: {
+            status: "ok",
+            data: metadata
+          }
+        });
+      }
+    });
+    return existingRegistration;
   } else {
+    log.debug("No existing worker registration, creating new one");
+
     const workerReady = new Promise(resolve =>
       navigator.serviceWorker.addEventListener("controllerchange", _event => {
         resolve(undefined);
       })
     );
 
-    registration = await navigator.serviceWorker.register(workerUrl);
+    const registration = await navigator.serviceWorker.register(workerUrl);
     log.debug(
       `Registered worker at scope ${registration.scope}, waiting for it to activate.`,
       registration
@@ -41,24 +67,9 @@ async function registerServiceWorker(
       "Service worker is not active?"
     );
     log.debug("Successfully activated service worker.");
+
+    return registration;
   }
-
-  navigator.serviceWorker.addEventListener("message", event => {
-    const message = event.data;
-
-    if (message.type === "loaded-epub") {
-      const metadata = message.data;
-      post({
-        type: "loaded-epub",
-        data: {
-          status: "ok",
-          data: metadata
-        }
-      });
-    }
-  });
-
-  return registration;
 }
 
 declare var TEST_EPUB: string | undefined;
