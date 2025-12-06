@@ -16,7 +16,6 @@ pub use self::zip::{Archive, ArchiveFormat, FileZip, MemoryZip};
 
 mod annotation;
 mod cfi;
-mod xhtml;
 mod zip;
 
 #[derive(Serialize, Deserialize, Debug, TS, Clone)]
@@ -236,25 +235,6 @@ impl Epub {
     );
 
     Ok(Epub { renditions })
-  }
-
-  /// Asynchronously loads a file from the EPUB's archive.
-  ///
-  /// TODO: Why does this function not need `self`? Is that a bug?
-  ///
-  /// # Errors
-  /// - If the file fails to be read with [`Archive::read_file`].
-  /// - If the file is XHTML and fails to be processed by [`xhtml::process_xhtml`].
-  pub fn load_asset(&self, archive: &mut Archive, path: &str) -> Result<Vec<u8>> {
-    let contents = archive.read_file(path)?;
-    if Path::new(path)
-      .extension()
-      .is_some_and(|ext| ext.eq_ignore_ascii_case("xhtml"))
-    {
-      xhtml::process_xhtml(path, &contents)
-    } else {
-      Ok(contents)
-    }
   }
 }
 

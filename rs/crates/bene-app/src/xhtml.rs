@@ -5,10 +5,9 @@
 use std::io::Cursor;
 
 use anyhow::Result;
-use itertools::Itertools;
 use quick_xml::{
-  events::{BytesStart, Event},
   Reader, Writer,
+  events::{BytesStart, Event},
 };
 
 fn css_link_elem(href: &str) -> Event<'_> {
@@ -26,7 +25,10 @@ pub fn process_xhtml(path: &str, input: &[u8]) -> Result<Vec<u8>> {
       Event::End(end) => {
         if end.local_name().as_ref() == b"head" {
           let num_segments = path.split('/').count();
-          let reader_root = (0..num_segments).map(|_| "..").collect_vec().join("/");
+          let reader_root = (0..num_segments)
+            .map(|_| "..")
+            .collect::<Vec<_>>()
+            .join("/");
 
           let href = format!("{reader_root}/content.css");
           writer.write_event(css_link_elem(&href))?;

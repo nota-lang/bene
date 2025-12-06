@@ -12,7 +12,6 @@ serde_json = "1.0.145"
 mediatype = { version = "0.21.0", features = ["serde"] }
 format_serde_error = { version = "0.3.0", default-features = false, features = ["colored", "graphemes_support", "serde_json"] }
 smallvec = { version = "1.15.1", features = ["serde"] }
-quick-xml = { version = "0.38.3", features = ["serialize"] }
 nom = "8.0.0"
 zip = { version = "6.0.0", default-features = false, features = [
   # No AES because it depends on getrandom which wasm doesn't support
@@ -30,3 +29,4 @@ zip = { version = "6.0.0", default-features = false, features = [
 anyhow = { workspace = true }
 log = { workspace = true }
 serde = { workspace = true }
+quick-xml = { workspace = true }
