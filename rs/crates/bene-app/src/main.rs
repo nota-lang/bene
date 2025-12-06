@@ -1,21 +1,22 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 #![warn(clippy::pedantic)]
-#![allow(clippy::single_match_else)]
+#![allow(clippy::single_match_else, clippy::needless_pass_by_value)]
 
-use std::{borrow::Cow, fmt::Write, path::PathBuf};
+use std::{
+  borrow::Cow,
+  fmt::Write,
+  fs,
+  path::PathBuf,
+  sync::{Mutex, MutexGuard},
+};
 
 use anyhow::{Context, Result, anyhow};
 use bene_epub::{Archive, Epub, FileZip};
 use cfg_if::cfg_if;
 use clap::Parser;
-use futures::future::try_join_all;
 use log::warn;
 use tauri::{App, AppHandle, Manager, State, http, utils::config::FrontendDist};
-use tokio::{
-  runtime::Handle,
-  sync::{Mutex, MutexGuard},
-};
 
 #[derive(serde::Serialize, Clone)]
 #[serde(tag = "type", content = "value")]
@@ -27,13 +28,13 @@ enum AppState {
 }
 
 #[tauri::command]
-async fn state(state: State<'_, Mutex<AppState>>) -> Result<AppState, String> {
-  Ok(state.lock().await.clone())
+fn state(state: State<'_, Mutex<AppState>>) -> AppState {
+  state.lock().unwrap().clone()
 }
 
 #[tauri::command]
 fn upload(handle: AppHandle, path: PathBuf) {
-  tokio::spawn(load_epub(handle, path));
+  load_epub(handle, path);
 }
 
 #[derive(Parser)]
@@ -42,7 +43,7 @@ struct CliArgs {
   path: Option<PathBuf>,
 }
 
-async fn load_reader_asset(app: &AppHandle, local_path: &str) -> Result<Vec<u8>> {
+fn load_reader_asset(app: &AppHandle, local_path: &str) -> Result<Vec<u8>> {
   let mut full_path = String::new();
   if cfg!(dev) {
     let FrontendDist::Directory(dir) = app.config().build.frontend_dist.as_ref().unwrap() else {
@@ -58,28 +59,26 @@ async fn load_reader_asset(app: &AppHandle, local_path: &str) -> Result<Vec<u8>>
   }
   full_path.push_str(local_path);
 
-  tokio::fs::read(&full_path)
-    .await
-    .with_context(|| format!("Failed to read: {full_path}"))
+  fs::read(&full_path).with_context(|| format!("Failed to read: {full_path}"))
 }
 
-async fn serve_asset(
+fn serve_asset(
   app: &AppHandle,
   request: http::Request<Vec<u8>>,
 ) -> http::Response<Cow<'static, [u8]>> {
   let path = request.uri().path();
   let (result, path) = match path.strip_prefix("/epub-content/") {
     Some(epub_path) => match (
-      &*app.state::<Mutex<AppState>>().inner().lock().await,
+      &*app.state::<Mutex<AppState>>().inner().lock().unwrap(),
       app.try_state::<ArchivePool>(),
     ) {
       (AppState::Ready(epub), Some(pool)) => {
-        let mut archive = pool.lock_one().await;
-        (epub.load_asset(&mut archive, epub_path).await, epub_path)
+        let mut archive = pool.lock_one();
+        (epub.load_asset(&mut archive, epub_path), epub_path)
       }
       _ => (Err(anyhow!("Epub not loaded yet")), epub_path),
     },
-    None => (load_reader_asset(app, path).await, path),
+    None => (load_reader_asset(app, path), path),
   };
   match result {
     Ok(contents) => {
@@ -107,47 +106,42 @@ struct ArchivePool {
 }
 
 impl ArchivePool {
-  async fn new(archive: Archive) -> Result<Self> {
-    let pool = try_join_all(
-      (0..POOL_SIZE).map(async |_| Ok::<_, anyhow::Error>(Mutex::new(archive.try_clone().await?))),
-    )
-    .await?;
+  fn new(archive: Archive) -> Result<Self> {
+    let pool = (0..POOL_SIZE)
+      .map(|_| Ok(Mutex::new(archive.try_clone()?)))
+      .collect::<Result<Vec<_>>>()?;
     Ok(ArchivePool { pool })
   }
 
-  async fn lock_one(&self) -> MutexGuard<'_, Archive> {
+  fn lock_one(&self) -> MutexGuard<'_, Archive> {
     for archive in &self.pool {
       if let Ok(archive) = archive.try_lock() {
         return archive;
       }
     }
 
-    self.pool[0].lock().await
+    self.pool[0].lock().unwrap()
   }
 }
 
-async fn load_epub(app: AppHandle, path: PathBuf) {
-  let app = &app;
-  *app.state::<Mutex<AppState>>().lock().await = AppState::Loading;
-  let state = async {
-    let mut archive = Archive::load(FileZip(path))
-      .await
-      .context("Failed to parse epub as zip")?;
-    let epub = Epub::load(&mut archive).await?;
-    let archive = ArchivePool::new(archive).await?;
-    app.manage(archive);
-    Ok(AppState::Ready(epub))
-  }
-  .await
-  .unwrap_or_else(|err: anyhow::Error| AppState::Error(format!("{err:?}")));
-  *app.state::<Mutex<AppState>>().lock().await = state;
+fn load_epub(app: AppHandle, path: PathBuf) {
+  tauri::async_runtime::spawn_blocking(move || {
+    let app = &app;
+    *app.state::<Mutex<AppState>>().lock().unwrap() = AppState::Loading;
+    let state = (|| {
+      let mut archive = Archive::load(FileZip(path)).context("Failed to parse epub as zip")?;
+      let epub = Epub::load(&mut archive)?;
+      let archive = ArchivePool::new(archive)?;
+      app.manage(archive);
+      Ok(AppState::Ready(epub))
+    })()
+    .unwrap_or_else(|err: anyhow::Error| AppState::Error(format!("{err:?}")));
+    *app.state::<Mutex<AppState>>().lock().unwrap() = state;
+  });
 }
 
-#[tokio::main]
-async fn main() -> Result<()> {
+fn main() -> Result<()> {
   let args = CliArgs::parse();
-
-  tauri::async_runtime::set(Handle::current());
 
   #[allow(unused_variables)]
   let setup = |app: &mut App| {
@@ -159,7 +153,7 @@ async fn main() -> Result<()> {
 
     if let Some(path) = args.path {
       let handle = app.handle().clone();
-      tokio::spawn(load_epub(handle, path));
+      load_epub(handle, path);
     }
 
     Ok(())
@@ -178,8 +172,8 @@ async fn main() -> Result<()> {
     .invoke_handler(tauri::generate_handler![state, upload])
     .register_asynchronous_uri_scheme_protocol("bene", move |ctx, request, responder| {
       let app = ctx.app_handle().clone();
-      tokio::spawn(async move {
-        let response = serve_asset(&app, request).await;
+      tauri::async_runtime::spawn_blocking(move || {
+        let response = serve_asset(&app, request);
         responder.respond(response);
       });
     });
@@ -194,7 +188,7 @@ async fn main() -> Result<()> {
         if let tauri::RunEvent::Opened { urls } = event {
           let path = PathBuf::from(urls[0].path());
           let handle = app.clone();
-          tokio::spawn(load_epub(handle, path));
+          load_epub(handle, path);
         }
       });
     } else {

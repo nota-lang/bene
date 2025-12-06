@@ -3,15 +3,8 @@ name = "bene-epub"
 version = "0.1.0"
 edition = "2021"
 
-[features]
-default = ["async_zip/full"]
-wasm = ["async_zip/full-wasm"]
-
 [dependencies]
-async_zip = { version = "0.0.18", features = ["tokio"] }
 itertools = "0.14.0"
-tokio-util = "0.7.16"
-async-trait = "0.1.89"
 mime_guess = "2.0.5"
 ts-rs = { version = "11.1.0", features = ["no-serde-warnings"] }
 iref = { version = "3.2.2", features = ["serde"] }
@@ -19,11 +12,21 @@ serde_json = "1.0.145"
 mediatype = { version = "0.21.0", features = ["serde"] }
 format_serde_error = { version = "0.3.0", default-features = false, features = ["colored", "graphemes_support", "serde_json"] }
 smallvec = { version = "1.15.1", features = ["serde"] }
+quick-xml = { version = "0.38.3", features = ["serialize"] }
 nom = "8.0.0"
+zip = { version = "6.0.0", default-features = false, features = [
+  # No AES because it depends on getrandom which wasm doesn't support
+  # "aes-crypto",
+  "bzip2",
+  "deflate64",
+  "deflate",
+  "lzma",
+  "ppmd",
+  "time",
+  "zstd",
+  "xz",
+]}
 
 anyhow = { workspace = true }
 log = { workspace = true }
 serde = { workspace = true }
-tokio = { workspace = true, features = ["sync", "rt"] }
-quick-xml = { workspace = true, features = ["async-tokio", "serialize"] }
-futures = { workspace = true }

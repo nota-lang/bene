@@ -15,16 +15,11 @@ impl EpubCtxt {
   }
 
   pub fn read_file(&mut self, path: &str) -> Result<Uint8Array, JsError> {
-    let runtime = tokio::runtime::Builder::new_current_thread().build()?;
-    let _guard = runtime.enter();
-    runtime.block_on(async {
-      let contents = self
-        .epub
-        .load_asset(&mut self.archive, path)
-        .await
-        .map_err(|err| JsError::new(&err.to_string()))?;
-      Ok(Uint8Array::from(contents.as_slice()))
-    })
+    let contents = self
+      .epub
+      .load_asset(&mut self.archive, path)
+      .map_err(|err| JsError::new(&err.to_string()))?;
+    Ok(Uint8Array::from(contents.as_slice()))
   }
 }
 
@@ -36,17 +31,10 @@ pub fn init_rs() -> Result<(), JsError> {
 
 #[wasm_bindgen]
 pub fn load_epub(data: Vec<u8>) -> Result<EpubCtxt, JsError> {
-  let runtime = tokio::runtime::Builder::new_current_thread().build()?;
-  let _guard = runtime.enter();
-  runtime.block_on(async {
-    let mut archive = Archive::load(MemoryZip(data.into()))
-      .await
-      .map_err(|err| JsError::new(&err.to_string()))?;
-    let epub = Epub::load(&mut archive)
-      .await
-      .map_err(|err| JsError::new(&err.to_string()))?;
-    Ok(EpubCtxt { epub, archive })
-  })
+  let mut archive =
+    Archive::load(MemoryZip(data.into())).map_err(|err| JsError::new(&err.to_string()))?;
+  let epub = Epub::load(&mut archive).map_err(|err| JsError::new(&err.to_string()))?;
+  Ok(EpubCtxt { epub, archive })
 }
 
 #[wasm_bindgen]

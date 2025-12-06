@@ -1,4 +1,4 @@
-import cp from "child_process";
+import cp from "node:child_process";
 
 let cmd = "wasm-pack build --target web";
 if (process.argv.includes("--release")) cmd += ' --release';

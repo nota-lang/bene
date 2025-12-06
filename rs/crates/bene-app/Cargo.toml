@@ -22,5 +22,3 @@ bene-epub = { path = "../bene-epub" }
 serde = { workspace = true }
 anyhow = { workspace = true }
 log = { workspace = true }
-tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
-futures = { workspace = true }

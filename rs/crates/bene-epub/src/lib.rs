@@ -6,7 +6,6 @@
 use std::path::Path;
 
 use anyhow::{anyhow, ensure, Context, Result};
-use futures::future::try_join_all;
 use log::debug;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
@@ -113,14 +112,14 @@ pub struct Rendition {
 }
 
 impl Rendition {
-  /// Asynchronously loads a [`Rendition`] specified by its [`Rootfile`] from an [`Archive`].
+  /// Loads a [`Rendition`] specified by its [`Rootfile`] from an [`Archive`].
   ///
   /// # Errors
   /// - If [`Rootfile::full_path`] does not specify a file.
   /// - If [`Rootfile::full_path`] fails to be read from the archive.
   /// - If the [`Rendition`] contents cannot be interpreted as UTF-8.
   /// - If the [`Rendition`] UTF-8 contents cannot be interpreted as XML.
-  pub async fn load(archive: &mut Archive, rootfile: &Rootfile) -> Result<Self> {
+  pub fn load(archive: &mut Archive, rootfile: &Rootfile) -> Result<Self> {
     let root = Path::new(&rootfile.full_path)
       .parent()
       .ok_or_else(|| anyhow!("Rootfile path is not a file: {}", rootfile.full_path))?
@@ -128,7 +127,6 @@ impl Rendition {
       .to_string();
     let (package, package_string) = archive
       .read_xml::<Package>(&rootfile.full_path)
-      .await
       .context("Failed while reading EPUB package file")?;
     debug!("Package: {package:#?}");
 
@@ -148,7 +146,6 @@ impl Rendition {
         let annotations_path = format!("{}/{}", rootfile_dir.display(), item.href);
         let raw_annotations = archive
           .read_json::<Vec<RawAnnotation>>(&annotations_path)
-          .await
           .context("Error while parsing annotations file")?;
         annotation::process(raw_annotations).context("Error while processing raw annotations")?
       }
@@ -208,35 +205,28 @@ pub struct Epub {
 }
 
 impl Epub {
-  /// Asynchronously loads an [`Epub`] from an [`Archive`].
+  /// Loads an [`Epub`] from an [`Archive`].
   ///
   /// # Errors
   /// - If `META-INF/container.xml` cannot be read as a [`Container`].
   /// - If the [`Archive`] cannot be cloned with [`Archive::try_clone`].
   /// - If any [`Rendition`] fails to load with [`Rendition::load`].
-  pub async fn load(archive: &mut Archive) -> Result<Self> {
+  pub fn load(archive: &mut Archive) -> Result<Self> {
     let (container, _) = archive
       .read_xml::<Container>("META-INF/container.xml")
-      .await
       .context("Failed to read EPUB metadata")?;
     debug!("Container: {container:#?}");
 
-    let rendition_futures = container.rootfiles.rootfiles.iter().map(async |rootfile| {
-      let mut archive = archive.try_clone().await?;
-      let rootfile = rootfile.clone();
-
-      #[expect(
-        clippy::missing_panics_doc,
-        reason = "Rendition::load should be panic-free"
-      )]
-      tokio::spawn(async move { Rendition::load(&mut archive, &rootfile).await })
-        .await
-        .expect("Future panicked while loading rendition")
-    });
-
-    let renditions = try_join_all(rendition_futures)
-      .await
-      .context("Failed to load rendition")?;
+    let renditions = container
+      .rootfiles
+      .rootfiles
+      .iter()
+      .map(|rootfile| {
+        let mut archive = archive.try_clone()?;
+        let rootfile = rootfile.clone();
+        Rendition::load(&mut archive, &rootfile)
+      })
+      .collect::<Result<Vec<_>>>()?;
 
     ensure!(
       renditions
@@ -255,8 +245,8 @@ impl Epub {
   /// # Errors
   /// - If the file fails to be read with [`Archive::read_file`].
   /// - If the file is XHTML and fails to be processed by [`xhtml::process_xhtml`].
-  pub async fn load_asset(&self, archive: &mut Archive, path: &str) -> Result<Vec<u8>> {
-    let contents = archive.read_file(path).await?;
+  pub fn load_asset(&self, archive: &mut Archive, path: &str) -> Result<Vec<u8>> {
+    let contents = archive.read_file(path)?;
     if Path::new(path)
       .extension()
       .is_some_and(|ext| ext.eq_ignore_ascii_case("xhtml"))
