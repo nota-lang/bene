@@ -254,7 +254,7 @@
       }
     }
     if (typeof module_or_path === "undefined") {
-      module_or_path = new URL("" + new URL("assets/rs_utils_bg-4_wp__Rc.wasm", self.location.href).href, self.location.href);
+      module_or_path = new URL("" + new URL("assets/rs_utils_bg-B-ajWKbJ.wasm", self.location.href).href, self.location.href);
     }
     const imports = __wbg_get_imports();
     if (typeof module_or_path === "string" || typeof Request === "function" && module_or_path instanceof Request || typeof URL === "function" && module_or_path instanceof URL) {
@@ -337,14 +337,15 @@
         let clients = await globalSelf.clients.matchAll();
         log("Loaded new epub, broadcasting to window");
         for (let client of clients) {
-          client.postMessage({
+          let message2 = {
             type: "loaded-epub",
             data: {
               metadata,
               url,
               path
             }
-          });
+          };
+          client.postMessage(message2);
         }
       }
     }
