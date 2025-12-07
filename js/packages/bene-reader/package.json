@@ -7,8 +7,8 @@
     "no-server": true
   },
   "devDependencies": {
-    "@solid-primitives/scheduled": "^1.5.2",
-    "bene-common": "workspace:*",
-    "bene-components": "workspace:*"
+    "@solid-primitives/scheduled": "^1.5.2",    
+    "bene-components": "workspace:*",
+    "bene-types": "workspace:*"
   }
 }

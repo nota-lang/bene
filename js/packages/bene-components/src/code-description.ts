@@ -7,7 +7,6 @@ import {
   StateField
 } from "@codemirror/state";
 import { Decoration, type DecorationSet } from "@codemirror/view";
-import { log } from "bene-common";
 import { EditorView, minimalSetup } from "codemirror";
 import { html, LitElement, unsafeCSS } from "lit";
 import { customElement, state } from "lit/decorators.js";
@@ -92,7 +91,7 @@ export class CodeDescription extends LitElement {
           const multiline = newlines.some(idx => start <= idx && idx < end);
           if (id) spans[id] = { id, start, end, multiline };
         } else {
-          log.warn(`Unexpected node type: ${node.nodeType}`);
+          console.warn(`Unexpected node type: ${node.nodeType}`);
         }
       });
     }

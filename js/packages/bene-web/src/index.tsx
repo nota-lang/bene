@@ -1,18 +1,27 @@
-import { type LoadedEpub, log, type Result } from "bene-common";
+import type { ChildMessage, LoadedEpub } from "bene-types";
 import { createEffect, createResource, onMount } from "solid-js";
 import { render } from "solid-js/web";
 
 import workerUrl from "../worker.ts?worker&url";
 
-async function registerServiceWorker(
-  post: (data: {
-    type: "loaded-epub";
-    data: Result<LoadedEpub, string>;
-  }) => void
-): Promise<ServiceWorkerRegistration> {
+declare var INITIAL_EPUB: string | undefined;
+
+export type WorkerMessage = { type: "loaded-epub"; data: LoadedEpub };
+export type ManagerMessage = {
+  type: "new-epub";
+  data: {
+    data: Uint8Array;
+    scope: string;
+    url?: URL;
+    path?: string;
+  };
+};
+
+async function registerServiceWorker(): Promise<ServiceWorkerRegistration> {
+  // Setup a means of getting debug info out of the service worker.
   const logChannel = new BroadcastChannel("log-channel");
   logChannel.addEventListener("message", event =>
-    log.debug("Service worker:", event.data)
+    console.debug("Service worker:", event.data)
   );
 
   const registrations = await navigator.serviceWorker.getRegistrations();
@@ -21,7 +30,7 @@ async function registerServiceWorker(
   );
 
   if (existingRegistration) {
-    log.debug("Found existing worker registration", existingRegistration);
+    console.debug("Found existing worker registration", existingRegistration);
 
     // HACK: have to soft reload after a hard reload. See:
     // https://stackoverflow.com/questions/51597231/register-service-worker-after-hard-refresh
@@ -31,23 +40,9 @@ async function registerServiceWorker(
     )
       window.location.reload();
 
-    navigator.serviceWorker.addEventListener("message", event => {
-      const message = event.data;
-
-      if (message.type === "loaded-epub") {
-        const metadata = message.data;
-        post({
-          type: "loaded-epub",
-          data: {
-            status: "ok",
-            data: metadata
-          }
-        });
-      }
-    });
     return existingRegistration;
   } else {
-    log.debug("No existing worker registration, creating new one");
+    console.debug("No existing worker registration, creating new one");
 
     const workerReady = new Promise(resolve =>
       navigator.serviceWorker.addEventListener("controllerchange", _event => {
@@ -56,23 +51,26 @@ async function registerServiceWorker(
     );
 
     const registration = await navigator.serviceWorker.register(workerUrl);
-    log.debug(
+    console.debug(
       `Registered worker at scope ${registration.scope}, waiting for it to activate.`,
       registration
     );
 
+    // After registering the service worker, we want to wait until it's installed and activated
+    // so it's ready for use.
     await workerReady;
     console.assert(
       registration.active !== null,
       "Service worker is not active?"
     );
-    log.debug("Successfully activated service worker.");
+    console.debug("Successfully activated service worker.");
 
     return registration;
   }
 }
 
-declare var TEST_EPUB: string | undefined;
+// In the embedded web view, EPUB paths are encoded into a URL fragment
+// so they can be stored in the URL without navigating away from the reading system.
 
 function serializeUrl(url: URL) {
   const trimmedPath = url.pathname.split("/bene-reader/")[1];
@@ -92,29 +90,45 @@ function App() {
   let iframe: HTMLIFrameElement | undefined;
   let fileInput: HTMLInputElement | undefined;
 
-  const [registration] = createResource(
-    async () =>
-      await registerServiceWorker(data =>
-        iframe!.contentWindow!.postMessage(data)
-      )
-  );
+  const [registration] = createResource(async () => {
+    let reg = await registerServiceWorker();
 
-  const setNewEpub = (data: Uint8Array, url?: string) => {
+    navigator.serviceWorker.addEventListener("message", event => {
+      const message = event.data as WorkerMessage;
+
+      if (message.type === "loaded-epub") {
+        // When the service worker has finished loading an EPUB, pass along the metadata
+        // to the inner frame.
+        iframe!.contentWindow!.postMessage({
+          type: "loaded-epub",
+          data: {
+            status: "ok",
+            data: message.data
+          }
+        });
+      }
+    });
+
+    return reg;
+  });
+
+  const setNewEpub = (data: Uint8Array, url?: URL) => {
     const reg = registration()!;
     const path = deserializeUrl(window.location);
-    reg.active!.postMessage({
+    const message: ManagerMessage = {
       type: "new-epub",
       data: {
         data,
-        url,
         scope: reg.scope,
+        url,
         path
       }
-    });
+    };
+    reg.active!.postMessage(message);
   };
 
-  async function fetchZip(file: string) {
-    const url = new URL(`epubs/${file}`, window.location.href).href;
+  async function fetchEpub(file: string) {
+    const url = new URL(`epubs/${file}`, window.location.href);
     const response = await fetch(url);
     const buffer = await response.arrayBuffer();
     setNewEpub(new Uint8Array(buffer), url);
@@ -122,7 +136,7 @@ function App() {
 
   createEffect(() => {
     const reg = registration();
-    if (reg && TEST_EPUB) fetchZip(TEST_EPUB);
+    if (reg && INITIAL_EPUB) fetchEpub(INITIAL_EPUB);
   });
 
   function loadFile(file: File) {
@@ -140,22 +154,22 @@ function App() {
     window.addEventListener("message", event => {
       if (event.source !== iframe!.contentWindow) return;
 
-      const message = event.data;
-      log.info("Parent window received message", message);
+      const message = event.data as ChildMessage;
+      console.info("Parent window received message", message);
       if (message.type === "request-upload") {
         fileInput!.click();
       } else if (message.type === "finished-upload") {
         const file: File = message.data;
         loadFile(file);
       } else if (message.type === "navigate") {
-        const urlStr = message.data as string;
-        const url = new URL(urlStr);
+        const url = message.data;
         const hash = serializeUrl(url);
         window.history.replaceState(undefined, "", `#${hash}`);
       } else if (message.type === "open-url") {
-        const urlStr = message.data as string;
-        const url = new URL(urlStr);
+        const url = message.data;
         window.open(url, "_blank");
+      } else {
+        console.warn("Unhandled message", message);
       }
     });
   });

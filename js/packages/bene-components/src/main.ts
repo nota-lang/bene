@@ -1,4 +1,3 @@
-import { log } from "bene-common";
 import "./block-links";
 import "./code-description";
 import "./dfn-links";
@@ -16,4 +15,4 @@ function retryHash() {
 }
 retryHash();
 
-log.debug("Loaded component script.");
+console.debug("Loaded component script.");

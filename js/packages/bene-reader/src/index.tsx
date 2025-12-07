@@ -1,14 +1,14 @@
 import componentScriptUrl from "bene-components?url";
 import { throttle } from "@solid-primitives/scheduled";
-import {
-  type Epub,
-  type Item,
-  type LoadedEpub,
-  log,
-  type Rendition,
-  type Result
-} from "bene-common";
 import componentStyleUrl from "bene-components/dist/bene-components.css?url";
+import type {
+  ChildMessage,
+  Epub,
+  Item,
+  LoadedEpub,
+  ParentMessage,
+  Rendition
+} from "bene-types";
 import _ from "lodash";
 import {
   createContext,
@@ -20,8 +20,8 @@ import {
 } from "solid-js";
 import { createStore, type SetStoreFunction } from "solid-js/store";
 import { render } from "solid-js/web";
-import navCssUrl from "../styles/nav.scss?url";
 import contentStyleUrl from "../styles/content.scss?url";
+import navCssUrl from "../styles/nav.scss?url";
 import { addAnnotations, annotateSelection } from "./annotation";
 
 function insertJs(doc: Document, url: string) {
@@ -233,13 +233,13 @@ function Toolbar() {
   );
 }
 
-let findNavItem = (state: DocState): Item | undefined => {
+function findNavItem(state: DocState): Item | undefined {
   const rend = state.rendition();
   const items = rend.package.manifest.item;
   return items.find((item: Item) =>
     item["@properties"] ? item["@properties"].split(" ").includes("nav") : false
   );
-};
+}
 
 function Nav(props: { navigateEvent: EventTarget; navItem: Item }) {
   let [state] = useDocState();
@@ -416,13 +416,10 @@ function Content(props: { navigateEvent: EventTarget }) {
 
     function updateAnchors(contentWindow: Window, contentDoc: Document) {
       contentWindow.addEventListener("popstate", () => {
-        window.parent.postMessage(
-          {
-            type: "navigate",
-            data: contentWindow.location.href
-          },
-          "*"
-        );
+        sendMessageToParent({
+          type: "navigate",
+          data: new URL(contentWindow.location.href)
+        });
       });
 
       function updateAnchor(a: HTMLAnchorElement) {
@@ -436,13 +433,10 @@ function Content(props: { navigateEvent: EventTarget }) {
           // upstream bug is fixed. See: https://github.com/tauri-apps/tauri/issues/9912
           a.addEventListener("click", event => {
             event.preventDefault();
-            window.parent.postMessage(
-              {
-                type: "open-url",
-                data: url.toString()
-              },
-              "*"
-            );
+            sendMessageToParent({
+              type: "open-url",
+              data: url
+            });
           });
         }
       }
@@ -495,7 +489,7 @@ function Content(props: { navigateEvent: EventTarget }) {
       const article = contentDoc.querySelector<HTMLElement>("article");
 
       if (!article) {
-        log.warn("Missing <article> element!");
+        console.warn("Missing <article> element!");
         return;
       }
 
@@ -564,16 +558,8 @@ function ViewerInner() {
   );
 }
 
-// const LOADING_THRESHOLD = 500;
-// const LOADING_LONG_THRESHOLD = 5000;
-
 function Loader() {
   const [state] = useContext(StateContext)!;
-
-  // const [stillWaiting, setStillWaiting] = createSignal(false);
-  // const [stillWaitingLong, setStillWaitingLong] = createSignal(false);
-  // setTimeout(() => setStillWaiting(true), LOADING_THRESHOLD);
-  // setTimeout(() => setStillWaitingLong(true), LOADING_LONG_THRESHOLD);
 
   return (
     <div class="loader-container">
@@ -585,7 +571,7 @@ function Loader() {
             class="icon-button open-file"
             aria-label="Upload EPUB"
             onClick={() => {
-              window.parent.postMessage({ type: "request-upload" }, "*");
+              sendMessageToParent({ type: "request-upload" });
             }}
             style={{ opacity: 0.4, top: "2px", left: "3px" }}
           />
@@ -606,7 +592,7 @@ function Viewer() {
   );
 }
 
-function registerDropEvents() {
+function listenForDropEvents() {
   document.addEventListener("dragover", event => {
     event.stopPropagation();
     event.preventDefault();
@@ -620,16 +606,85 @@ function registerDropEvents() {
     const files = event.dataTransfer?.files;
     if (files?.length && files.length > 0) {
       const file = files[0];
-      log.info("Uploaded user file:", file.name);
-      window.parent.postMessage(
-        {
-          type: "finished-upload",
-          data: file
-        },
-        "*"
-      );
+      console.info("Uploaded user file:", file.name);
+      sendMessageToParent({
+        type: "finished-upload",
+        data: file
+      });
     }
   });
+}
+
+function createInitialState(data: LoadedEpub): DocState {
+  return {
+    renditionIndex: 0,
+    chapterIndex: 0,
+    zoomLevel: ZOOM_LEVELS.indexOf(100),
+    showNav: false,
+    width: 800,
+    epub: data.metadata,
+    url: data.url ? new URL(data.url) : undefined,
+    initialPath: data.path,
+
+    rendition() {
+      return data.metadata.renditions[this.renditionIndex];
+    },
+
+    chapterId() {
+      return this.rendition().package.spine.itemref![this.chapterIndex][
+        "@idref"
+      ];
+    },
+
+    isPpub() {
+      let metadata = this.rendition().package.metadata.$value;
+      let tag = metadata.find(
+        field =>
+          typeof field !== "string" &&
+          "meta" in field &&
+          field.meta["@property"] === "ppub:valid"
+      );
+      return tag !== undefined;
+    },
+
+    chapterHref() {
+      if (this.initialPath) return this.initialPath;
+      const id = this.chapterId();
+      const rend = this.rendition();
+      const items = rend.package.manifest.item!;
+      return items.find((item: Item) => item["@id"] === id)!["@href"];
+    },
+
+    chapterUrl() {
+      if (this.initialPath) return this.initialPath;
+      const rend = this.rendition();
+      const href = this.chapterHref();
+      return epubUrl(rend, href);
+    }
+  };
+}
+
+function listenForParentMessages(setState: SetStoreFunction<State>) {
+  window.addEventListener("message", event => {
+    const message = event.data as ParentMessage;
+    console.debug("Received message from window:", message);
+    if (message.type === "loaded-epub") {
+      let result = message.data;
+      if (result.status === "error") {
+        setState({ type: "error", error: result.error });
+      } else {
+        let data = result.data;
+        setState({
+          type: "ready",
+          state: createInitialState(data)
+        });
+      }
+    }
+  });
+}
+
+function sendMessageToParent(message: ChildMessage) {
+  window.parent.postMessage(message, "*");
 }
 
 function App() {
@@ -638,69 +693,9 @@ function App() {
   });
 
   onMount(() => {
-    window.addEventListener("message", event => {
-      const message = event.data;
-      log.debug("Received message from window:", message);
-      if (message.type === "loaded-epub") {
-        let result = message.data as Result<LoadedEpub, string>;
-        if (result.status === "error") {
-          setState({ type: "error", error: result.error });
-        } else {
-          let data = result.data;
-          setState({
-            type: "ready",
-            state: {
-              renditionIndex: 0,
-              chapterIndex: 0,
-              zoomLevel: ZOOM_LEVELS.indexOf(100),
-              showNav: false,
-              width: 800,
-              epub: data.metadata,
-              url: data.url ? new URL(data.url) : undefined,
-              initialPath: data.path,
-
-              rendition() {
-                return data.metadata.renditions[this.renditionIndex];
-              },
-
-              chapterId() {
-                return this.rendition().package.spine.itemref![
-                  this.chapterIndex
-                ]["@idref"];
-              },
-
-              isPpub() {
-                let metadata = this.rendition().package.metadata.$value;
-                let tag = metadata.find(
-                  field =>
-                    typeof field !== "string" &&
-                    "meta" in field &&
-                    field.meta["@property"] === "ppub:valid"
-                );
-                return tag !== undefined;
-              },
-
-              chapterHref() {
-                if (this.initialPath) return this.initialPath;
-                const id = this.chapterId();
-                const rend = this.rendition();
-                const items = rend.package.manifest.item!;
-                return items.find((item: Item) => item["@id"] === id)!["@href"];
-              },
-
-              chapterUrl() {
-                if (this.initialPath) return this.initialPath;
-                const rend = this.rendition();
-                const href = this.chapterHref();
-                return epubUrl(rend, href);
-              }
-            }
-          });
-        }
-      }
-    });
-    window.parent.postMessage({ type: "ready" }, "*");
-    registerDropEvents();
+    listenForParentMessages(setState);
+    sendMessageToParent({ type: "ready" });
+    listenForDropEvents();
   });
 
   return (

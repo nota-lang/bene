@@ -11,7 +11,7 @@
     "@tauri-apps/cli": "^2.9.4",
     "@tauri-apps/plugin-dialog": "^2.4.2",
     "@tauri-apps/plugin-shell": "^2.3.3",
-    "bene-common": "workspace:*",
-    "bene-reader": "workspace:*"
+    "bene-reader": "workspace:*",
+    "bene-types": "workspace:*"
   }
 }

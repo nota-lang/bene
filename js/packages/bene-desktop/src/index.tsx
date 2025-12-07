@@ -2,12 +2,21 @@ import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { open as openShell } from "@tauri-apps/plugin-shell";
-import { type Epub, type LoadedEpub, log, type Result } from "bene-common";
+import type {
+  ChildMessage,
+  Epub,
+  LoadedEpub,
+  ParentMessage,
+  Result
+} from "bene-types";
 
-async function poll(): Promise<boolean> {
+function sendMessageToChild(message: ParentMessage) {
   const readerIframe = document.getElementById("reader")! as HTMLIFrameElement;
   const readerWindow = readerIframe.contentWindow!;
+  readerWindow.postMessage(message, "*");
+}
 
+async function poll(): Promise<boolean> {
   let state = await invoke<any>("state", {});
   let epubResult: Result<LoadedEpub, string> | undefined;
   if (state.type === "Ready") {
@@ -24,7 +33,8 @@ async function poll(): Promise<boolean> {
   } else if (state.type === "Waiting") {
     return false;
   }
-  readerWindow.postMessage({ type: "loaded-epub", data: epubResult }, "*");
+
+  sendMessageToChild({ type: "loaded-epub", data: epubResult! });
   return true;
 }
 
@@ -39,8 +49,8 @@ async function upload(path: string) {
 }
 
 window.addEventListener("message", async event => {
-  const message = event.data;
-  log.info("Parent received message:", message);
+  const message = event.data as ChildMessage;
+  console.info("Parent received message:", message);
 
   if (message.type === "ready") {
     await poll();
@@ -58,8 +68,10 @@ window.addEventListener("message", async event => {
     if (!path) return;
     upload(path);
   } else if (message.type === "open-url") {
-    const urlStr = message.data as string;
-    openShell(urlStr);
+    const urlStr = message.data;
+    openShell(urlStr.toString());
+  } else {
+    console.warn("Unhandled message", message);
   }
 });
 

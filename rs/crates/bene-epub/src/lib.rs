@@ -107,7 +107,6 @@ pub struct Rendition {
   pub package: Package,
   pub package_string: String,
   pub root: String,
-  pub annotations: Vec<Annotation>,
 }
 
 impl Rendition {
@@ -129,33 +128,10 @@ impl Rendition {
       .context("Failed while reading EPUB package file")?;
     debug!("Package: {package:#?}");
 
-    let annotation_item = package
-      .manifest
-      .items
-      .iter()
-      .find(|item| matches!(item.properties.as_deref(), Some("ppub:annotations")));
-    let annotations = match annotation_item {
-      Some(item) => {
-        // TODO: need to figure out if this will work on Windows. Conflating ZIP paths and native FS paths here.
-        #[expect(
-          clippy::missing_panics_doc,
-          reason = "Rootfile::full_path should not be `/`"
-        )]
-        let rootfile_dir = Path::new(&rootfile.full_path).parent().unwrap();
-        let annotations_path = format!("{}/{}", rootfile_dir.display(), item.href);
-        let raw_annotations = archive
-          .read_json::<Vec<RawAnnotation>>(&annotations_path)
-          .context("Error while parsing annotations file")?;
-        annotation::process(raw_annotations).context("Error while processing raw annotations")?
-      }
-      None => Vec::new(),
-    };
-
     Ok(Rendition {
       package,
       package_string,
       root,
-      annotations,
     })
   }
 
@@ -173,6 +149,30 @@ impl Rendition {
   }
 }
 
+#[allow(unused)]
+fn load_annotations(
+  archive: &mut Archive,
+  rendition: &Rendition,
+) -> Result<Vec<Annotation>, anyhow::Error> {
+  let annotation_item = rendition
+    .package
+    .manifest
+    .items
+    .iter()
+    .find(|item| matches!(item.properties.as_deref(), Some("ppub:annotations")));
+  let annotations = match annotation_item {
+    Some(item) => {
+      let annotations_path = rendition.file_path(&item.href);
+      let raw_annotations = archive
+        .read_json::<Vec<RawAnnotation>>(&annotations_path)
+        .context("Error while parsing annotations file")?;
+      annotation::process(raw_annotations).context("Error while processing raw annotations")?
+    }
+    None => Vec::new(),
+  };
+  Ok(annotations)
+}
+
 #[derive(Serialize, Deserialize, Debug, TS, Clone)]
 #[ts(export)]
 pub struct Container {
@@ -184,6 +184,7 @@ pub struct Container {
 #[derive(Serialize, Deserialize, Debug, TS, Clone)]
 #[ts(export)]
 pub struct Rootfiles {
+  /// The rootfiles element contains a list of package documents available in the EPUB container.
   #[serde(rename = "rootfile", default)]
   pub rootfiles: Vec<Rootfile>,
 }
@@ -191,8 +192,11 @@ pub struct Rootfiles {
 #[derive(Serialize, Deserialize, Debug, TS, Clone)]
 #[ts(export)]
 pub struct Rootfile {
+  /// Identifies the location of a package document.
   #[serde(rename = "@full-path")]
   pub full_path: String,
+
+  /// Identifies the media type of the package document.
   #[serde(rename = "@media-type")]
   pub media_type: String,
 }

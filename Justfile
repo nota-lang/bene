@@ -1,7 +1,7 @@
 [working-directory: 'rs']
 gen-bindings:
   cargo test -p bene-epub export_bindings
-  cp -r crates/bene-epub/bindings ../js/packages/bene-common/src/
+  cp -r crates/bene-epub/bindings ../js/packages/bene-types/src/
 
 [working-directory: 'rs']
 build-native: gen-bindings

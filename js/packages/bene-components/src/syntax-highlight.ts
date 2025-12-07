@@ -1,7 +1,6 @@
 import { html } from "@codemirror/lang-html";
 import { rust } from "@codemirror/lang-rust";
 import { EditorState, type Extension } from "@codemirror/state";
-import { log } from "bene-common";
 import { EditorView, minimalSetup } from "codemirror";
 import { LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
@@ -35,7 +34,7 @@ export class SyntaxHighlight extends LitElement {
       const languages: { [lang: string]: () => Extension } = { rust, html };
       const langConstructor = languages[this.language];
       if (langConstructor) extensions.push(langConstructor());
-      else log.warn(`Missing language package: ${langConstructor}`);
+      else console.warn(`Missing language package: ${langConstructor}`);
     }
 
     if (this.wordWrap) extensions.push(EditorView.lineWrapping);

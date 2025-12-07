@@ -7,9 +7,8 @@
     "no-server": true
   },
   "devDependencies": {
-    "bene-common": "workspace:*",
     "bene-reader": "workspace:*",
-    "vite-plugin-top-level-await": "^1.6.0",
+    "bene-types": "workspace:*",    
     "vite-plugin-wasm": "^3.5.0"
   }
 }

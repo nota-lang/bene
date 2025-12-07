@@ -1,6 +1,6 @@
-import { log, type Rendition } from "bene-common";
-import type { Annotation } from "bene-common/bindings/Annotation";
-import type { Path } from "bene-common/bindings/Path";
+import type { Rendition } from "bene-types";
+import type { Annotation } from "bene-types/bindings/Annotation";
+import type { Path } from "bene-types/bindings/Path";
 import type { DocState } from "./index";
 
 // Adapted from https://stackoverflow.com/a/12823606
@@ -307,7 +307,7 @@ function addAnnotation(
 
   let cursor = new Cursor(pkg.querySelector("package")!, window);
   if (!resolver.resolve(cursor, selector.path)) return;
-  log.debug("After initial resolution, cursor points to", cursor.node);
+  console.debug("After initial resolution, cursor points to", cursor.node);
 
   if (!selector.range) throw Error("todo: handle point annotations");
 
@@ -318,12 +318,12 @@ function addAnnotation(
   resolver.resolve(fromCursor, from);
   resolver.resolve(toCursor, to);
 
-  log.debug(
+  console.debug(
     "From cursor points to",
     fromCursor.node,
     fromCursor.node.parentNode
   );
-  log.debug("To cursor points to", toCursor.node, toCursor.node.parentNode);
+  console.debug("To cursor points to", toCursor.node, toCursor.node.parentNode);
 
   let range = new contentWindow.Range();
   range.setStart(fromCursor.node, fromCursor.offset!);
@@ -336,12 +336,12 @@ function addAnnotation(
 }
 
 export function addAnnotations(
-  contentDoc: Document,
-  contentWindow: Window & typeof globalThis,
-  state: DocState,
-  chapterHref: string
+  _contentDoc: Document,
+  _contentWindow: Window & typeof globalThis,
+  _state: DocState,
+  _chapterHref: string
 ) {
-  for (let annot of state.rendition().annotations) {
-    addAnnotation(contentDoc, contentWindow, state, chapterHref, annot);
-  }
+  // for (let annot of state.rendition().annotations) {
+  //   addAnnotation(contentDoc, contentWindow, state, chapterHref, annot);
+  // }
 }

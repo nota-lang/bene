@@ -1,6 +1,7 @@
 /// <reference lib="WebWorker" />
 
 import init, { type EpubCtxt, guess_mime_type, load_epub } from "rs-utils";
+import type { ManagerMessage, WorkerMessage } from "./src";
 
 let globalSelf = self as any as ServiceWorkerGlobalScope;
 let currentEpub: EpubCtxt | undefined;
@@ -29,7 +30,7 @@ globalSelf.addEventListener("activate", event => {
   event.waitUntil(handler());
 });
 
-globalSelf.addEventListener("fetch", event => {  
+globalSelf.addEventListener("fetch", event => {
   if (!currentEpub) {
     log("Ignoring request due to no loaded EPUB");
     return;
@@ -67,7 +68,7 @@ globalSelf.addEventListener("fetch", event => {
 
 globalSelf.addEventListener("message", event => {
   async function handler() {
-    let message = event.data;
+    let message = event.data as ManagerMessage;
     if (message.type === "new-epub") {
       let { data, scope, url, path } = message.data;
       log("Attempting to load new epub");
@@ -89,15 +90,16 @@ globalSelf.addEventListener("message", event => {
       let metadata = JSON.parse(currentEpub.metadata());
       let clients = await globalSelf.clients.matchAll();
       log("Loaded new epub, broadcasting to window");
-      for (let client of clients!) {
-        client.postMessage({
+      for (let client of clients) {
+        let message: WorkerMessage = {
           type: "loaded-epub",
           data: {
             metadata,
             url,
             path
           }
-        });
+        };
+        client.postMessage(message);
       }
     }
   }
