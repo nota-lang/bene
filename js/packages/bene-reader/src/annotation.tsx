@@ -1,7 +1,8 @@
 import type { Rendition } from "bene-types";
 import type { Annotation } from "bene-types/bindings/Annotation";
 import type { Path } from "bene-types/bindings/Path";
-import type { DocState } from "./index";
+import { type DocState, useDocState } from "./index";
+import { type Plugin, SolidPlugin } from "./plugin";
 
 // Adapted from https://stackoverflow.com/a/12823606
 function getTextRanges(fullRange: Range): Range[] {
@@ -178,7 +179,7 @@ class Resolver {
   }
 }
 
-export function annotateSelection(
+function annotateSelection(
   contentDoc: Document,
   contentWindow: Window & typeof globalThis,
   state: DocState,
@@ -335,7 +336,7 @@ function addAnnotation(
   }
 }
 
-export function addAnnotations(
+function addAnnotations(
   _contentDoc: Document,
   _contentWindow: Window & typeof globalThis,
   _state: DocState,
@@ -344,4 +345,47 @@ export function addAnnotations(
   // for (let annot of state.rendition().annotations) {
   //   addAnnotation(contentDoc, contentWindow, state, chapterHref, annot);
   // }
+}
+
+interface AnnotationState {
+  annotations: Annotation[];
+}
+
+export class AnnotationPlugin
+  extends SolidPlugin<AnnotationState>
+  implements Plugin
+{
+  initialState() {
+    return { annotations: [] };
+  }
+
+  Toolbar = () => {
+    let [docState] = useDocState();
+
+    function highlightSelection() {
+      let selection = docState.iframe!.contentWindow!.getSelection();
+      if (!selection) return;
+
+      annotateSelection(
+        docState.iframe!.contentDocument!,
+        docState.iframe!.contentWindow! as Window & typeof globalThis,
+        docState,
+        docState.chapterHref(),
+        selection
+      );
+    }
+
+    return (
+      <button
+        type="button"
+        class="icon-button highlight"
+        aria-label="Highlight text"
+        onClick={highlightSelection}
+      />
+    );
+  };
+
+  mount(document: Document, window: Window & typeof globalThis): void {
+    addAnnotations(document, window, {} as any, {} as any);
+  }
 }

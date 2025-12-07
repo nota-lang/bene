@@ -21,8 +21,14 @@ import {
 import { createStore, type SetStoreFunction } from "solid-js/store";
 import { render } from "solid-js/web";
 import contentStyleUrl from "../styles/content.scss?url";
-import navCssUrl from "../styles/nav.scss?url";
-import { addAnnotations, annotateSelection } from "./annotation";
+import { AnnotationPlugin } from "./annotation";
+import { findNavItem, Nav } from "./nav";
+import type { Plugin } from "./plugin";
+import { ZoomPlugin } from "./zoom";
+
+const ZOOM_PLUGIN = new ZoomPlugin();
+const ANNOT_PLUGIN = new AnnotationPlugin();
+const PLUGINS: Plugin[] = [ZOOM_PLUGIN, ANNOT_PLUGIN];
 
 function insertJs(doc: Document, url: string) {
   const script = doc.createElement("script");
@@ -31,7 +37,7 @@ function insertJs(doc: Document, url: string) {
   doc.body.appendChild(script);
 }
 
-function insertCss(doc: Document, url: string) {
+export function insertCss(doc: Document, url: string) {
   const link = doc.createElement("link");
   link.setAttribute("rel", "stylesheet");
   link.setAttribute("type", "text/css");
@@ -46,17 +52,9 @@ interface PageInfo {
   container: Window;
 }
 
-const clamp = (a: number, b: number) => (x: number) =>
-  Math.min(Math.max(x, a), b);
-const ZOOM_LEVELS = [
-  30, 50, 67, 80, 90, 100, 110, 120, 133, 150, 170, 200, 240, 300, 400, 500
-];
-const clampZoom = clamp(0, ZOOM_LEVELS.length - 1);
-
 export interface DocState {
   renditionIndex: number;
   chapterIndex: number;
-  zoomLevel: number;
   showNav: boolean;
   width: number;
   pageInfo?: PageInfo;
@@ -77,14 +75,14 @@ type State =
   | { type: "error"; error: string }
   | { type: "waiting" };
 
-const epubUrl = (rendition: Rendition, href: string) =>
+export const epubUrl = (rendition: Rendition, href: string) =>
   `epub-content/${rendition.root ? `${rendition.root}/` : ""}${href}`;
 
 const StateContext = createContext<
   [State, SetStoreFunction<State>] | undefined
 >(undefined);
 
-function useDocState(): [DocState, (state: Partial<DocState>) => void] {
+export function useDocState(): [DocState, (state: Partial<DocState>) => void] {
   let [state, setState] = useContext(StateContext)!;
   return [
     (state as any).state,
@@ -125,19 +123,6 @@ function ToolbarInner() {
     document.body.removeChild(a);
   }
 
-  function highlightSelection() {
-    let selection = state.iframe!.contentWindow!.getSelection();
-    if (!selection) return;
-
-    annotateSelection(
-      state.iframe!.contentDocument!,
-      state.iframe!.contentWindow! as Window & typeof globalThis,
-      state,
-      state.chapterHref(),
-      selection
-    );
-  }
-
   return (
     <>
       <div class="toolbar-left">
@@ -176,43 +161,10 @@ function ToolbarInner() {
         </span>
       </div>
       <div class="toolbar-middle">
-        <button
-          type="button"
-          class="icon-button zoom-out"
-          aria-label="Reduce font size"
-          onClick={() =>
-            setState({ zoomLevel: clampZoom(state.zoomLevel - 1) })
-          }
-        />
-        <div class="split-icon-button-separator" />
-        <button
-          type="button"
-          class="icon-button zoom-in"
-          aria-label="Increase font size"
-          onClick={() =>
-            setState({ zoomLevel: clampZoom(state.zoomLevel + 1) })
-          }
-        />
-        <select
-          aria-label="Set zoom level"
-          value={state.zoomLevel}
-          onInput={e => {
-            const zoomLevel = parseInt(e.target.value, 10);
-            setState({ zoomLevel });
-          }}
-        >
-          {ZOOM_LEVELS.map((n, i) => (
-            <option value={i.toString()}>{n}%</option>
-          ))}
-        </select>
+        <ZOOM_PLUGIN.Toolbar />
       </div>
       <div class="toolbar-right">
-        <button
-          type="button"
-          class="icon-button highlight"
-          aria-label="Highlight text"
-          onClick={highlightSelection}
-        />
+        <ANNOT_PLUGIN.Toolbar />
         {state.url ? (
           <button
             type="button"
@@ -233,76 +185,6 @@ function Toolbar() {
   );
 }
 
-function findNavItem(state: DocState): Item | undefined {
-  const rend = state.rendition();
-  const items = rend.package.manifest.item;
-  return items.find((item: Item) =>
-    item["@properties"] ? item["@properties"].split(" ").includes("nav") : false
-  );
-}
-
-function Nav(props: { navigateEvent: EventTarget; navItem: Item }) {
-  let [state] = useDocState();
-  const navUrl = () => {
-    let navItem = findNavItem(state)!;
-    return epubUrl(state.rendition(), navItem["@href"]);
-  };
-
-  let iframeRef: HTMLIFrameElement | undefined;
-  onMount(() => {
-    const iframe = iframeRef!;
-
-    iframe.addEventListener("load", () => {
-      const navDoc = iframe.contentDocument!;
-      insertCss(navDoc, navCssUrl);
-
-      navDoc.querySelectorAll("nav a").forEach(node => {
-        node.addEventListener("click", event => {
-          event.preventDefault();
-          event.stopPropagation();
-          let parentA = (event.target as HTMLElement).closest("a");
-          if (!parentA) console.warn("Clicked on link but no parent anchor");
-          else
-            props.navigateEvent.dispatchEvent(
-              new CustomEvent("navigate", { detail: parentA.href })
-            );
-        });
-      });
-
-      const navEl = navDoc.querySelector<HTMLElement>("nav");
-      if (!navEl)
-        throw new Error("<nav> element is missing from navigation document");
-
-      const navWidth = getComputedStyle(iframe).getPropertyValue("--nav-width");
-      // TODO: make this react to changes in nav-width
-      navEl.style.width = navWidth;
-    });
-  });
-
-  return (
-    <iframe
-      class="nav"
-      classList={{ show: state.showNav }}
-      title="Document navigation"
-      aria-label="Document navigation"
-      ref={iframeRef}
-      src={navUrl()}
-      referrerPolicy="no-referrer"
-    />
-  );
-}
-
-let handleKeydown =
-  (state: DocState, setState: (state: Partial<DocState>) => void) =>
-  (event: KeyboardEvent) => {
-    let meta = event.getModifierState("Meta");
-    let key = event.key;
-    if (meta && key === "=")
-      setState({ zoomLevel: clampZoom(state.zoomLevel + 1) });
-    else if (meta && key === "-")
-      setState({ zoomLevel: clampZoom(state.zoomLevel - 1) });
-  };
-
 function Content(props: { navigateEvent: EventTarget }) {
   const [state, setState] = useDocState();
   const [styleEl, setStyleEl] = createSignal<HTMLStyleElement | undefined>(
@@ -310,25 +192,11 @@ function Content(props: { navigateEvent: EventTarget }) {
   );
 
   function updateStyleEl(el: HTMLStyleElement) {
-    const zoomPercent = ZOOM_LEVELS[state.zoomLevel];
     let css = `
-      html {
-        font-size: ${zoomPercent}%;
-      }
-
       article {
         max-width: ${state.width}px;
       }
       `;
-
-    if (zoomPercent >= 200) {
-      css += `
-      html, p {
-        text-align: left;
-      }
-      `;
-    }
-
     el.innerText = css;
   }
 
@@ -504,7 +372,11 @@ function Content(props: { navigateEvent: EventTarget }) {
         typeof globalThis /* ?? */;
       const contentDoc = iframe.contentDocument!;
 
-      contentDoc.addEventListener("keydown", handleKeydown(state, setState));
+      contentDoc.addEventListener("keydown", event => {
+        PLUGINS.forEach(plugin => {
+          if (plugin.onKeydown) plugin.onKeydown(event);
+        });
+      });
 
       injectReaderStylesAndScripts(contentDoc);
       registerPageInfoCallbacks(iframe, contentDoc);
@@ -512,7 +384,10 @@ function Content(props: { navigateEvent: EventTarget }) {
       handleTocNavigation(contentWindow);
       if (!state.isPpub()) makePortable(contentDoc);
       addResizeHandle(contentDoc);
-      addAnnotations(contentDoc, contentWindow, state, state.chapterHref());
+
+      PLUGINS.forEach(plugin => {
+        if (plugin.mount) plugin.mount(contentDoc, contentWindow);
+      });
     });
   });
 
@@ -619,7 +494,6 @@ function createInitialState(data: LoadedEpub): DocState {
   return {
     renditionIndex: 0,
     chapterIndex: 0,
-    zoomLevel: ZOOM_LEVELS.indexOf(100),
     showNav: false,
     width: 800,
     epub: data.metadata,
