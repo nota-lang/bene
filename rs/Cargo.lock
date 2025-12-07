@@ -270,7 +270,6 @@ dependencies = [
  "cfg-if",
  "clap",
  "log",
- "quick-xml 0.38.3",
  "serde",
  "tauri",
  "tauri-build",

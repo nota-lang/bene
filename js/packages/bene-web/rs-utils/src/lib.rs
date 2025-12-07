@@ -16,8 +16,8 @@ impl EpubCtxt {
 
   pub fn read_file(&mut self, path: &str) -> Result<Uint8Array, JsError> {
     let contents = self
-      .epub
-      .load_asset(&mut self.archive, path)
+      .archive
+      .read_file(path)
       .map_err(|err| JsError::new(&err.to_string()))?;
     Ok(Uint8Array::from(contents.as_slice()))
   }

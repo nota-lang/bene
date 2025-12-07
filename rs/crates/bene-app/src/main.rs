@@ -7,7 +7,7 @@ use std::{
   borrow::Cow,
   fmt::Write,
   fs,
-  path::{Path, PathBuf},
+  path::PathBuf,
   sync::{Mutex, MutexGuard},
 };
 
@@ -17,8 +17,6 @@ use cfg_if::cfg_if;
 use clap::Parser;
 use log::warn;
 use tauri::{App, AppHandle, Manager, State, http, utils::config::FrontendDist};
-
-mod xhtml;
 
 #[derive(serde::Serialize, Clone)]
 #[serde(tag = "type", content = "value")]
@@ -64,18 +62,6 @@ fn load_reader_asset(app: &AppHandle, local_path: &str) -> Result<Vec<u8>> {
   fs::read(&full_path).with_context(|| format!("Failed to read: {full_path}"))
 }
 
-fn load_epub_asset(archive: &mut Archive, path: &str) -> Result<Vec<u8>> {
-  let contents = archive.read_file(path)?;
-  if Path::new(path)
-    .extension()
-    .is_some_and(|ext| ext.eq_ignore_ascii_case("xhtml"))
-  {
-    xhtml::process_xhtml(path, &contents)
-  } else {
-    Ok(contents)
-  }
-}
-
 fn serve_asset(
   app: &AppHandle,
   request: http::Request<Vec<u8>>,
@@ -85,7 +71,7 @@ fn serve_asset(
     Some(epub_path) => match app.try_state::<ArchivePool>() {
       Some(pool) => {
         let mut archive = pool.lock_one();
-        (load_epub_asset(&mut archive, epub_path), epub_path)
+        (archive.read_file(epub_path), epub_path)
       }
       None => (Err(anyhow!("Epub not loaded yet")), epub_path),
     },

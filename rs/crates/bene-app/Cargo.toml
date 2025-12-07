@@ -22,4 +22,3 @@ bene-epub = { path = "../bene-epub" }
 serde = { workspace = true }
 anyhow = { workspace = true }
 log = { workspace = true }
-quick-xml = { workspace = true }

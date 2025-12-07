@@ -21,6 +21,7 @@ import {
 import { createStore, type SetStoreFunction } from "solid-js/store";
 import { render } from "solid-js/web";
 import navCssUrl from "../styles/nav.scss?url";
+import contentStyleUrl from "../styles/content.scss?url";
 import { addAnnotations, annotateSelection } from "./annotation";
 
 function insertJs(doc: Document, url: string) {
@@ -387,6 +388,7 @@ function Content(props: { navigateEvent: EventTarget }) {
     }
 
     function injectReaderStylesAndScripts(contentDoc: Document) {
+      insertCss(contentDoc, contentStyleUrl);
       insertCss(contentDoc, componentStyleUrl);
 
       const styleEl = contentDoc.createElement("style");
