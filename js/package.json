@@ -10,8 +10,8 @@
     "fast-glob": "^3.3.3",
     "fs-extra": "^11.3.2",
     "jsdom": "^27.2.0",
-    "normalize.css": "^8.0.1",
     "lodash": "^4.17.21",
+    "normalize.css": "^8.0.1",
     "sass": "^1.94.0",
     "solid-js": "^1.9.10",
     "typedoc": "^0.28.14",
@@ -23,6 +23,10 @@
   "pnpm": {
     "overrides": {
       "rollup": "npm:@rollup/wasm-node"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "esbuild"
+    ]
   }
 }

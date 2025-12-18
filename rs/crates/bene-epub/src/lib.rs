@@ -6,7 +6,7 @@
 use std::path::Path;
 
 use anyhow::{anyhow, ensure, Context, Result};
-use log::debug;
+use log::trace;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -126,7 +126,7 @@ impl Rendition {
     let (package, package_string) = archive
       .read_xml::<Package>(&rootfile.full_path)
       .context("Failed while reading EPUB package file")?;
-    debug!("Package: {package:#?}");
+    trace!("Package: {package:#?}");
 
     Ok(Rendition {
       package,
@@ -218,7 +218,7 @@ impl Epub {
     let (container, _) = archive
       .read_xml::<Container>("META-INF/container.xml")
       .context("Failed to read EPUB metadata")?;
-    debug!("Container: {container:#?}");
+    trace!("Container: {container:#?}");
 
     let renditions = container
       .rootfiles

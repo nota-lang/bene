@@ -10,7 +10,7 @@ use std::{
 
 use anyhow::{anyhow, Context, Result};
 use format_serde_error::SerdeError;
-use log::{debug, warn};
+use log::{trace, warn};
 use serde::de::DeserializeOwned;
 use zip::ZipArchive;
 
@@ -69,7 +69,7 @@ impl<F: ZipFormat> Archive<F> {
   /// - If the file path is not contained in the archive.
   /// - If the bytes fail to be read.
   pub fn read_file(&mut self, file: &str) -> Result<Vec<u8>> {
-    debug!("Reading from archive file {file}");
+    trace!("Reading from archive file {file}");
 
     let mut reader = self
       .zip

@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { open as openShell } from "@tauri-apps/plugin-shell";
@@ -10,42 +11,22 @@ import type {
   Result
 } from "bene-types";
 
+let child_ready = false;
+
 function sendMessageToChild(message: ParentMessage) {
-  const readerIframe = document.getElementById("reader")! as HTMLIFrameElement;
-  const readerWindow = readerIframe.contentWindow!;
-  readerWindow.postMessage(message, "*");
-}
-
-async function poll(): Promise<boolean> {
-  let state = await invoke<any>("state", {});
-  let epubResult: Result<LoadedEpub, string> | undefined;
-  if (state.type === "Ready") {
-    const epub = state.value as Epub;
-    epubResult = {
-      status: "ok",
-      data: { metadata: epub, url: undefined, path: "" }
-    };
-  } else if (state.type === "Error") {
-    epubResult = {
-      status: "error",
-      error: state.value
-    };
-  } else if (state.type === "Waiting") {
-    return false;
+  if (!child_ready) {
+    setTimeout(() => sendMessageToChild(message), 100);
+  } else {
+    const readerIframe = document.getElementById(
+      "reader"
+    )! as HTMLIFrameElement;
+    const readerWindow = readerIframe.contentWindow!;
+    readerWindow.postMessage(message, "*");
   }
-
-  sendMessageToChild({ type: "loaded-epub", data: epubResult! });
-  return true;
 }
 
 async function upload(path: string) {
   await invoke("upload", { path });
-
-  let intvl: number;
-  intvl = setInterval(async () => {
-    let finished = await poll();
-    if (finished) clearInterval(intvl);
-  }, 100);
 }
 
 window.addEventListener("message", async event => {
@@ -53,7 +34,9 @@ window.addEventListener("message", async event => {
   console.info("Parent received message:", message);
 
   if (message.type === "ready") {
-    await poll();
+    child_ready = true;
+    let state = await invoke<SharedState>("state");
+    handleSharedState(state);
   } else if (message.type === "request-upload") {
     let path = await openDialog({
       multiple: false,
@@ -74,6 +57,34 @@ window.addEventListener("message", async event => {
     console.warn("Unhandled message", message);
   }
 });
+
+type SharedState =
+  | { type: "Waiting" }
+  | { type: "Loading" }
+  | { type: "Error"; value: string }
+  | { type: "Ready"; value: Epub };
+
+function handleSharedState(state: SharedState) {
+  let epubResult: Result<LoadedEpub, string> | undefined;
+  if (state.type === "Ready") {
+    const epub = state.value as Epub;
+    epubResult = {
+      status: "ok",
+      data: { metadata: epub, url: undefined, path: "" }
+    };
+  } else if (state.type === "Error") {
+    epubResult = {
+      status: "error",
+      error: state.value
+    };
+  } else if (state.type === "Waiting" || state.type === "Loading") {
+    return;
+  }
+
+  sendMessageToChild({ type: "loaded-epub", data: epubResult! });
+}
+
+listen<SharedState>("state", event => handleSharedState(event.payload));
 
 getCurrentWebview().onDragDropEvent(event => {
   if (event.payload.type === "drop") {

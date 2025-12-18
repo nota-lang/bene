@@ -18,7 +18,7 @@ import {
   onMount,
   useContext
 } from "solid-js";
-import { createStore, type SetStoreFunction } from "solid-js/store";
+import { createStore, reconcile, type SetStoreFunction } from "solid-js/store";
 import { render } from "solid-js/web";
 import contentStyleUrl from "../styles/content.scss?url";
 import { AnnotationPlugin } from "./annotation";
@@ -548,10 +548,16 @@ function listenForParentMessages(setState: SetStoreFunction<State>) {
         setState({ type: "error", error: result.error });
       } else {
         let data = result.data;
-        setState({
-          type: "ready",
-          state: createInitialState(data)
-        });
+        // Note: `reconcile` ensures that if this `setState` overwrites a previous EPUB,
+        // then the `state.state` field is not re-allocated but instead granularly assigned.
+        // Otherwise, Solid observers elsewhere in the app will be reacting to signals on a
+        // stale proxy object.
+        setState(
+          reconcile({
+            type: "ready",
+            state: createInitialState(data)
+          })
+        );
       }
     }
   });

@@ -1,7 +1,11 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 #![warn(clippy::pedantic)]
-#![allow(clippy::single_match_else, clippy::needless_pass_by_value)]
+#![allow(
+  clippy::single_match_else,
+  clippy::needless_pass_by_value,
+  clippy::redundant_else
+)]
 
 use std::{
   borrow::Cow,
@@ -15,20 +19,39 @@ use anyhow::{Context, Result, anyhow};
 use bene_epub::{Archive, Epub, FileZip};
 use cfg_if::cfg_if;
 use clap::Parser;
-use log::warn;
-use tauri::{App, AppHandle, Manager, State, http, utils::config::FrontendDist};
+use log::{debug, info, warn};
+use notify::Watcher as _;
+use tauri::{
+  App, AppHandle, Emitter, Manager, State, async_runtime, http, utils::config::FrontendDist,
+};
+
+struct LocalState {
+  archive: ArchivePool,
+  _watcher: Watcher,
+}
 
 #[derive(serde::Serialize, Clone)]
 #[serde(tag = "type", content = "value")]
-enum AppState {
+enum SharedState {
   Waiting,
   Loading,
   Error(String),
   Ready(Epub),
 }
 
+type SharedStateLock = Mutex<SharedState>;
+type LocalStateLock = Mutex<Option<LocalState>>;
+
+fn set_shared_state(app: &AppHandle, state: SharedState) {
+  *app.state::<SharedStateLock>().lock().unwrap() = state.clone();
+  app
+    .emit("state", state)
+    .expect("Failed to emit `state` event");
+  debug!("Emitting event");
+}
+
 #[tauri::command]
-fn state(state: State<'_, Mutex<AppState>>) -> AppState {
+fn state(state: State<'_, SharedStateLock>) -> SharedState {
   state.lock().unwrap().clone()
 }
 
@@ -67,10 +90,11 @@ fn serve_asset(
   request: http::Request<Vec<u8>>,
 ) -> http::Response<Cow<'static, [u8]>> {
   let path = request.uri().path();
+  let state = app.state::<LocalStateLock>();
   let (result, path) = match path.strip_prefix("/epub-content/") {
-    Some(epub_path) => match app.try_state::<ArchivePool>() {
-      Some(pool) => {
-        let mut archive = pool.lock_one();
+    Some(epub_path) => match &*state.lock().unwrap() {
+      Some(state) => {
+        let mut archive = state.archive.lock_one();
         (archive.read_file(epub_path), epub_path)
       }
       None => (Err(anyhow!("Epub not loaded yet")), epub_path),
@@ -96,7 +120,7 @@ fn serve_asset(
   }
 }
 
-const POOL_SIZE: usize = 8;
+const ARCHIVE_POOL_SIZE: usize = 8;
 
 struct ArchivePool {
   pool: Vec<Mutex<Archive>>,
@@ -104,7 +128,7 @@ struct ArchivePool {
 
 impl ArchivePool {
   fn new(archive: Archive) -> Result<Self> {
-    let pool = (0..POOL_SIZE)
+    let pool = (0..ARCHIVE_POOL_SIZE)
       .map(|_| Ok(Mutex::new(archive.try_clone()?)))
       .collect::<Result<Vec<_>>>()?;
     Ok(ArchivePool { pool })
@@ -121,19 +145,77 @@ impl ArchivePool {
   }
 }
 
+struct Watcher {
+  _watcher: notify::FsEventWatcher,
+  _watch_task: async_runtime::JoinHandle<()>,
+}
+
+impl Watcher {
+  fn new(app: &AppHandle, path: PathBuf) -> Result<Self> {
+    let (tx, mut rx) = async_runtime::channel(64);
+    let mut watcher = notify::recommended_watcher(move |e| {
+      if let Err(err) = tx.blocking_send(e) {
+        warn!("Failed to send event to watch task: {err:?}");
+      }
+    })?;
+    watcher.watch(&path, notify::RecursiveMode::NonRecursive)?;
+
+    let app2 = app.clone();
+    let watch_task = async_runtime::spawn(async move {
+      while let Some(res) = rx.recv().await {
+        match res {
+          Ok(event) => match &event.kind {
+            notify::EventKind::Modify(notify::event::ModifyKind::Data(_)) => {
+              let shared_state_lock = app2.state::<SharedStateLock>();
+              if matches!(*shared_state_lock.lock().unwrap(), SharedState::Ready(_)) {
+                load_epub(app2, path);
+                return;
+              } else {
+                debug!("Received file update while loading EPUB, ignoring");
+              }
+            }
+
+            _ => debug!("Received unhandled file watcher event: {event:?}"),
+          },
+          Err(err) => {
+            warn!("File watcher received error: {err:?}");
+            break;
+          }
+        }
+      }
+    });
+
+    Ok(Watcher {
+      _watcher: watcher,
+      _watch_task: watch_task,
+    })
+  }
+}
+
 fn load_epub(app: AppHandle, path: PathBuf) {
-  tauri::async_runtime::spawn_blocking(move || {
-    let app = &app;
-    *app.state::<Mutex<AppState>>().lock().unwrap() = AppState::Loading;
-    let state = (|| {
-      let mut archive = Archive::load(FileZip(path)).context("Failed to parse epub as zip")?;
+  debug!("Loading EPUB from path: {}", path.display());
+  set_shared_state(&app, SharedState::Loading);
+
+  async_runtime::spawn_blocking(move || {
+    let (local_state, shared_state) = (|| {
+      let path = path.canonicalize()?;
+      let mut archive =
+        Archive::load(FileZip(path.clone())).context("Failed to parse epub as zip")?;
       let epub = Epub::load(&mut archive)?;
       let archive = ArchivePool::new(archive)?;
-      app.manage(archive);
-      Ok(AppState::Ready(epub))
+      let watcher = Watcher::new(&app, path)?;
+
+      let local_state = Some(LocalState {
+        archive,
+        _watcher: watcher,
+      });
+      let shared_state = SharedState::Ready(epub);
+      Ok((local_state, shared_state))
     })()
-    .unwrap_or_else(|err: anyhow::Error| AppState::Error(format!("{err:?}")));
-    *app.state::<Mutex<AppState>>().lock().unwrap() = state;
+    .unwrap_or_else(|err: anyhow::Error| (None, SharedState::Error(format!("{err:?}"))));
+
+    *app.state::<LocalStateLock>().lock().unwrap() = local_state;
+    set_shared_state(&app, shared_state);
   });
 }
 
@@ -161,15 +243,16 @@ fn main() -> Result<()> {
     .plugin(tauri_plugin_shell::init())
     .plugin(
       tauri_plugin_log::Builder::new()
-        .level(log::LevelFilter::Info)
+        .level(log::LevelFilter::Debug)
         .build(),
     )
     .setup(setup)
-    .manage(Mutex::new(AppState::Waiting))
+    .manage::<SharedStateLock>(Mutex::new(SharedState::Waiting))
+    .manage::<LocalStateLock>(Mutex::new(None))
     .invoke_handler(tauri::generate_handler![state, upload])
     .register_asynchronous_uri_scheme_protocol("bene", move |ctx, request, responder| {
       let app = ctx.app_handle().clone();
-      tauri::async_runtime::spawn_blocking(move || {
+      async_runtime::spawn_blocking(move || {
         let response = serve_asset(&app, request);
         responder.respond(response);
       });
