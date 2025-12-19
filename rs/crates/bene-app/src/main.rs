@@ -19,7 +19,7 @@ use anyhow::{Context, Result, anyhow};
 use bene_epub::{Archive, Epub, FileZip};
 use cfg_if::cfg_if;
 use clap::Parser;
-use log::{debug, info, warn};
+use log::{debug, warn};
 use notify::Watcher as _;
 use tauri::{
   App, AppHandle, Emitter, Manager, State, async_runtime, http, utils::config::FrontendDist,
@@ -146,7 +146,7 @@ impl ArchivePool {
 }
 
 struct Watcher {
-  _watcher: notify::FsEventWatcher,
+  _watcher: notify::RecommendedWatcher,
   _watch_task: async_runtime::JoinHandle<()>,
 }
 
