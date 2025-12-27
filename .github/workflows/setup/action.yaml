@@ -6,9 +6,15 @@ runs:
       uses: extractions/setup-just@v3
 
     - name: Install wasm-pack
-      uses: baptiste0928/cargo-install@v2
+      uses: baptiste0928/cargo-install@v3
       with:
         crate: wasm-pack
+
+    - name: Install Tauri CLI
+      uses: baptiste0928/cargo-install@v3
+      with:
+        crate: tauri-cli
+        version: "^2.9.6"
 
     - name: Install Depot
       uses: cognitive-engineering-lab/depot/actions/install@main
