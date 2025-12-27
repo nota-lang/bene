@@ -1,0 +1,20 @@
+name: Setup
+runs:
+  using: composite
+  steps:
+    - name: Install Just
+      uses: extractions/setup-just@v3
+
+    - name: Install wasm-pack
+      uses: baptiste0928/cargo-install@v2
+      with:
+        crate: wasm-pack
+
+    - name: Install Depot
+      uses: cognitive-engineering-lab/depot/actions/install@main
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y libgtk-3-dev libjavascriptcoregtk-4.1-dev libsoup-3.0-dev libwebkit2gtk-4.1-dev
+      shell: bash

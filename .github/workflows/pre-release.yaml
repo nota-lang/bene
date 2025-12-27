@@ -1,0 +1,47 @@
+name: Pre-release
+
+on:
+  pull_request:
+    branches:
+      - "main"
+    types: [opened,labeled,edited,synchronize]
+
+jobs:
+  test-artifacts:
+    if: contains(github.event.pull_request.labels.*.name, 'release')
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+          - target: aarch64-pc-windows-msvc
+            os: windows-latest
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./.github/workflows/setup
+
+      - name: Install Rust toolchain for target
+        uses: dtolnay/rust-toolchain@stable
+        with:          
+          targets: ${{ matrix.target }}
+
+      - uses: tauri-apps/tauri-action@v1
+        with:          
+          args: --target ${{ matrix.target }}
+          projectPath: rs/crates/bene-app
+          tauriScript: cargo tauri
