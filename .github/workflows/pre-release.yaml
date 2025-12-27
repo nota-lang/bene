@@ -16,16 +16,15 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-          - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest
           - target: x86_64-apple-darwin
             os: macos-latest
           - target: aarch64-apple-darwin
             os: macos-latest
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-          - target: aarch64-pc-windows-msvc
-            os: windows-latest
+          # TODO: get Depot working on Windows
+          # - target: x86_64-pc-windows-msvc
+          #   os: windows-latest
+          # - target: aarch64-pc-windows-msvc
+          #   os: windows-latest
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -37,11 +36,11 @@ jobs:
 
       - name: Install Rust toolchain for target
         uses: dtolnay/rust-toolchain@stable
-        with:          
+        with:
           targets: ${{ matrix.target }}
 
       - uses: tauri-apps/tauri-action@v0
-        with:          
+        with:
           args: --target ${{ matrix.target }}
           projectPath: rs/crates/bene-app
           tauriScript: cargo tauri
