@@ -40,6 +40,9 @@ jobs:
           targets: ${{ matrix.target }}
 
       - uses: tauri-apps/tauri-action@v0
+        env:
+          # Temporary fix for https://github.com/linuxdeploy/linuxdeploy/issues/272
+          NO_STRIP: true
         with:
           args: --target ${{ matrix.target }}
           projectPath: rs/crates/bene-app
