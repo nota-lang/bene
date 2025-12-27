@@ -22,7 +22,7 @@ jobs:
           workspaces: ./rs
 
       - name: Setup
-        uses: ./.github/workflows/setup.yaml
+        uses: ./.github/workflows/setup
 
       - name: Tests
         run: just test
