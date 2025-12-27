@@ -40,7 +40,7 @@ jobs:
         with:          
           targets: ${{ matrix.target }}
 
-      - uses: tauri-apps/tauri-action@v1
+      - uses: tauri-apps/tauri-action@v0
         with:          
           args: --target ${{ matrix.target }}
           projectPath: rs/crates/bene-app
