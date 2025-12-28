@@ -1,2 +1,2 @@
 [build.beforeBuildCommand]
-script = "pwsh -Command \"depot -p bene-desktop build --release\""
+script = "pwsh -NonInteractive -NoProfile -Command \"depot -p bene-desktop build --release\""
