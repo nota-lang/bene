@@ -38,8 +38,12 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
-      - name: Foobar
+      - name: Foo
+        run: echo %PATH%
+
+      - name: Bar
         run: echo $PATH
+        shell: bash
 
       - uses: tauri-apps/tauri-action@v0
         env:
