@@ -5,7 +5,7 @@ identifier = "com.nota.bene"
 
 [build]
 frontendDist = "../../../js/packages/bene-desktop/dist"
-beforeBuildCommand = "cd ../../js && depot -p bene-desktop build --release"
+beforeBuildCommand = "sh -c \"cd ../../js && depot -p bene-desktop build --release\""
 
 [[app.windows]]
 title = "Bene Reader"
