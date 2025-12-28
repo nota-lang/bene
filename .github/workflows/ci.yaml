@@ -17,10 +17,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: ./rs
-
       - name: Setup
         uses: ./.github/workflows/setup
 

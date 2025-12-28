@@ -46,4 +46,4 @@ jobs:
         with:
           args: --target ${{ matrix.target }}
           projectPath: rs/crates/bene-app
-          tauriScript: cargo tauri
+          tauriScript: cargo tauri --verbose
