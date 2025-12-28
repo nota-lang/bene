@@ -39,10 +39,10 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Foo
-        run: echo %PATH%
+        run: cmd /S /C depot --version
 
       - name: Bar
-        run: echo $PATH
+        run: cmd /S /C depot --version
         shell: bash
 
       - uses: tauri-apps/tauri-action@v0
