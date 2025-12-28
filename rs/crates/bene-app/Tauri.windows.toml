@@ -1,0 +1,2 @@
+[build.beforeBuildCommand]
+script = "depot -p bene-desktop build --release"
