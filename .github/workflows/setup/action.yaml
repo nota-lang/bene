@@ -30,6 +30,6 @@ runs:
         sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
       shell: bash
 
-    - name: Generate TS bindings
-      run: just gen-bindings
-      shell: bash
+    # - name: Generate TS bindings
+    #   run: just gen-bindings
+    #   shell: bash
