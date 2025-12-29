@@ -17,24 +17,22 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: ./rs
-
       - name: Setup
-        uses: ./.github/workflows/setup      
-      
+        uses: ./.github/workflows/setup
+
       - name: Tests
         run: just test
 
       - name: Build Wasm package
+        if: github.ref == 'refs/heads/main'
         run: |
           cd epubs && ./make-epub.sh portable-epubs && cd ..
           cd js && mkdir -p packages/bene-web/public/epubs/ && ln -s $PWD/../epubs/portable-epubs.epub packages/bene-web/public/epubs/
           cd .. && just build-wasm
 
       - name: Deploy to Github Pages
-        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3        
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: js/packages/bene-web/dist

@@ -355,14 +355,19 @@ function Content(props: { navigateEvent: EventTarget }) {
 
     function addResizeHandle(contentDoc: Document) {
       const article = contentDoc.querySelector<HTMLElement>("article");
-
-      if (!article) {
-        console.warn("Missing <article> element!");
-        return;
-      }
+      if (!article) throw Error("Missing <article> element!");
 
       const handleRoot = contentDoc.createElement("resize-handle");
       article.appendChild(handleRoot);
+    }
+
+    function handleSelection(contentDoc: Document) {
+      contentDoc.addEventListener("mouseup", () => {
+        let selection = contentDoc.getSelection();
+        if (selection === null || selection.isCollapsed) return;
+
+        // TODO: selection bar
+      });
     }
 
     iframe.addEventListener("load", () => {
@@ -384,6 +389,7 @@ function Content(props: { navigateEvent: EventTarget }) {
       handleTocNavigation(contentWindow);
       if (!state.isPpub()) makePortable(contentDoc);
       addResizeHandle(contentDoc);
+      handleSelection(contentDoc);
 
       PLUGINS.forEach(plugin => {
         if (plugin.mount) plugin.mount(contentDoc, contentWindow);

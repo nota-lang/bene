@@ -1,10 +1,10 @@
 [package]
 name = "bene-app"
 version = "0.1.0"
-description = "A Tauri App"
+description = "An EPUB reading system"
 authors = ["Will Crichton <crichton.will@gmail.com>"]
-license = ""
-repository = ""
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/nota-lang/bene"
 edition = "2024"
 
 [build-dependencies]
