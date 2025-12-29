@@ -4,67 +4,38 @@ import type { Path } from "bene-types/bindings/Path";
 import { type DocState, useDocState } from "./index";
 import { type Plugin, SolidPlugin } from "./plugin";
 
-// Adapted from https://stackoverflow.com/a/12823606
 function getTextRanges(fullRange: Range): Range[] {
+  // TODO: this might cause perf issues in large docs because some selections
+  // will have the entire document as the root, so all text will be iterated over.
   let root = fullRange.commonAncestorContainer;
-
-  let collectAncestors = (node: Node): Node[] => {
-    let nodes = [];
-    while (node !== root) {
-      nodes.push(node);
-      node = node.parentNode!;
-    }
-    return nodes;
-  };
-
-  let startAncestors = collectAncestors(fullRange.startContainer);
-  let endAncestors = collectAncestors(fullRange.endContainer);
-
-  if (startAncestors.length === 0 && endAncestors.length === 0)
-    return [fullRange];
-
+  let iter = document.createNodeIterator(root, NodeFilter.SHOW_TEXT);
   let ranges = [];
-  for (let i = 0; i < startAncestors.length; i++) {
-    let range = new Range();
-    if (i > 0) {
-      range.setStartAfter(startAncestors[i - 1]);
-      range.setEndAfter(startAncestors[i].lastChild!);
-    } else {
-      range.setStart(startAncestors[i], fullRange.startOffset);
-      range.setEndAfter(
-        startAncestors[i].nodeType === Node.TEXT_NODE
-          ? startAncestors[i]
-          : startAncestors[i].lastChild!
-      );
-    }
-    ranges.push(range);
-  }
+  while (true) {
+    let node = iter.nextNode() as Text | null;
+    if (node === null) break;
 
-  for (let i = 0; i < endAncestors.length; i++) {
-    let range = new Range();
-    if (i > 0) {
-      range.setStartBefore(endAncestors[i].firstChild!);
-      range.setEndBefore(endAncestors[i - 1]);
-    } else {
-      range.setStartBefore(
-        endAncestors[i].nodeType === Node.TEXT_NODE
-          ? endAncestors[i]
-          : endAncestors[i].firstChild!
-      );
-      range.setEnd(endAncestors[i], fullRange.endOffset);
-    }
-    ranges.push(range);
-  }
+    // TODO: the `.match` is because bulk selections between nodes will include random
+    // whitespace that isn't really logically part of the document, and whose annotations
+    // aren't visible. This heuristic eliminates them, but would also in theory prevent
+    // annotations on e.g. a space between two inline elements.
+    if (fullRange.intersectsNode(node) && !node.textContent.match(/^\s+$/)) {
+      let start = node === fullRange.startContainer ? fullRange.startOffset : 0;
+      let end =
+        node === fullRange.endContainer
+          ? fullRange.endOffset
+          : node.textContent.length;
 
-  let range = new Range();
-  range.setStartAfter(startAncestors[startAncestors.length - 1]);
-  range.setEndBefore(endAncestors[endAncestors.length - 1]);
-  ranges.push(range);
+      let range = new Range();
+      range.setStart(node, start);
+      range.setEnd(node, end);
+      ranges.push(range);
+    }
+  }
 
   return ranges;
 }
 
-class Cursor {
+class CFICursor {
   constructor(
     public node: Element | Text,
     public window: Window & typeof globalThis,
@@ -72,7 +43,7 @@ class Cursor {
   ) {}
 }
 
-class Resolver {
+class CFIResolver {
   constructor(
     readonly rendition: Rendition,
     readonly chapterHref: string,
@@ -80,7 +51,7 @@ class Resolver {
     readonly contentWindow: Window & typeof globalThis
   ) {}
 
-  resolve(cursor: Cursor, path: Path): boolean {
+  resolve(cursor: CFICursor, path: Path): boolean {
     let nodeIsNotMark = (node: Node): boolean =>
       !(node instanceof cursor.window.Element && node.tagName === "MARK");
 
@@ -290,7 +261,7 @@ function addAnnotation(
   chapterHref: string,
   { selector }: Annotation
 ) {
-  let resolver = new Resolver(
+  let resolver = new CFIResolver(
     state.rendition(),
     chapterHref,
     contentDoc,
@@ -306,15 +277,15 @@ function addAnnotation(
     "application/xhtml+xml"
   );
 
-  let cursor = new Cursor(pkg.querySelector("package")!, window);
+  let cursor = new CFICursor(pkg.querySelector("package")!, window);
   if (!resolver.resolve(cursor, selector.path)) return;
   console.debug("After initial resolution, cursor points to", cursor.node);
 
-  if (!selector.range) throw Error("todo: handle point annotations");
+  if (!selector.range) throw Error("TODO: handle point annotations");
 
   let { from, to } = selector.range;
   let fromCursor = cursor;
-  let toCursor = new Cursor(fromCursor.node, fromCursor.window);
+  let toCursor = new CFICursor(fromCursor.node, fromCursor.window);
 
   resolver.resolve(fromCursor, from);
   resolver.resolve(toCursor, to);
@@ -331,8 +302,12 @@ function addAnnotation(
   range.setEnd(toCursor.node, toCursor.offset!);
 
   for (let textRange of getTextRanges(range)) {
-    let mark = contentDoc.createElement("mark");
-    textRange.surroundContents(mark);
+    if (textRange.startContainer.parentElement!.tagName === "MARK") {
+      // todo
+    } else {
+      let mark = contentDoc.createElement("mark");
+      textRange.surroundContents(mark);
+    }
   }
 }
 

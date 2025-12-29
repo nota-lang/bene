@@ -44,7 +44,7 @@ jobs:
         with:
           args: --target ${{ matrix.target }}
           projectPath: rs/crates/bene-app
-          tauriScript: cargo tauri
+          tauriScript: cargo tauri --verbose
           tagName: v__VERSION__
-          releaseName: 'RepoQuest v__VERSION__'
-          appName: RepoQuest
+          releaseName: 'Bene Reader v__VERSION__'
+          appName: Bene Reader
