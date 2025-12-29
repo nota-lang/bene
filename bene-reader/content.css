@@ -365,6 +365,10 @@ html {
   }
 }
 
+body {
+  background-color: transparent !important;
+}
+
 article {
   box-sizing: border-box;
   padding: 0.5in;
