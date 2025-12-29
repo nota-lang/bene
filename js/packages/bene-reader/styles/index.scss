@@ -11,6 +11,7 @@
   --toolbar-zoom-out-icon: url("../img/toolbarButton-zoomOut.svg");
   --toolbar-open-file-icon: url("../img/toolbarButton-openFile.svg");
   --toolbar-highlight-icon: url("../img/toolbarButton-editorHighlight.svg");
+  --toolbar-comment-icon: url("../img/comment-editButton.svg");
   --toolbar-icon-bg-color: rgb(0, 0, 0);
   --toolbar-box-shadow: 0 1px 0 var(--toolbar-border-color);
   --button-hover-color: rgb(221, 222, 223);
@@ -140,6 +141,10 @@
 
     &.highlight::before {
       mask-image: var(--toolbar-highlight-icon);
+    }
+
+    &.comment::before {
+      mask-image: var(--toolbar-comment-icon);
     }
   }
 
