@@ -162,7 +162,7 @@ function App() {
         const file: File = message.data;
         loadFile(file);
       } else if (message.type === "navigate") {
-        const url = message.data;
+        const url = new URL(message.data);
         const hash = serializeUrl(url);
         window.history.replaceState(undefined, "", `#${hash}`);
       } else if (message.type === "open-url") {

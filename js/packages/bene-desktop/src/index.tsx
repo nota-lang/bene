@@ -53,6 +53,12 @@ window.addEventListener("message", async event => {
   } else if (message.type === "open-url") {
     const urlStr = message.data;
     openShell(urlStr.toString());
+  } else if (message.type === "navigate") {
+    // Ignore, this is just for web target.
+  } else if (message.type === "finished-upload") {
+    // Dragged files should be handled by Tauri-level drag events,
+    // so this should never be called.
+    throw Error("Unreachable");
   } else {
     console.warn("Unhandled message", message);
   }
