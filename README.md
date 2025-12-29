@@ -1,6 +1,6 @@
 # Bene: A Lightweight EPUB Reader
 
-[_Live demo_](<https://nota-lang.github.io/bene/>)
+[_Live demo_](https://nota-lang.github.io/bene/?preload=portable-epubs.epub)
 
 Bene is a reading system for [EPUBs](https://www.w3.org/TR/epub-overview-33/). EPUBs have historically been used just for e-books, but the goal of Bene is to make reading an EPUB as simple, commonplace, and pleasant as [reading a PDF](https://willcrichton.net/notes/portable-epubs/). Bene is designed to be lightweight, meaning EPUBs open quickly and quietly unlike existing EPUB readers. Bene's UI is essentially a fork of [PDF.js](https://mozilla.github.io/pdf.js/). 
 
