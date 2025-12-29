@@ -5,7 +5,7 @@
 
 use std::path::Path;
 
-use anyhow::{anyhow, ensure, Context, Result};
+use anyhow::{Context, Result, anyhow, ensure};
 use log::trace;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;

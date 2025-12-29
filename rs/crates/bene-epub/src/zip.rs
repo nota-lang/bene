@@ -8,7 +8,7 @@ use std::{
   sync::Arc,
 };
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use format_serde_error::SerdeError;
 use log::{trace, warn};
 use serde::de::DeserializeOwned;

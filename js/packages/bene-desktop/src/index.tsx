@@ -97,3 +97,13 @@ getCurrentWebview().onDragDropEvent(event => {
     upload(path);
   }
 });
+
+// Custom schemes generate different URLs on Windows vs. non-Windows
+// platforms. See: https://docs.rs/tauri/2.9.5/tauri/struct.Builder.html#warning
+const isWindows = window.navigator.platform.startsWith("Win");
+const iframe = document.createElement("iframe");
+iframe.id = "reader";
+iframe.src = isWindows
+  ? "http://bene.localhost/index.html"
+  : "bene://localhost/index.html";
+document.body.appendChild(iframe);

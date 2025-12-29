@@ -5,7 +5,7 @@ use format_serde_error::SerdeError;
 use iref::IriRefBuf;
 use mediatype::MediaTypeBuf;
 use serde::Deserialize;
-use smallvec::{smallvec, SmallVec};
+use smallvec::{SmallVec, smallvec};
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(untagged)]
