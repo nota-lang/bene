@@ -1,5 +1,6 @@
 use anyhow::anyhow;
 use nom::{
+  IResult, Parser,
   branch::alt,
   bytes::complete::tag,
   character::complete::{char, none_of, one_of},
@@ -7,7 +8,6 @@ use nom::{
   error::ErrorKind,
   multi::{count, many1},
   sequence::{delimited, preceded},
-  IResult, Parser,
 };
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;

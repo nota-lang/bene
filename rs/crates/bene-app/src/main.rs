@@ -9,7 +9,6 @@
 
 use std::{
   borrow::Cow,
-  fmt::Write,
   fs,
   path::PathBuf,
   sync::{Mutex, MutexGuard},
@@ -67,22 +66,17 @@ struct CliArgs {
 }
 
 fn load_reader_asset(app: &AppHandle, local_path: &str) -> Result<Vec<u8>> {
-  let mut full_path = String::new();
-  if cfg!(dev) {
+  let mut full_path = if cfg!(dev) {
     let FrontendDist::Directory(dir) = app.config().build.frontend_dist.as_ref().unwrap() else {
       unreachable!()
     };
-    write!(full_path, "{}/../../bene-reader/dist", dir.display())?;
+    dir.join("../../bene-reader/dist")
   } else {
-    write!(
-      full_path,
-      "{}/bene-reader",
-      app.path().resource_dir().unwrap().display()
-    )?;
-  }
-  full_path.push_str(local_path);
+    app.path().resource_dir().unwrap().join("bene-reader")
+  };
+  full_path = full_path.join(local_path.strip_prefix('/').unwrap());
 
-  fs::read(&full_path).with_context(|| format!("Failed to read: {full_path}"))
+  fs::read(&full_path).with_context(|| format!("Failed to read: {}", full_path.display()))
 }
 
 fn serve_asset(

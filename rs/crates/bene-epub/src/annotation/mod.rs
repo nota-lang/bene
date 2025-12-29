@@ -1,4 +1,4 @@
-use anyhow::{bail, ensure, Context, Result};
+use anyhow::{Context, Result, bail, ensure};
 use iref::IriRefBuf;
 use serde::Serialize;
 use ts_rs::TS;
