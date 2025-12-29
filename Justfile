@@ -23,4 +23,11 @@ test-js: gen-bindings
 test-rs:
   cargo test
 
+[working-directory: 'epubs']
+build-demo-epub:
+  ./make-epub.sh portable-epubs
+  cp portable-epubs.epub ../js/packages/bene-web/public
+
+build-demo-site: build-demo-epub build-wasm
+
 test: test-js test-rs

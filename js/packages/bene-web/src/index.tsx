@@ -4,7 +4,7 @@ import { render } from "solid-js/web";
 
 import workerUrl from "../worker.ts?worker&url";
 
-declare var INITIAL_EPUB: string | undefined;
+const INITIAL_EPUB = new URL(window.location.href).searchParams.get("preload");
 
 export type WorkerMessage = { type: "loaded-epub"; data: LoadedEpub };
 export type ManagerMessage = {
@@ -12,7 +12,7 @@ export type ManagerMessage = {
   data: {
     data: Uint8Array;
     scope: string;
-    url?: URL;
+    url?: string;
     path?: string;
   };
 };
@@ -120,7 +120,7 @@ function App() {
       data: {
         data,
         scope: reg.scope,
-        url,
+        url: url?.href,
         path
       }
     };
@@ -128,7 +128,9 @@ function App() {
   };
 
   async function fetchEpub(file: string) {
-    const url = new URL(`epubs/${file}`, window.location.href);
+    // Note: if file is an absolute URL, then window.location.href
+    // is ignored.
+    const url = new URL(file, window.location.href);
     const response = await fetch(url);
     const buffer = await response.arrayBuffer();
     setNewEpub(new Uint8Array(buffer), url);
@@ -168,6 +170,9 @@ function App() {
       } else if (message.type === "open-url") {
         const url = message.data;
         window.open(url, "_blank");
+      } else if (message.type === "ready") {
+        // Ignore, only used on desktop target.
+        // TODO: *should* this be ignored?
       } else {
         console.warn("Unhandled message", message);
       }

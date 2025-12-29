@@ -24,11 +24,7 @@ jobs:
         run: just test
 
       - name: Build Wasm package
-        if: github.ref == 'refs/heads/main'
-        run: |
-          cd epubs && ./make-epub.sh portable-epubs && cd ..
-          cd js && mkdir -p packages/bene-web/public/epubs/ && ln -s $PWD/../epubs/portable-epubs.epub packages/bene-web/public/epubs/
-          cd .. && just build-wasm
+        run: just build-demo-site
 
       - name: Deploy to Github Pages
         if: github.ref == 'refs/heads/main'
