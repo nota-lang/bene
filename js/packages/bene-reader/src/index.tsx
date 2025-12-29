@@ -286,15 +286,14 @@ function Content(props: { navigateEvent: EventTarget }) {
       contentWindow.addEventListener("popstate", () => {
         sendMessageToParent({
           type: "navigate",
-          data: new URL(contentWindow.location.href)
+          data: contentWindow.location.href
         });
       });
 
       function updateAnchor(a: HTMLAnchorElement) {
         if (!a.href) return;
 
-        const url = new URL(a.href);
-        if (url.host !== window.location.host) {
+        if (new URL(a.href).host !== window.location.host) {
           // HACK: Tauri doesn't currently support opening external URLs via _blank anchors
           // when specifically nested inside an iframe. As a workaround, we post a message
           // to the parent and handle with the shell plugin. This should be removed when the
@@ -303,7 +302,7 @@ function Content(props: { navigateEvent: EventTarget }) {
             event.preventDefault();
             sendMessageToParent({
               type: "open-url",
-              data: url
+              data: a.href
             });
           });
         }

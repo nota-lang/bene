@@ -21,6 +21,12 @@ html {
   }
 }
 
+body {
+  // Many non-portable EPUBs like to aggressively set the background color, so this is a purely defensive rule.
+  // TODO: remove me once we restrict EPUBs to the document region.
+  background-color: transparent !important;
+}
+
 article {  
   box-sizing: border-box;
   padding: 0.5in;

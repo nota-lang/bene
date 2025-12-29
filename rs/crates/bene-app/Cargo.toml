@@ -1,6 +1,6 @@
 [package]
 name = "bene-app"
-version = "0.1.1"
+version = "0.0.1"
 description = "An EPUB reading system"
 authors = ["Will Crichton <crichton.will@gmail.com>"]
 license = "MIT OR Apache-2.0"
