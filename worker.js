@@ -78,10 +78,25 @@
     }
     return cachedDataViewMemory0;
   }
+  function passArray8ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 1, 1) >>> 0;
+    getUint8ArrayMemory0().set(arg, ptr / 1);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+  }
   function takeFromExternrefTable0(idx) {
     const value = wasm.__wbindgen_export_3.get(idx);
     wasm.__externref_table_dealloc(idx);
     return value;
+  }
+  function load_epub(data) {
+    const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.load_epub(ptr0, len0);
+    if (ret[2]) {
+      throw takeFromExternrefTable0(ret[1]);
+    }
+    return EpubCtxt.__wrap(ret[0]);
   }
   function guess_mime_type(url) {
     let deferred2_0;
@@ -96,21 +111,6 @@
     } finally {
       wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
     }
-  }
-  function passArray8ToWasm0(arg, malloc) {
-    const ptr = malloc(arg.length * 1, 1) >>> 0;
-    getUint8ArrayMemory0().set(arg, ptr / 1);
-    WASM_VECTOR_LEN = arg.length;
-    return ptr;
-  }
-  function load_epub(data) {
-    const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
-    const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.load_epub(ptr0, len0);
-    if (ret[2]) {
-      throw takeFromExternrefTable0(ret[1]);
-    }
-    return EpubCtxt.__wrap(ret[0]);
   }
   const EpubCtxtFinalization = typeof FinalizationRegistry === "undefined" ? { register: () => {
   }, unregister: () => {
@@ -254,7 +254,7 @@
       }
     }
     if (typeof module_or_path === "undefined") {
-      module_or_path = new URL("" + new URL("assets/rs_utils_bg-DUbyFaoc.wasm", self.location.href).href, self.location.href);
+      module_or_path = new URL("" + new URL("assets/rs_utils_bg-C2EosZ7u.wasm", self.location.href).href, self.location.href);
     }
     const imports = __wbg_get_imports();
     if (typeof module_or_path === "string" || typeof Request === "function" && module_or_path instanceof Request || typeof URL === "function" && module_or_path instanceof URL) {
