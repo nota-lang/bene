@@ -13,7 +13,7 @@ dev-native: gen-bindings
 
 [working-directory: 'js']
 build-wasm: gen-bindings
-  depot -p bene-web build
+  depot -p bene-web build --release
 
 [working-directory: 'js']
 test-js: gen-bindings
