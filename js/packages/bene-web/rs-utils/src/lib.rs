@@ -19,6 +19,14 @@ impl EpubCtxt {
       .archive
       .read_file(path)
       .map_err(|err| JsError::new(&err.to_string()))?;
+
+    #[allow(clippy::case_sensitive_file_extension_comparisons)]
+    let contents = if path.ends_with(".xhtml") {
+      bene_epub::htmlify_xhtml(contents).unwrap()
+    } else {
+      contents
+    };
+
     Ok(Uint8Array::from(contents.as_slice()))
   }
 }

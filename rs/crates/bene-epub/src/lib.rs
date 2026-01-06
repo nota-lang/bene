@@ -3,7 +3,7 @@
 #![warn(clippy::pedantic)]
 #![allow(clippy::single_match_else, clippy::must_use_candidate)]
 
-use std::path::Path;
+use std::{path::Path, string::FromUtf8Error};
 
 use anyhow::{Context, Result, anyhow, ensure};
 use log::trace;
@@ -242,12 +242,30 @@ impl Epub {
   }
 }
 
+/// Guesses the MIME type of a file based on its extension.
+///
+/// Uses [`mime_guess`] with a few EPUB-specific tweaks.
 pub fn guess_mime_type(path: &str) -> Option<String> {
   let guess = mime_guess::from_path(path);
   Some(match (guess.first(), path.split('.').next_back()?) {
-    (_, "xhtml") => "application/xhtml+xml".to_string(),
+    // Note: we specifically want to serve XHTML files as text/html rather than application/xhtml+xml
+    // so that they are rendered as HTML. This increases interoperability with Javascript frameworks which
+    // generate non-XML HTML, which as of 1/6/26, included Lit.
+    (_, "xhtml") => "text/html".to_string(),
     (Some(mime), _) => mime.to_string(),
     (None, ext) if ext == "tsx" || ext == "ts" => "text/javascript".to_string(),
     _ => "application/octet-stream".to_string(),
   })
+}
+
+/// Prepares an XHTML document for rendering as HTML.
+///
+/// # Errors
+/// Errors if contents are not utf-8.
+pub fn htmlify_xhtml(contents: Vec<u8>) -> Result<Vec<u8>, FromUtf8Error> {
+  let mut s = String::from_utf8(contents)?;
+  if !s.starts_with("<!") {
+    s.insert_str(0, "<!doctype html>");
+  }
+  Ok(s.into_bytes())
 }

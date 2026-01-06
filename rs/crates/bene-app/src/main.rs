@@ -102,6 +102,14 @@ fn serve_asset(
         Some(content_type) => response = response.header("Content-Type", content_type),
         None => warn!("Unknown content type for path: {path}"),
       }
+
+      #[allow(clippy::case_sensitive_file_extension_comparisons)]
+      let contents = if path.ends_with(".xhtml") {
+        bene_epub::htmlify_xhtml(contents).unwrap()
+      } else {
+        contents
+      };
+
       response.body(Cow::Owned(contents)).unwrap()
     }
     Err(e) => {
