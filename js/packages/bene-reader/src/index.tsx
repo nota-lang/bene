@@ -161,6 +161,7 @@ function ToolbarInner() {
         </span>
       </div>
       <div class="toolbar-middle">
+        {/* TODO: should not be hardcoded */}
         <ZOOM_PLUGIN.Toolbar />
       </div>
       <div class="toolbar-right">
@@ -496,7 +497,7 @@ function listenForDropEvents() {
 }
 
 function createInitialState(data: LoadedEpub): DocState {
-  return {
+  let state = {
     renditionIndex: 0,
     chapterIndex: 0,
     showNav: false,
@@ -541,6 +542,11 @@ function createInitialState(data: LoadedEpub): DocState {
       return epubUrl(rend, href);
     }
   };
+
+  // Show nav by default if there's at least one item in the spine.
+  state.showNav = state.rendition().package.spine.itemref.length > 1;
+
+  return state;
 }
 
 function listenForParentMessages(setState: SetStoreFunction<State>) {
