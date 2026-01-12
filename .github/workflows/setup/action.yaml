@@ -2,10 +2,6 @@ name: Setup
 runs:
   using: composite
   steps:
-    - uses: Swatinem/rust-cache@v2
-      with:
-          workspaces: ./rs
-
     - name: Install Just
       uses: extractions/setup-just@v3
 

@@ -26,11 +26,11 @@ Bene is a reading system for [EPUBs](https://www.w3.org/TR/epub-overview-33/). E
 1. Download the .rpm ([Intel][rpm-intel]), .AppImage ([Intel][appimage-intel]), or .deb ([Intel][deb-intel]).
 2. Install the file as appropriate.
 
-[mac-arm]: https://github.com/nota-lang/bene/releases/download/v0.1.2/Bene.Reader_0.1.2_aarch64.dmg
-[mac-intel]: https://github.com/nota-lang/bene/releases/download/v0.1.2/Bene.Reader_0.1.2_x64.dmg
-[windows-arm]: https://github.com/nota-lang/bene/releases/download/v0.1.2/Bene.Reader_0.1.2_arm64_en-US.msi
-[windows-intel]: https://github.com/nota-lang/bene/releases/download/v0.1.2/Bene.Reader_0.1.2_x64_en-US.msi
-[rpm-intel]: https://github.com/nota-lang/bene/releases/download/v0.1.2/Bene.Reader-0.1.2-1.x86_64.rpm
-[appimage-intel]: https://github.com/nota-lang/bene/releases/download/v0.1.2/Bene.Reader_0.1.2_amd64.AppImage
-[deb-intel]: https://github.com/nota-lang/bene/releases/download/v0.1.2/Bene.Reader_0.1.2_amd64.deb
+[mac-arm]: https://github.com/nota-lang/bene/releases/download/v0.1.3/Bene.Reader_0.1.3_aarch64.dmg
+[mac-intel]: https://github.com/nota-lang/bene/releases/download/v0.1.3/Bene.Reader_0.1.3_x64.dmg
+[windows-arm]: https://github.com/nota-lang/bene/releases/download/v0.1.3/Bene.Reader_0.1.3_arm64_en-US.msi
+[windows-intel]: https://github.com/nota-lang/bene/releases/download/v0.1.3/Bene.Reader_0.1.3_x64_en-US.msi
+[rpm-intel]: https://github.com/nota-lang/bene/releases/download/v0.1.3/Bene.Reader-0.1.3-1.x86_64.rpm
+[appimage-intel]: https://github.com/nota-lang/bene/releases/download/v0.1.3/Bene.Reader_0.1.3_amd64.AppImage
+[deb-intel]: https://github.com/nota-lang/bene/releases/download/v0.1.3/Bene.Reader_0.1.3_amd64.deb
 [code-signing]: #code-signing
