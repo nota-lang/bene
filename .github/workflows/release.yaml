@@ -36,7 +36,7 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
-      - uses: tauri-apps/tauri-action@v1
+      - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Temporary fix for https://github.com/linuxdeploy/linuxdeploy/issues/272

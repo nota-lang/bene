@@ -23,3 +23,8 @@ bene-epub = { path = "../bene-epub" }
 serde = { workspace = true }
 anyhow = { workspace = true }
 log = { workspace = true }
+
+[profile.release]
+strip = true
+lto = true
+opt-level = "z"

@@ -38,7 +38,7 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
-      - uses: tauri-apps/tauri-action@v1
+      - uses: tauri-apps/tauri-action@v0
         env:
           # Temporary fix for https://github.com/linuxdeploy/linuxdeploy/issues/272
           NO_STRIP: true
