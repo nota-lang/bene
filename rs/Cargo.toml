@@ -7,3 +7,8 @@ anyhow = "1.0.100"
 serde = { version = "1.0.228", features = ["derive"] }
 log = "0.4.20"
 quick-xml = { version = "0.38.3", features = ["serialize"] }
+
+[profile.release]
+strip = true
+lto = true
+opt-level = "z"

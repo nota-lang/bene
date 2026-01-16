@@ -267,5 +267,6 @@ pub fn htmlify_xhtml(contents: Vec<u8>) -> Result<Vec<u8>, FromUtf8Error> {
   if !s.starts_with("<!") {
     s.insert_str(0, "<!doctype html>");
   }
+  s = s.replace("<br></br>", "<br>");
   Ok(s.into_bytes())
 }
