@@ -1,1 +1,4 @@
 *.epub
+.direnv
+result
+target/**

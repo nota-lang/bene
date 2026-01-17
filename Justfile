@@ -3,6 +3,11 @@ gen-bindings:
   cargo test -p bene-epub export_bindings
   cp -r crates/bene-epub/bindings ../js/packages/bene-types/src/
 
+[working-directory: 'js']
+build: gen-bindings
+  depot -p bene-reader build
+  depot -p bene-desktop build
+
 [working-directory: 'rs']
 build-native: gen-bindings
   cargo tauri build
